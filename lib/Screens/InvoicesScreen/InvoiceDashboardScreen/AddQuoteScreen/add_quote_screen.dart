@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart'; // Import for date formatting
+import 'package:flutter_quill/flutter_quill.dart';
 
 class AddQuoteScreen extends StatefulWidget {
   const AddQuoteScreen({super.key});
@@ -10,6 +11,9 @@ class AddQuoteScreen extends StatefulWidget {
 }
 
 class _AddQuoteScreenState extends State<AddQuoteScreen> {
+
+  final QuillController _controller = QuillController.basic();
+
   String? selectedValue;
   DateTime? selectedDate; // Variable to hold selected date
   String selectedInvoiceTemplate = 'Default';
@@ -645,28 +649,118 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                     ),
 
                     const SizedBox(height: largePadding,),
-                    Center(child: SizedBox(
-                      width: 220,
-                      height: 47.0,
-                      child: FloatingActionButton.extended(
-                        onPressed: _toggleButton,
-                        label: Text(
-                          _isAdded ? 'Remove Note & Terms' : 'Add Note & Terms',
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 14),
+                    Center(
+                      child: SizedBox(
+                        width: 220,
+                        height: 47.0,
+                        child: FloatingActionButton.extended(
+                          onPressed: _toggleButton,
+                          label: Text(
+                            _isAdded ? 'Remove Note & Terms' : 'Add Note & Terms',
+                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                          ),
+                          icon: Icon(
+                            _isAdded ? Icons.remove : Icons.add,
+                            color: Colors.white,
+                          ),
+                          backgroundColor: _isAdded ? Colors.red : kPrimaryColor,
                         ),
-                        icon: Icon(
-                          _isAdded ? Icons.remove : Icons.add,
-                          color: Colors.white,
-                        ),
-                        backgroundColor: _isAdded ? Colors.red : kPrimaryColor,
                       ),
-                    ),
                     ),
 
                     const SizedBox(height: largePadding,),
 
+                    if (_isAdded) ...[
 
+                      Column(
+                        children: [
+                          const SizedBox(height: largePadding),
+                          TextFormField(
+                            keyboardType: TextInputType.text,
+                            textInputAction: TextInputAction.next,
+                            cursorColor: kPrimaryColor,
+                            onSaved: (value) {},
+                            readOnly: false,
+                            style: const TextStyle(color: kPrimaryColor),
+                            maxLines: 5,
+                            minLines: 1,
+                            decoration: InputDecoration(
+                              labelText: "Note",
+                              labelStyle:
+                              const TextStyle(color: kPrimaryColor, fontSize: 16),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(),
+                              ),
+                              filled: true,
+                              fillColor: Colors.transparent,
+                            ),
+                            onChanged: (value) {
+                              setState(() {});
+                            },
+                          ),
+
+                          const SizedBox(height: defaultPadding),
+                          TextFormField(
+                            keyboardType: TextInputType.text,
+                            textInputAction: TextInputAction.next,
+                            cursorColor: kPrimaryColor,
+                            onSaved: (value) {},
+                            readOnly: false,
+                            maxLines: 5,
+                            minLines: 1,
+                            style: const TextStyle(color: kPrimaryColor),
+                            decoration: InputDecoration(
+                              labelText: "Terms",
+                              labelStyle:
+                              const TextStyle(color: kPrimaryColor, fontSize: 16),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(),
+                              ),
+                              filled: true,
+                              fillColor: Colors.transparent,
+                            ),
+                            onChanged: (value) {
+                              setState(() {});
+                            },
+                          ),
+
+
+                        ],
+                      ),
+
+                      /*Column(
+                        children: [
+                          QuillToolbar.simple(
+                            configurations: QuillSimpleToolbarConfigurations(
+                              controller: _controller,
+                              toolbarSize: 10,
+                              sharedConfigurations: const QuillSharedConfigurations(
+                                locale: Locale('de'),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: QuillEditor.basic(
+                              configurations: QuillEditorConfigurations(
+                                placeholder: "Type here..",
+                                controller: _controller,
+                                autoFocus: true,
+                                sharedConfigurations: const QuillSharedConfigurations(
+                                  locale: Locale('de'),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),*/
+                    ],
+
+
+
+                    const SizedBox(height: largePadding,),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
