@@ -50,7 +50,8 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
 
   void addProduct() {
     setState(() {
-      productList.add({"selectedProduct": 'Select Product', "quantity": "", "price": ""});
+      productList.add(
+          {"selectedProduct": 'Select Product', "quantity": "", "price": ""});
     });
   }
 
@@ -91,7 +92,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                 decoration: InputDecoration(
                   labelText: "Invoice #",
                   labelStyle:
-                      const TextStyle(color: kPrimaryColor, fontSize: 16),
+                  const TextStyle(color: kPrimaryColor, fontSize: 16),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(),
@@ -147,7 +148,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                 decoration: InputDecoration(
                   labelText: "Receiver Name",
                   labelStyle:
-                      const TextStyle(color: kPrimaryColor, fontSize: 16),
+                  const TextStyle(color: kPrimaryColor, fontSize: 16),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(),
@@ -170,7 +171,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                 decoration: InputDecoration(
                   labelText: "Receiver Email",
                   labelStyle:
-                      const TextStyle(color: kPrimaryColor, fontSize: 16),
+                  const TextStyle(color: kPrimaryColor, fontSize: 16),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(),
@@ -221,7 +222,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                     decoration: InputDecoration(
                       labelText: "Invoice Date*",
                       labelStyle:
-                          const TextStyle(color: kPrimaryColor, fontSize: 16),
+                      const TextStyle(color: kPrimaryColor, fontSize: 16),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(),
@@ -285,10 +286,18 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                   fillColor: Colors.transparent,
                 ),
 
-                items: ['Select Status','Paid', 'Unpaid', 'Partially Paid', 'Overdue', 'Processing'].map((String role) {
+                items: [
+                  'Select Status',
+                  'Paid',
+                  'Unpaid',
+                  'Partially Paid',
+                  'Overdue',
+                  'Processing'
+                ].map((String role) {
                   return DropdownMenuItem(
                     value: role,
-                    child: Text(role,style: const TextStyle(color: kPrimaryColor,fontSize: 16),),
+                    child: Text(role, style: const TextStyle(
+                        color: kPrimaryColor, fontSize: 16),),
                   );
                 }).toList(),
                 onChanged: (newValue) {
@@ -316,10 +325,22 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                   fillColor: Colors.transparent,
                 ),
 
-                items: ['Default','New York', 'Toronto', 'Rio', 'London', 'Istanbul', 'Mumbai', 'Hong Kong', 'Tokyo', 'Paris'].map((String role) {
+                items: [
+                  'Default',
+                  'New York',
+                  'Toronto',
+                  'Rio',
+                  'London',
+                  'Istanbul',
+                  'Mumbai',
+                  'Hong Kong',
+                  'Tokyo',
+                  'Paris'
+                ].map((String role) {
                   return DropdownMenuItem(
                     value: role,
-                    child: Text(role,style: const TextStyle(color: kPrimaryColor,fontSize: 16),),
+                    child: Text(role, style: const TextStyle(
+                        color: kPrimaryColor, fontSize: 16),),
                   );
                 }).toList(),
                 onChanged: (newValue) {
@@ -350,7 +371,8 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                 items: ['Payment QR Code',].map((String role) {
                   return DropdownMenuItem(
                     value: role,
-                    child: Text(role,style: const TextStyle(color: kPrimaryColor,fontSize: 16),),
+                    child: Text(role, style: const TextStyle(
+                        color: kPrimaryColor, fontSize: 16),),
                   );
                 }).toList(),
                 onChanged: (newValue) {
@@ -377,10 +399,12 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                   fillColor: Colors.transparent,
                 ),
 
-                items: ['Select Currency', 'USD', 'INR', 'EUR'].map((String role) {
+                items: ['Select Currency', 'USD', 'INR', 'EUR'].map((
+                    String role) {
                   return DropdownMenuItem(
                     value: role,
-                    child: Text(role,style: const TextStyle(color: kPrimaryColor,fontSize: 16),),
+                    child: Text(role, style: const TextStyle(
+                        color: kPrimaryColor, fontSize: 16),),
                   );
                 }).toList(),
                 onChanged: (newValue) {
@@ -441,10 +465,12 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                   fillColor: Colors.transparent,
                 ),
 
-                items: ['Day', 'Weekly', 'Monthly', 'Half Yearly', 'Yearly'].map((String role) {
+                items: ['Day', 'Weekly', 'Monthly', 'Half Yearly', 'Yearly']
+                    .map((String role) {
                   return DropdownMenuItem(
                     value: role,
-                    child: Text(role,style: const TextStyle(color: kPrimaryColor,fontSize: 16),),
+                    child: Text(role, style: const TextStyle(
+                        color: kPrimaryColor, fontSize: 16),),
                   );
                 }).toList(),
                 onChanged: (newValue) {
@@ -478,7 +504,8 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                     const SizedBox(height: 10),
                     ListView.builder(
                       shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(), // Prevent scrolling
+                      physics: const NeverScrollableScrollPhysics(),
+                      // Prevent scrolling
                       itemCount: productList.length,
                       itemBuilder: (context, index) {
                         return Padding(
@@ -506,21 +533,28 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                                   style: const TextStyle(color: kPrimaryColor),
                                   decoration: InputDecoration(
                                     labelText: 'Product',
-                                    labelStyle: const TextStyle(color: kPrimaryColor),
+                                    labelStyle: const TextStyle(
+                                        color: kPrimaryColor),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                       borderSide: const BorderSide(),
                                     ),
                                   ),
-                                  items: ['Select Product', 'Product 1', 'Product 2'].map((String role) {
+                                  items: [
+                                    'Select Product',
+                                    'Product 1',
+                                    'Product 2'
+                                  ].map((String role) {
                                     return DropdownMenuItem(
                                       value: role,
-                                      child: Text(role, style: const TextStyle(color: kPrimaryColor, fontSize: 16)),
+                                      child: Text(role, style: const TextStyle(
+                                          color: kPrimaryColor, fontSize: 16)),
                                     );
                                   }).toList(),
                                   onChanged: (newValue) {
                                     setState(() {
-                                      productList[index]['selectedProduct'] = newValue!;
+                                      productList[index]['selectedProduct'] =
+                                      newValue!;
                                     });
                                   },
                                 ),
@@ -556,13 +590,24 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                                 ),
                                 const SizedBox(height: largePadding),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment
+                                      .spaceBetween,
                                   children: [
-                                    const Text("Total", style: TextStyle(fontSize: 16,fontWeight: FontWeight.bold)),
-                                    Padding(padding: const EdgeInsets.symmetric(horizontal: 14),
+                                    const Text("Total", style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold)),
+                                    Padding(padding: const EdgeInsets.symmetric(
+                                        horizontal: 14),
                                       child: Text(
-                                        "${(double.tryParse(productList[index]['quantity'] ?? '0') ?? 0) * (double.tryParse(productList[index]['price'] ?? '0') ?? 0)}",
-                                        style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold, fontSize: 16),
+                                        "${(double.tryParse(
+                                            productList[index]['quantity'] ??
+                                                '0') ?? 0) * (double.tryParse(
+                                            productList[index]['price'] ??
+                                                '0') ?? 0)}",
+                                        style: const TextStyle(
+                                            color: kPrimaryColor,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16),
                                       ),
                                     ),
 
@@ -570,11 +615,15 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                                 ),
                                 const SizedBox(height: smallPadding),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment
+                                      .spaceBetween,
                                   children: [
-                                    const Text("Action", style: TextStyle(fontSize: 16,fontWeight: FontWeight.bold)),
+                                    const Text("Action", style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold)),
                                     IconButton(
-                                      icon: const Icon(Icons.delete, color: Colors.red),
+                                      icon: const Icon(
+                                          Icons.delete, color: Colors.red),
                                       onPressed: () => removeProduct(index),
                                     ),
                                   ],
@@ -592,7 +641,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                           onPressed: () {
                             addProduct();
                           },
-                          child: const Icon(Icons.add,color: kPrimaryColor,),
+                          child: const Icon(Icons.add, color: kPrimaryColor,),
                         ),
                       ],
                     ),
@@ -613,7 +662,8 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                             onSaved: (value) {},
                             decoration: InputDecoration(
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(defaultPadding),
+                                borderRadius: BorderRadius.circular(
+                                    defaultPadding),
                                 borderSide: const BorderSide(),
                               ),
                               hintText: "0",
@@ -637,10 +687,12 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                             ),
                           ),
 
-                          items: ['Select Discount', 'Fixed', 'Percentage'].map((String role) {
+                          items: ['Select Discount', 'Fixed', 'Percentage']
+                              .map((String role) {
                             return DropdownMenuItem(
                               value: role,
-                              child: Text(role,style: const TextStyle(color: kPrimaryColor,fontSize: 16),),
+                              child: Text(role, style: const TextStyle(
+                                  color: kPrimaryColor, fontSize: 16),),
                             );
                           }).toList(),
                           onChanged: (newValue) {
@@ -670,7 +722,8 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                       items: ['Select Tax', 'Test Product',].map((String role) {
                         return DropdownMenuItem(
                           value: role,
-                          child: Text(role,style: const TextStyle(color: kPrimaryColor,fontSize: 16),),
+                          child: Text(role, style: const TextStyle(
+                              color: kPrimaryColor, fontSize: 16),),
                         );
                       }).toList(),
                       onChanged: (newValue) {
@@ -684,9 +737,16 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                     const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Sub Total:", style: TextStyle(color: kPrimaryColor,fontSize: 14,fontWeight: FontWeight.bold),),
-                        Padding(padding: EdgeInsets.symmetric(horizontal: defaultPadding),
-                          child: Text("100.00", style: TextStyle(color: kPrimaryColor,fontSize: 14,fontWeight: FontWeight.bold),),),
+                        Text("Sub Total:", style: TextStyle(
+                            color: kPrimaryColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold),),
+                        Padding(padding: EdgeInsets.symmetric(
+                            horizontal: defaultPadding),
+                          child: Text("100.00", style: TextStyle(
+                              color: kPrimaryColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold),),),
                       ],
                     ),
 
@@ -694,9 +754,15 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                     const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Discount:", style: TextStyle(color: kPrimaryColor,fontSize: 14,fontWeight: FontWeight.bold),),
-                        Padding(padding: EdgeInsets.symmetric(horizontal: defaultPadding),
-                          child: Text("0.00", style: TextStyle(color: kPrimaryColor,fontSize: 14,fontWeight: FontWeight.bold),),),
+                        Text("Discount:", style: TextStyle(color: kPrimaryColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold),),
+                        Padding(padding: EdgeInsets.symmetric(
+                            horizontal: defaultPadding),
+                          child: Text("0.00", style: TextStyle(
+                              color: kPrimaryColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold),),),
                       ],
                     ),
 
@@ -704,9 +770,15 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                     const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Tax:", style: TextStyle(color: kPrimaryColor,fontSize: 14,fontWeight: FontWeight.bold),),
-                        Padding(padding: EdgeInsets.symmetric(horizontal: defaultPadding),
-                          child: Text("0.00", style: TextStyle(color: kPrimaryColor,fontSize: 14,fontWeight: FontWeight.bold),),),
+                        Text("Tax:", style: TextStyle(color: kPrimaryColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold),),
+                        Padding(padding: EdgeInsets.symmetric(
+                            horizontal: defaultPadding),
+                          child: Text("0.00", style: TextStyle(
+                              color: kPrimaryColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold),),),
                       ],
                     ),
 
@@ -714,9 +786,15 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                     const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Total:", style: TextStyle(color: kPrimaryColor,fontSize: 14,fontWeight: FontWeight.bold),),
-                        Padding(padding: EdgeInsets.symmetric(horizontal: defaultPadding),
-                          child: Text("0.00", style: TextStyle(color: kPrimaryColor,fontSize: 14,fontWeight: FontWeight.bold),),),
+                        Text("Total:", style: TextStyle(color: kPrimaryColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold),),
+                        Padding(padding: EdgeInsets.symmetric(
+                            horizontal: defaultPadding),
+                          child: Text("0.00", style: TextStyle(
+                              color: kPrimaryColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold),),),
                       ],
                     ),
 
@@ -728,7 +806,8 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                         onPressed: _toggleButton,
                         label: Text(
                           _isAdded ? 'Remove Note & Terms' : 'Add Note & Terms',
-                          style: const TextStyle(color: Colors.white, fontSize: 14),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 14),
                         ),
                         icon: Icon(
                           _isAdded ? Icons.remove : Icons.add,
@@ -741,10 +820,13 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
 
                     const SizedBox(height: largePadding,),
 
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const SizedBox(height: largePadding,),
+
+                        // Draft Button
                         SizedBox(
                           width: 145,
                           height: 47.0,
@@ -754,7 +836,8 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                             },
                             label: const Text(
                               'Save as Draft',
-                              style: TextStyle(color: Colors.white, fontSize: 14),
+                              style: TextStyle(
+                                  color: Colors.white, fontSize: 14),
                             ),
                             backgroundColor: kPrimaryColor,
                           ),
@@ -762,6 +845,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
 
                         const SizedBox(width: defaultPadding,),
 
+                        // Save Button
                         SizedBox(
                           width: 145,
                           height: 47.0,
@@ -771,7 +855,8 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                             },
                             label: const Text(
                               'Save & Send',
-                              style: TextStyle(color: Colors.white, fontSize: 14),
+                              style: TextStyle(
+                                  color: Colors.white, fontSize: 14),
                             ),
                             backgroundColor: kPrimaryColor,
                           ),
@@ -780,12 +865,9 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                       ],
                     ),
 
-
                   ],
                 ),
               ),
-
-
             ],
           ),
         ),
