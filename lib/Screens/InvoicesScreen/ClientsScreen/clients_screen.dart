@@ -134,12 +134,16 @@ class _ClientsScreenState extends State<ClientsScreen> {
                             ],
                           ),
 
-
-
                           const SizedBox(height: smallPadding,),
+                          const Divider(color: kPrimaryLightColor,),
+                          const SizedBox(height: smallPadding,),
+
+
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
+                              const Expanded(child: Text("Action:",style: TextStyle(color: Colors.white, fontSize: 16))),
+
                               IconButton(
                                 icon: const Icon(Icons.remove_red_eye,color: Colors.white,),
                                 onPressed: () {
