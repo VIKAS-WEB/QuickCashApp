@@ -68,17 +68,25 @@ class _CardsScreenState extends State<SpotTradeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-
-            const SizedBox(height: defaultPadding),
+            const SizedBox(height: smallPadding),
             GestureDetector(
               onTap: () => _showTransferTypeDropDown(context),
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12.0, vertical: 15.0),
+                width: double.infinity,
+                padding: const EdgeInsets.all(defaultPadding),
                 decoration: BoxDecoration(
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: kPrimaryColor),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
+
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -99,7 +107,7 @@ class _CardsScreenState extends State<SpotTradeScreen> {
                           selectedTransferType != null
                               ? '$selectedTransferType ${_getFlagForTransferType(selectedTransferType!)}'
                               : 'Coin',
-                          style: const TextStyle(color: kPrimaryColor),
+                          style: const TextStyle(color: kPrimaryColor, fontSize: 15, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -108,6 +116,94 @@ class _CardsScreenState extends State<SpotTradeScreen> {
                 ),
               ),
             ),
+
+            const SizedBox(height: smallPadding,),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(defaultPadding),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+
+                  SizedBox(height: 0,),
+                  Text("24h Change", style: TextStyle(color: kPurpleColor),),
+                  SizedBox(height: 5,),
+                  Text("0.000018729.666%", style: TextStyle(color: kGreeneColor,fontSize: 16),),
+
+                  SizedBox(height: smallPadding,),
+                  Divider(color: kPrimaryLightColor,),
+
+                  SizedBox(height: 0,),
+                  Text("24h High", style: TextStyle(color: kPurpleColor),),
+                  SizedBox(height: 5,),
+                  Text("0.00001902", style: TextStyle(fontSize: 16),),
+
+                  SizedBox(height: smallPadding,),
+                  Divider(color: kPrimaryLightColor,),
+
+                  SizedBox(height: 0,),
+                  Text("24h Low", style: TextStyle(color: kPurpleColor),),
+                  SizedBox(height: 5,),
+                  Text("0.00001697", style: TextStyle(fontSize: 16),),
+
+                  SizedBox(height: smallPadding,),
+                  Divider(color: kPrimaryLightColor,),
+
+                  SizedBox(height: 0,),
+                  Text("24h Volume", style: TextStyle(color: kPurpleColor),),
+                  SizedBox(height: 5,),
+                  Text("40375.66323000", style: TextStyle(fontSize: 16),),
+
+                  SizedBox(height: smallPadding,),
+                  Divider(color: kPrimaryLightColor,),
+
+                  SizedBox(height: 0,),
+                  Text("24h Volume(USDT)", style: TextStyle(color: kPurpleColor),),
+                  SizedBox(height: 5,),
+                  Text("2831616388.79402430", style: TextStyle(fontSize: 16),),
+
+                ],
+              ),
+            ),
+
+            const SizedBox(height: largePadding,),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(defaultPadding),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Recent Trades",style: TextStyle(color: kPrimaryColor, fontSize: 17, fontWeight: FontWeight.bold),)
+                ],
+              ),
+            ),
+
+
+
 
 
 
