@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/AddProductScreen/add_product_screen.dart';
+import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/EditProductScreen/edit_product_Screen.dart';
 import 'package:quickcash/constants.dart';
 
 class ProductsScreen extends StatefulWidget {
@@ -180,7 +181,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                 icon: const Icon(
                                   Icons.remove_red_eye, color: Colors.white,),
                                 onPressed: () {
-                                  // .................
+                                  mViewProduct(context);
+                                  /*Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const ViewProductScreen()),
+                                  );*/
 
                                 },
                               ),
@@ -188,7 +193,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                 icon: const Icon(
                                   Icons.edit, color: Colors.white,),
                                 onPressed: () {
-                                  // ..............................
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const EditProductScreen()),
+                                  );
 
                                 },
                               ),
@@ -242,4 +250,170 @@ class _ProductsScreenState extends State<ProductsScreen> {
     )) ?? false;
   }
 
+
+  void mViewProduct(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return const ViewProduct(); // Use the new StatefulWidget
+      },
+    );
+  }
 }
+
+class ViewProduct extends StatefulWidget {
+  const ViewProduct({super.key});
+
+  @override
+  State<ViewProduct>  createState() => _ViewProductState();
+}
+
+class _ViewProductState extends State<ViewProduct> {
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(defaultPadding),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'View Product',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: kPrimaryColor,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: kPrimaryColor),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            TextFormField(
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.next,
+              cursorColor: kPrimaryColor,
+              onSaved: (value){},
+              readOnly: true,
+              style: const TextStyle(color: kPrimaryColor),
+
+              decoration: InputDecoration(
+                labelText: "Name",
+                labelStyle: const TextStyle(color: kPrimaryColor),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide()
+                ),
+                filled: true,
+                fillColor: Colors.transparent,
+              ),
+            ),
+
+            const SizedBox(height: defaultPadding),
+            TextFormField(
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.next,
+              cursorColor: kPrimaryColor,
+              onSaved: (value) {},
+              readOnly: true,
+              style: const TextStyle(color: kPrimaryColor),
+
+              decoration: InputDecoration(
+                labelText: "Product Code",
+                labelStyle: const TextStyle(color: kPrimaryColor),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide()
+                ),
+                filled: true,
+                fillColor: Colors.transparent,
+              ),
+            ),
+
+            const SizedBox(height: defaultPadding),
+            TextFormField(
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.next,
+              cursorColor: kPrimaryColor,
+              onSaved: (value) {},
+              readOnly: true,
+              style: const TextStyle(color: kPrimaryColor),
+
+              decoration: InputDecoration(
+                labelText: "Category",
+                labelStyle: const TextStyle(color: kPrimaryColor),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide()
+                ),
+                filled: true,
+                fillColor: Colors.transparent,
+              ),
+            ),
+
+            const SizedBox(height: defaultPadding),
+            TextFormField(
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.next,
+              cursorColor: kPrimaryColor,
+              onSaved: (value) {},
+              readOnly: true,
+              style: const TextStyle(color: kPrimaryColor),
+
+              decoration: InputDecoration(
+                labelText: "Unit Price",
+                labelStyle: const TextStyle(color: kPrimaryColor),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide()
+                ),
+                filled: true,
+                fillColor: Colors.transparent,
+              ),
+            ),
+
+            const SizedBox(height: defaultPadding),
+            TextFormField(
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.next,
+              cursorColor: kPrimaryColor,
+              onSaved: (value) {},
+              readOnly: true,
+              maxLines: 12,
+              minLines: 6,
+              style: const TextStyle(color: kPrimaryColor),
+              decoration: InputDecoration(
+                labelText: "Description",
+                labelStyle: const TextStyle(color: kPrimaryColor),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide()
+                ),
+                floatingLabelBehavior: FloatingLabelBehavior.always,
+                filled: true,
+                fillColor: Colors.transparent,
+              ),
+            ),
+
+
+            const SizedBox(height: 30.0),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+
