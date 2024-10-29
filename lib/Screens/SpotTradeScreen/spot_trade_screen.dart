@@ -63,7 +63,7 @@ class _CardsScreenState extends State<SpotTradeScreen> {
         ),
       ),
       body: SingleChildScrollView(
-        child: Padding(padding: EdgeInsets.all(defaultPadding),
+        child: Padding(padding: const EdgeInsets.all(defaultPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
