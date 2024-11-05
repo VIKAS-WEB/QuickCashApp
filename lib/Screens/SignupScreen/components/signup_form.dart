@@ -4,7 +4,6 @@ import 'package:quickcash/Screens/SignupScreen/model/signupApi.dart';
 
 import '../../../components/check_already_have_an_account.dart';
 import '../../../constants.dart';
-import '../../../test_code.dart';
 import '../../../util/auth_manager.dart';
 import '../../LoginScreen/login_screen.dart';
 
@@ -53,7 +52,12 @@ class _SignUpFormState extends State<SignUpForm> {
               ""
           );
 
-          print(response.userId);
+          if (response.userId != null) {
+            print("User ID: ${response.userId}");
+          } else {
+            print("User ID is null");
+          }
+
           print(response.token);
 
           setState(() {
@@ -61,8 +65,8 @@ class _SignUpFormState extends State<SignUpForm> {
           });
 
           // Save user ID and token to SharedPreferences
-        //  await AuthManager.saveUserId(response.userId);
-         // await AuthManager.saveToken(response.token);
+          await AuthManager.saveUserId(response.userId!);
+          await AuthManager.saveToken(response.token!);
 
           // Navigate to HomeScreen (uncomment this and replace with actual HomeScreen)
           // Navigator.pushReplacement(

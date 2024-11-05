@@ -27,9 +27,10 @@ class SignUpResponse {
 
   factory SignUpResponse.fromJson(Map<String, dynamic> json) {
     return SignUpResponse(
-      userId: json['_id'] as String?,
+      userId: json['data']?['_id'] as String?,  // Accessing _id inside data
       token: json['token'] as String?,
     );
   }
 }
+
 
