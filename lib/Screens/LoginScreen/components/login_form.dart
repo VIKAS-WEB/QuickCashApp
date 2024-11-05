@@ -6,7 +6,9 @@ import 'package:quickcash/components/check_already_have_an_account.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/Screens/SignupScreen/signup_screen.dart';
 
-import '../../../models/LoginModel/loginApi.dart';
+import '../../HomeScreen/home_screen.dart';
+import '../models/loginApi.dart';
+
 
 
 class LoginForm extends StatefulWidget {
@@ -43,21 +45,14 @@ class _LoginFormState extends State<LoginForm> {
           isLoading = false;
         });
 
-        // Handle successful login
-        print('User ID: ${response.userId}');
-        print('Token: ${response.token}');
-
         // Save user ID and token to SharedPreferences
         await AuthManager.saveUserId(response.userId);
         await AuthManager.saveToken(response.token);
 
-        print(AuthManager.getUserId());
-        print(AuthManager.getToken());
-
-        /*Navigator.pushReplacement(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()), // replace HomeScreen with your actual home screen
-        );*/
+        );
 
       } catch (error) {
         setState(() {
