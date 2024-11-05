@@ -45,6 +45,13 @@ dependencies:
   syncfusion_flutter_charts: ^27.1.56
   fl_chart: ^0.69.0
   flutter_quill: ^10.8.5
+  dio: ^5.7.0
+  shared_preferences: ^2.3.2
+  get_it: ^8.0.2
+  flutter_bloc: ^8.1.6
+  either_dart: ^0.3.0
+  bloc: ^8.1.4
+
 
 
 

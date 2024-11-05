@@ -155,7 +155,7 @@ class _LoginFormState extends State<LoginForm> {
           const SizedBox(height: defaultPadding),
           if (isLoading) const CircularProgressIndicator(color: kPrimaryColor,), // Show loading indicator
           if (errorMessage != null) // Show error message if there's an error
-            const Text('Invalid Credentials!', style: TextStyle(color: Colors.red)),
+            Text(errorMessage!, style: const TextStyle(color: Colors.red)),
           const SizedBox(height: 35),
           ElevatedButton(
             onPressed: isLoading ? null : _login, // Disable button if loading

@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/WelcomeScreen/welcome_screen.dart';
 import 'package:quickcash/constants.dart';
 
-void main() {
+import 'Screens/util/auth_manager.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Ensure that binding is initialized
+  await AuthManager.init();
   runApp(const QuickCashApp());
 }
 
