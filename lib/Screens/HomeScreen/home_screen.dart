@@ -14,12 +14,14 @@ import 'package:quickcash/Screens/InvoicesScreen/ManualInvoicePayment/manual_inv
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/products_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quotes_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/Settings/settings_screen.dart';
+import 'package:quickcash/Screens/LoginScreen/login_screen.dart';
 import 'package:quickcash/Screens/ReferAndEarnScreen/refer_and_earn_screen.dart';
 import 'package:quickcash/Screens/SpotTradeScreen/spot_trade_screen.dart';
 import 'package:quickcash/Screens/StatemetScreen/statement_screen.dart';
 import 'package:quickcash/Screens/TicketsScreen/tickets_screen.dart';
 import 'package:quickcash/Screens/TransactionScreen/transaction_screen.dart';
 import 'package:quickcash/Screens/UserProfileScreen/profile_main_screen.dart';
+import 'package:quickcash/Screens/util/auth_manager.dart';
 import 'package:quickcash/constants.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -118,6 +120,8 @@ class _HomeScreenState extends State<HomeScreen> {
         body: Stack(
           children: [
             container, // Your main content
+
+            // Positioned widgets for menu and logout icons
             Positioned(
               top: 40, // Adjust this value as needed
               left: 10, // Adjust this value as needed
@@ -130,6 +134,39 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                   color: kPrimaryColor, // Customize the color if needed
                   iconSize: 30, // Customize the size if needed
+                ),
+              ),
+            ),
+
+            Positioned(
+              top: 40, // Align the logout button at the same height as the menu icon
+              right: 10, // Adjust this value to move it to the right side
+              child: IconButton(
+                icon: const Icon(Icons.logout),
+                onPressed: () {
+                  // Handle logout functionality here
+                  mLogoutDialog();
+                  // print("Logout button pressed");
+                },
+                color: kPrimaryColor, // Customize the color if needed
+                iconSize: 30, // Customize the size if needed
+              ),
+            ),
+
+            // Centered text between the icons
+            const Positioned(
+              top: 50, // Align with the icons vertically
+              left: 50, // Start positioning the text from the left side
+              right: 50, // Give some space on the right side for text
+              child: Center(
+                child: Text(
+                  'Dashboard', // Replace with your desired text
+                  style: TextStyle(
+                    fontSize: 20, // Customize text size
+                    fontWeight: FontWeight.bold, // Customize text weight
+                    color: kPrimaryColor, // Customize text color
+                  ),
+                  textAlign: TextAlign.center, // Center the text horizontally
                 ),
               ),
             ),
@@ -146,6 +183,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
+
+
     );
   }
 
@@ -169,6 +208,37 @@ class _HomeScreenState extends State<HomeScreen> {
     )) ??
         false;
   }
+
+  Future<bool> mLogoutDialog() async {
+    return (await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Logout"),
+        content: const Text("Do you really want to Logout?"),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false), // No, return false
+            child: const Text("No"),
+          ),
+          TextButton(
+            onPressed: () async {
+              // Log the user out
+              AuthManager.logout();  // Make sure to call logout function here
+              // Pop the dialog and return true (indicating a successful logout)
+              Navigator.of(context).pop(true);
+              // Navigate to the login screen
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()), // replace HomeScreen with your actual home screen
+              );
+            },
+            child: const Text("Yes"),
+          ),
+        ],
+      ),
+    )) ?? false; // In case of dialog dismiss, return false
+  }
+
 
   Widget mMyDrawerList() {
     return Container(

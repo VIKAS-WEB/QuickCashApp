@@ -22,6 +22,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           children: [
             // New card with indicator widgets for Deposit, Debit, and Fee Debit
+
+            const SizedBox(height: 25.0,),
+
             const Card(
               margin: EdgeInsets.all(16.0),
               child: Padding(
