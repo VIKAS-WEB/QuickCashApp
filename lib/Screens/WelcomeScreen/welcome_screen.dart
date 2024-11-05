@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../components/background.dart';
+import '../../util/auth_manager.dart';
 import '../HomeScreen/home_screen.dart';
-import '../util/auth_manager.dart';
 import 'components/login_signup_btn.dart';
 import 'components/welcome_image.dart';
 

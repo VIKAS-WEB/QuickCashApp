@@ -1,11 +1,11 @@
 // login_form.dart
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/ForgotScreen/forgot_pawwsord_screen.dart';
-import 'package:quickcash/Screens/util/auth_manager.dart';
 import 'package:quickcash/components/check_already_have_an_account.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/Screens/SignupScreen/signup_screen.dart';
 
+import '../../../util/auth_manager.dart';
 import '../../HomeScreen/home_screen.dart';
 import '../models/loginApi.dart';
 

@@ -40,23 +40,4 @@ class AuthManager {
     return token.isNotEmpty;
   }
 
-  /*static Future<LoginResponse?> login(LoginRequest request) async {
-    try {
-      final response = await Dio().post(
-        '${ApiConstants.baseUrl}/user/login',
-        data: request.toJson(),
-      );
-
-      if (response.statusCode == 200) {
-        final responseData = LoginResponse.fromJson(response.data);
-        await saveId(responseData.userId);
-        await saveToken(responseData.token);
-        return responseData;
-      } else {
-        throw Exception('Failed to login: ${response.statusMessage}');
-      }
-    } on DioError catch (e) {
-      throw Exception('Dio error: ${e.message}');
-    }
-  }*/
 }

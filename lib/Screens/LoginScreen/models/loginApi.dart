@@ -1,6 +1,6 @@
 // login_api.dart
 import 'package:dio/dio.dart';
-import 'package:quickcash/Screens/util/apiConstants.dart';
+import '../../../util/apiConstants.dart';
 import 'login_model.dart';
 
 class LoginApi {

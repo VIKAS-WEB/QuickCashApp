@@ -21,8 +21,8 @@ import 'package:quickcash/Screens/StatemetScreen/statement_screen.dart';
 import 'package:quickcash/Screens/TicketsScreen/tickets_screen.dart';
 import 'package:quickcash/Screens/TransactionScreen/transaction_screen.dart';
 import 'package:quickcash/Screens/UserProfileScreen/profile_main_screen.dart';
-import 'package:quickcash/Screens/util/auth_manager.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/util/auth_manager.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
