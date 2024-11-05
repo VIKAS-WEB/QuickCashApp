@@ -51,6 +51,7 @@ dependencies:
   flutter_bloc: ^8.1.6
   either_dart: ^0.3.0
   bloc: ^8.1.4
+  country_picker: ^2.0.26
 
 
 
