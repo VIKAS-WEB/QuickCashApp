@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:country_picker/country_picker.dart';
+import 'package:quickcash/Screens/SignupScreen/model/signupApi.dart';
 
 import '../../../components/check_already_have_an_account.dart';
 import '../../../constants.dart';
+import '../../../test_code.dart';
+import '../../../util/auth_manager.dart';
 import '../../LoginScreen/login_screen.dart';
 
 class SignUpForm extends StatefulWidget {
@@ -13,11 +16,16 @@ class SignUpForm extends StatefulWidget {
 }
 
 class _SignUpFormState extends State<SignUpForm> {
-  final _fromKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   String? fullName;
   String? email;
   String? password;
   String? selectedCountry;
+
+  final SignUpApi _signUpApi = SignUpApi();
+
+  bool isLoading = false;
+  String? errorMessage;
 
   bool _isPasswordValid(String password) {
     // Regex to check password criteria
@@ -25,10 +33,62 @@ class _SignUpFormState extends State<SignUpForm> {
     return regex.hasMatch(password);
   }
 
+
+
+  Future<void> mSignUp() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save(); // Save form field values to variables
+      if (selectedCountry != null && selectedCountry != "Select Country") {
+        setState(() {
+          isLoading = true;
+          errorMessage = null;
+        });
+
+        try {
+          final response = await _signUpApi.signup(
+              fullName!,
+              email!,
+              password!,
+              selectedCountry!,
+              ""
+          );
+
+          print(response.userId);
+          print(response.token);
+
+          setState(() {
+            isLoading = false;
+          });
+
+          // Save user ID and token to SharedPreferences
+        //  await AuthManager.saveUserId(response.userId);
+         // await AuthManager.saveToken(response.token);
+
+          // Navigate to HomeScreen (uncomment this and replace with actual HomeScreen)
+          // Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(builder: (context) => const HomeScreen()),
+          // );
+
+        } catch (error) {
+          setState(() {
+            isLoading = false;
+            errorMessage = error.toString();
+          });
+        }
+      } else {
+        setState(() {
+          errorMessage = "Please select a country.";
+        });
+      }
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Form(
-      key: _fromKey,
+      key: _formKey,
       child: Column(
         children: [
           TextFormField(
@@ -143,23 +203,12 @@ class _SignUpFormState extends State<SignUpForm> {
           ),
           const SizedBox(height: defaultPadding / 2),
           const SizedBox(height: 40),
+          if (isLoading) const CircularProgressIndicator(color: kPrimaryColor,), // Show loading indicator
+          if (errorMessage != null) // Show error message if there's an error
+            Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+          const SizedBox(height: defaultPadding,),
           ElevatedButton(
-            onPressed: () {
-              if (_fromKey.currentState!.validate()) {
-                _fromKey.currentState!.save();
-
-                if(selectedCountry !="Select Country"){
-                   ScaffoldMessenger.of(context).showSnackBar(
-                     const SnackBar(content: Text('Please Select Country')),
-                   );
-                }else{
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Else}')),
-                  );
-                }
-                // Call your Sign Up API here ...
-              }
-            },
+            onPressed: isLoading ? null : mSignUp,
             child: const Text("Sign Up"),
           ),
           const SizedBox(height: defaultPadding),
