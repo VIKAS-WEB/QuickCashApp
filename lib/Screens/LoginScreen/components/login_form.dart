@@ -20,8 +20,8 @@ class LoginForm extends StatefulWidget {
 
 class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController email = TextEditingController(text: 'saurabhk@itio.in');
-  final TextEditingController password = TextEditingController(text: 'Saurabh@12345\$\$');
+  final TextEditingController email = TextEditingController(text: 'ganeshs@itio.in');
+  final TextEditingController password = TextEditingController(text: 'Admin@12345\$\$');
   final LoginApi _loginApi = LoginApi();
 
   bool isLoading = false;
