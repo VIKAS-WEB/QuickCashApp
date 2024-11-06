@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:quickcash/Screens/UserProfileScreen/AccountListsScreen/model/accountsListApi.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/util/auth_manager.dart';
 
 class AccountsListScreen extends StatefulWidget {
   const AccountsListScreen({super.key});
@@ -9,7 +11,43 @@ class AccountsListScreen extends StatefulWidget {
 }
 
 class _AccountsListScreen extends State<AccountsListScreen> {
-  // Sample data for the accounts
+
+  final AccountsListApi _accountsListApi = AccountsListApi();
+
+  bool isLoading = false;
+  String? errorMessage;
+
+  @override
+  void initState(){
+    super.initState();
+    mAccountsDetails();
+  }
+
+  Future<void> mAccountsDetails() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try{
+
+      final response = await _accountsListApi.accountListApi();
+
+      print(response.accountDetails);
+
+
+      setState(() {
+        isLoading = false;
+      });
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+
+  }
+// This is Dummy list
   final List<Map<String, String>> accountData = [
     {
       "currency": "USD",
