@@ -1,9 +1,7 @@
+import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/UserProfileScreen/AccountListsScreen/model/accountsListApi.dart';
 import 'package:quickcash/constants.dart';
-import 'package:quickcash/util/auth_manager.dart';
-
-// Make sure to import your model
 import 'model/accountsListModel.dart';
 
 class AccountsListScreen extends StatefulWidget {
@@ -18,7 +16,7 @@ class _AccountsListScreen extends State<AccountsListScreen> {
 
   bool isLoading = false;
   String? errorMessage;
-  List<AccountDetail> accountData = []; // List to hold AccountDetail objects
+  List<AccountDetail> accountData = [];
 
   @override
   void initState() {
@@ -35,10 +33,9 @@ class _AccountsListScreen extends State<AccountsListScreen> {
     try {
       final response = await _accountsListApi.accountListApi();
 
-      // Check if the response has account details and update the state
       if (response.accountDetails != null && response.accountDetails!.isNotEmpty) {
         setState(() {
-          accountData = response.accountDetails!; // Update accountData with the API response
+          accountData = response.accountDetails!;
           isLoading = false;
         });
       } else {
@@ -55,6 +52,23 @@ class _AccountsListScreen extends State<AccountsListScreen> {
     }
   }
 
+  // Function to return country code based on currency
+  String getCountryCodeForCurrency(String? currency) {
+    switch (currency) {
+      case 'INR': // Indian Rupee
+        return 'IN'; // Country code for India
+      case 'USD': // US Dollar
+        return 'US'; // Country code for United States
+      case 'PKR': // US Dollar
+        return 'PKR';
+      case 'EUR': // US Dollar
+        return 'EUR';
+    // Add more currencies and their corresponding country codes
+      default:
+        return 'INR'; // Default to 'US' if currency is unknown
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,13 +77,10 @@ class _AccountsListScreen extends State<AccountsListScreen> {
         child: Column(
           children: [
             const SizedBox(height: largePadding),
-            // Check if data is loading or there's an error
             if (isLoading)
               const Center(child: CircularProgressIndicator()),
             if (errorMessage != null)
-              Center(child: Text(errorMessage!, style: TextStyle(color: Colors.red))),
-
-            // Display account data when available
+              Center(child: Text(errorMessage!, style: const TextStyle(color: Colors.red))),
             if (!isLoading && errorMessage == null && accountData.isNotEmpty)
               Expanded(
                 child: ListView.builder(
@@ -78,6 +89,8 @@ class _AccountsListScreen extends State<AccountsListScreen> {
                   itemCount: accountData.length,
                   itemBuilder: (context, index) {
                     var account = accountData[index];
+                    // Get country code based on currency
+                    String countryCode = getCountryCodeForCurrency(account.currency);
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -94,16 +107,13 @@ class _AccountsListScreen extends State<AccountsListScreen> {
                             children: [
                               const SizedBox(height: largePadding),
 
-                              // Image (Add default or custom image based on your model)
+                              // Display country flag based on the country code
                               Center(
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(100),
-                                  child: Image.network(
-                                    'https://media.istockphoto.com/id/1471401435/vector/round-icon-of-indian-flag.jpg?s=612x612&w=0&k=20&c=kXy7vTsyhEycfrQ9VmI4FpfBFX2cMtQP5XIvTdU8xDE=', // Placeholder image
-                                    width: 200,
-                                    height: 200,
-                                    fit: BoxFit.cover,
-                                  ),
+                                child: CountryFlag.fromCountryCode(
+                                  countryCode, // Use country code derived from currency
+                                  width: 180,
+                                  height: 180,
+                                  shape: const Circle(), // Shape of the flag (circle in this case)
                                 ),
                               ),
 
@@ -175,14 +185,13 @@ class _AccountsListScreen extends State<AccountsListScreen> {
                                     ),
                                   ),
                                   Text(
-                                    '${account.amount ?? 0.0}', // Directly displaying the amount without rounding
+                                    '${account.amount ?? 0.0}',
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                       color: kPrimaryColor,
                                     ),
                                   ),
-
                                 ],
                               ),
                             ],
