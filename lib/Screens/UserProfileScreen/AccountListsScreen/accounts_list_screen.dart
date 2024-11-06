@@ -1,4 +1,3 @@
-import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/UserProfileScreen/AccountListsScreen/model/accountsListApi.dart';
 import 'package:quickcash/constants.dart';
@@ -52,23 +51,6 @@ class _AccountsListScreen extends State<AccountsListScreen> {
     }
   }
 
-  // Function to return country code based on currency
-  String getCountryCodeForCurrency(String? currency) {
-    switch (currency) {
-      case 'INR': // Indian Rupee
-        return 'IN'; // Country code for India
-      case 'USD': // US Dollar
-        return 'US'; // Country code for United States
-      case 'PKR': // US Dollar
-        return 'PKR';
-      case 'EUR': // US Dollar
-        return 'EUR';
-    // Add more currencies and their corresponding country codes
-      default:
-        return 'INR'; // Default to 'US' if currency is unknown
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,8 +71,6 @@ class _AccountsListScreen extends State<AccountsListScreen> {
                   itemCount: accountData.length,
                   itemBuilder: (context, index) {
                     var account = accountData[index];
-                    // Get country code based on currency
-                    String countryCode = getCountryCodeForCurrency(account.currency);
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -107,13 +87,19 @@ class _AccountsListScreen extends State<AccountsListScreen> {
                             children: [
                               const SizedBox(height: largePadding),
 
-                              // Display country flag based on the country code
+                              // Display currency code inside a circle
                               Center(
-                                child: CountryFlag.fromCountryCode(
-                                  countryCode, // Use country code derived from currency
-                                  width: 180,
-                                  height: 180,
-                                  shape: const Circle(), // Shape of the flag (circle in this case)
+                                child: CircleAvatar(
+                                  radius: 60, // Size of the circle
+                                  backgroundColor: kPrimaryColor, // Background color of the circle
+                                  child: Text(
+                                    account.currency ?? 'N/A', // Display the currency code
+                                    style: const TextStyle(
+                                      fontSize: 30, // Font size of the currency code
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white, // Text color
+                                    ),
+                                  ),
                                 ),
                               ),
 

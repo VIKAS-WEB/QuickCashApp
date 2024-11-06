@@ -52,7 +52,6 @@ dependencies:
   either_dart: ^0.3.0
   bloc: ^8.1.4
   country_picker: ^2.0.26
-  country_flags: ^3.0.0
 
 
 
