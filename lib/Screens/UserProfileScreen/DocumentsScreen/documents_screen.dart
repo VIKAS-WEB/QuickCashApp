@@ -18,7 +18,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final DocumentsApi _documentsApi = DocumentsApi();
 
-  String selectedRole = 'Select ID Of Individual';
+  String selectedRole = 'Select ID Of Individual'; // Default value for dropdown
   String? imagePath;
   String? documentPhotoFrontUrl;
 
@@ -28,12 +28,18 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   bool isLoading = false;
   String? errorMessage;
 
+  // Map the API response values to display-friendly values for the dropdown
+  final Map<String, String> documentTypeMap = {
+    'passport': 'Passport',
+    'driving license': 'Driving License',
+    // Add more mappings if necessary
+  };
+
   @override
   void initState() {
     super.initState();
     mDocumentsApi();
   }
-
 
   Future<void> mDocumentsApi() async {
     setState(() {
@@ -42,35 +48,44 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
     });
 
     try {
-      final response =  await _documentsApi.documentsApi();
+      final response = await _documentsApi.documentsApi();
 
-      if (response.documentsDetails?.first.documentPhotoFront !=null){
-        documentPhotoFrontUrl =
-        '${ApiConstants.baseImageUrl}${AuthManager.getUserId()}/${response.documentsDetails?.first.documentPhotoFront}';
+      // Check if the response has data
+      if (response.documentsDetails?.isNotEmpty ?? false) {
+        final document = response.documentsDetails!.first;
+
+        // Set the document photo front URL
+        if (document.documentPhotoFront != null) {
+          documentPhotoFrontUrl =
+          '${ApiConstants.baseImageUrl}${AuthManager.getUserId()}/${document.documentPhotoFront}';
+        }
+
+        // Set the document number in the text controller
+        if (document.documentsNo != null) {
+          _documentsNoController.text = document.documentsNo!;
+        }
+
+        String fetchedDocumentType = document.documentsType ?? '';
+        String mappedDocumentType = documentTypeMap[fetchedDocumentType.toLowerCase()] ??
+            'Select ID Of Individual'; // Default to the 'Select ID Of Individual' if no valid type found
+
+        setState(() {
+          selectedRole = mappedDocumentType; // Set the selected role to the mapped value
+        });
       }
 
-      if(response.documentsDetails?.first.documentsNo !=null){
-        _documentsNoController.text = response.documentsDetails!.first.documentsNo!;
-      }
-
-      print(response.documentsDetails?.first.documentsType);
-      print(response.documentsDetails?.first.documentsNo);
-      print(response.documentsDetails?.first.documentPhotoFront);
-
-      setState(() {
-        isLoading = false;
-      });
-
-    }catch (error) {
+      print('Document Photo: ${response.documentsDetails?.first.documentPhotoFront}');
+    } catch (error) {
       setState(() {
         isLoading = false;
         errorMessage = error.toString();
       });
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
-
-
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -91,9 +106,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                       const CircularProgressIndicator(
                         color: kPrimaryColor,
                       ),
-                    // Show loading indicator
-                    if (errorMessage !=
-                        null) // Show error message if there's an error
+                    if (errorMessage != null) // Show error message if there's an error
                       Text(errorMessage!,
                           style: const TextStyle(color: Colors.red)),
                     const SizedBox(
@@ -179,12 +192,11 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                       ),
                     ),
 
-
-                    // Documents Type
+                    // Document Type Dropdown
                     const SizedBox(height: 25),
                     DropdownButtonFormField<String>(
-                      value: selectedRole,
-                      style: const TextStyle(color: kPrimaryColor),
+                      value: selectedRole, // This binds to the selectedRole state
+                      style: const TextStyle(color: kPrimaryColor, fontSize: 17),
                       decoration: InputDecoration(
                         labelText: 'ID Of Individual',
                         labelStyle: const TextStyle(color: kPrimaryColor),
@@ -193,16 +205,20 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                           borderSide: const BorderSide(),
                         ),
                       ),
-                      items: ['Select ID Of Individual', 'Passport', 'Driving License']
+                      items: [
+                        'Select ID Of Individual',
+                        'Passport',
+                        'Driving License'
+                      ]
                           .map((String role) {
                         return DropdownMenuItem(
-                          value: role,
+                          value: role, // Ensure this value is unique and matches the `selectedRole`
                           child: Text(role),
                         );
                       }).toList(),
                       onChanged: (newValue) {
                         setState(() {
-                          selectedRole = newValue!;
+                          selectedRole = newValue!; // Update the selected role
                         });
                       },
                     ),
@@ -224,12 +240,10 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Please Select ID Of Individual')),
                             );
-
                           } else if (_formKey.currentState!.validate()) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Form submitted successfully!')),
                             );
-
                           }
                         },
                         child: const Text('Update', style: TextStyle(color: Colors.white)),

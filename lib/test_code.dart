@@ -1,255 +1,252 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:country_picker/country_picker.dart';
-import 'package:quickcash/Screens/SignupScreen/model/signupApi.dart';
-import '../../../components/check_already_have_an_account.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:quickcash/Screens/UserProfileScreen/DocumentsScreen/model/documentsApi.dart';
 import '../../../constants.dart';
+import '../../../util/apiConstants.dart';
 import '../../../util/auth_manager.dart';
-import 'Screens/LoginScreen/login_screen.dart';
 
-class SignUpForms extends StatefulWidget {
-  const SignUpForms({super.key});
+class DocumentsScreens extends StatefulWidget {
+  const DocumentsScreens({super.key});
 
   @override
-  State<SignUpForms> createState() => _SignUpFormState();
+  State<DocumentsScreens> createState() => _DocumentsScreenState();
 }
 
-class _SignUpFormState extends State<SignUpForms> {
-  final _formKey = GlobalKey<FormState>();
-  String? fullName;
-  String? email;
-  String? password;
-  String? selectedCountry;
-  String? referralCode;
+class _DocumentsScreenState extends State<DocumentsScreens> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final DocumentsApi _documentsApi = DocumentsApi();
 
-  final SignUpApi _signUpApi = SignUpApi();
+  String selectedRole = 'Select ID Of Individual'; // Default value for dropdown
+  String? imagePath;
+  String? documentPhotoFrontUrl;
+
+  // Add Text controllers
+  final TextEditingController _documentsNoController = TextEditingController();
 
   bool isLoading = false;
   String? errorMessage;
 
-  bool _isPasswordValid(String password) {
-    // Regex to check password criteria
-    final regex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$');
-    return regex.hasMatch(password);
+  @override
+  void initState() {
+    super.initState();
+    mDocumentsApi();  // Fetch data on initialization
   }
 
-  Future<void> mSignUp() async {
-    // Trigger the form save action
-    _formKey.currentState?.save();  // This saves the values entered into the form fields
+  Future<void> mDocumentsApi() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
 
-    // Debugging: Print the values of the fields
-    print("Full Name: $fullName");
-    print("Email: $email");
-    print("Password: $password");
-    print("Selected Country: $selectedCountry");
+    try {
+      final response = await _documentsApi.documentsApi();
 
-    // Ensure that none of the values are null or empty
-    if (_formKey.currentState!.validate()) {
-      if (fullName != null && fullName!.isNotEmpty &&
-          email != null && email!.isNotEmpty &&
-          password != null && password!.isNotEmpty &&
-          selectedCountry != null && selectedCountry != "Select Country") {
+      if (response.documentsDetails?.isNotEmpty ?? false) {
+        final document = response.documentsDetails!.first;
 
-        setState(() {
-          isLoading = true;
-          errorMessage = null;
-        });
+        // Check if the document photo URL is not null
+        if (document.documentPhotoFront != null) {
+          documentPhotoFrontUrl =
+          '${ApiConstants.baseImageUrl}${AuthManager.getUserId()}/${document.documentPhotoFront}';
+        }
 
-        try {
-          // API call - Ensure that values are non-null and passed correctly
-          final response = await _signUpApi.signup(
-            fullName!,
-            email!,
-            password!,
-            selectedCountry!,
-            "",
-          );
+        // Check if the document number is not null
+        if (document.documentsNo != null) {
+          _documentsNoController.text = document.documentsNo!;
+        }
 
+        // Set the selected role (document type) based on the fetched data
+        if (document.documentsType != null) {
           setState(() {
-            isLoading = false;
-          });
-
-          // Save user ID and token to SharedPreferences
-         // await AuthManager.saveUserId(response.userId);
-         // await AuthManager.saveToken(response.token);
-
-          // Navigate to the home screen or another page
-          /*Navigator.pushReplacement(
-           context,
-           MaterialPageRoute(builder: (context) => const HomeScreen()), // replace HomeScreen with your actual home screen
-         );*/
-
-        } catch (error) {
-          setState(() {
-            isLoading = false;
-            errorMessage = error.toString();
+            selectedRole = document.documentsType!; // Set the dropdown value
           });
         }
-      } else {
-        setState(() {
-          errorMessage = 'Please complete all fields and select a country.';
-        });
       }
+
+      print('Document Type: ${response.documentsDetails?.first.documentsType}');
+      print('Document Number: ${response.documentsDetails?.first.documentsNo}');
+      print('Document Photo: ${response.documentsDetails?.first.documentPhotoFront}');
+
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        children: [
-          // Full Name Field
-          TextFormField(
-            keyboardType: TextInputType.text,
-            textInputAction: TextInputAction.next,
-            cursorColor: kPrimaryColor,
-            style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.w500),
-            onSaved: (value) {
-              if (value != null && value.isNotEmpty) {
-                fullName = value;
-              }
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your full name';
-              }
-              return null;
-            },
-            decoration: const InputDecoration(
-              hintText: "Full Name", hintStyle: TextStyle(color: kHintColor),
-              prefixIcon: Padding(
-                padding: EdgeInsets.all(defaultPadding),
-                child: Icon(Icons.person),
-              ),
-            ),
-          ),
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(defaultPadding),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: defaultPadding),
 
-          // Email Field
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: defaultPadding),
-            child: TextFormField(
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
-              cursorColor: kPrimaryColor,
-              style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.w500),
-              onSaved: (value) {
-                email = value;
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your email';
-                }
-                // Regex for basic email validation
-                final regex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
-                if (!regex.hasMatch(value)) {
-                  return 'Please enter a valid email address';
-                }
-                return null;
-              },
-              decoration: const InputDecoration(
-                hintText: "Your Email", hintStyle: TextStyle(color: kHintColor),
-                prefixIcon: Padding(
-                  padding: EdgeInsets.all(defaultPadding),
-                  child: Icon(Icons.email),
+                    if (isLoading)
+                      const CircularProgressIndicator(
+                        color: kPrimaryColor,
+                      ),
+                    // Show loading indicator
+                    if (errorMessage != null) // Show error message if there's an error
+                      Text(errorMessage!,
+                          style: const TextStyle(color: Colors.red)),
+                    const SizedBox(
+                      height: defaultPadding,
+                    ),
+
+                    // Document Image Section
+                    Card(
+                      child: Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: imagePath != null
+                                ? Image.file(
+                              File(imagePath!),
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: 250,
+                            )
+                                : Image.network(
+                              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmN0el3AEK0rjTxhTGTBJ05JGJ7rc4_GSW6Q&s',
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: 250,
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 8,
+                            right: 8,
+                            child: GestureDetector(
+                              onTap: () async {
+                                final ImagePicker picker = ImagePicker();
+                                final XFile? image = await picker.pickImage(
+                                    source: ImageSource.gallery);
+
+                                if (image != null) {
+                                  setState(() {
+                                    imagePath = image.path; // Store the image path
+                                  });
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Image selected')),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('No image selected.')),
+                                  );
+                                }
+                              },
+                              child: const CircleAvatar(
+                                backgroundColor: Colors.white,
+                                child: Icon(
+                                  Icons.edit,
+                                  color: kPrimaryColor,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Document ID Number
+                    const SizedBox(height: defaultPadding),
+                    TextFormField(
+                      controller: _documentsNoController,
+                      keyboardType: TextInputType.text,
+                      textInputAction: TextInputAction.next,
+                      cursorColor: kPrimaryColor,
+                      onSaved: (value) {},
+                      readOnly: false,
+                      style: const TextStyle(color: kPrimaryColor),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your Document ID No';
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        labelText: "Document ID No",
+                        labelStyle: const TextStyle(color: kPrimaryColor),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(),
+                        ),
+                      ),
+                    ),
+
+                    // Document Type (Dropdown)
+                    const SizedBox(height: 25),
+                    DropdownButtonFormField<String>(
+                      value: selectedRole, // Set the dropdown value to selectedRole
+                      style: const TextStyle(color: kPrimaryColor),
+                      decoration: InputDecoration(
+                        labelText: 'ID Of Individual',
+                        labelStyle: const TextStyle(color: kPrimaryColor),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(),
+                        ),
+                      ),
+                      items: ['Select ID Of Individual', 'Passport', 'Driving License']
+                          .map((String role) {
+                        return DropdownMenuItem(
+                          value: role,
+                          child: Text(role),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          selectedRole = newValue!; // Update selected role
+                        });
+                      },
+                    ),
+
+                    // Update Button
+                    const SizedBox(height: 35),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 50),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kPrimaryColor,
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed: () {
+                          if (selectedRole == "Select ID Of Individual") {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Please Select ID Of Individual')),
+                            );
+                          } else if (_formKey.currentState!.validate()) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Form submitted successfully!')),
+                            );
+                          }
+                        },
+                        child: const Text('Update', style: TextStyle(color: Colors.white)),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
+            ],
           ),
-
-          // Password Field
-          TextFormField(
-            textInputAction: TextInputAction.done,
-            obscureText: true,
-            cursorColor: kPrimaryColor,
-            style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.w500),
-            onSaved: (value) {
-              password = value;
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your password';
-              }
-              if (!_isPasswordValid(value)) {
-                return 'Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character.';
-              }
-              return null;
-            },
-            decoration: const InputDecoration(
-              hintText: "Your Password", hintStyle: TextStyle(color: kHintColor),
-              prefixIcon: Padding(
-                padding: EdgeInsets.all(defaultPadding),
-                child: Icon(Icons.lock),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: defaultPadding),
-
-          // Country Picker
-          GestureDetector(
-            onTap: () {
-              showCountryPicker(
-                context: context,
-                onSelect: (Country country) {
-                  setState(() {
-                    selectedCountry = country.name;
-                  });
-                },
-              );
-            },
-            child: TextFormField(
-              textInputAction: TextInputAction.done,
-              enabled: false, // Disable direct text entry
-              controller: TextEditingController(text: selectedCountry),
-              cursorColor: kPrimaryColor,
-              style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.w500),
-              decoration: InputDecoration(
-                hintText: selectedCountry ?? "Select Country", hintStyle: const TextStyle(color: kHintColor),
-                prefixIcon: const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Icon(Icons.flag),
-                ),
-                suffixIcon: const Icon(Icons.arrow_drop_down, color: kPrimaryColor),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: defaultPadding / 2),
-          const SizedBox(height: 40),
-
-          // Loading Indicator or Error Message
-          if (isLoading)
-            const CircularProgressIndicator(color: kPrimaryColor,), // Show loading indicator
-          if (errorMessage != null) // Show error message if there's an error
-            Text(errorMessage!, style: const TextStyle(color: Colors.red)),
-
-          const SizedBox(height: defaultPadding),
-
-          // Sign Up Button
-          ElevatedButton(
-            onPressed: isLoading ? null : mSignUp,
-            child: const Text("Sign Up"),
-          ),
-
-          const SizedBox(height: defaultPadding),
-
-          // Already have an account check
-          AlreadyHaveAnAccountCheck(
-            login: false,
-            press: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const LoginScreen();
-                  },
-                ),
-              );
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
