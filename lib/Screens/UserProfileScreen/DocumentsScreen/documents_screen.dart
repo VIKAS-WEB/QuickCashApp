@@ -56,7 +56,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
         // Set the document photo front URL
         if (document.documentPhotoFront != null) {
           documentPhotoFrontUrl =
-          '${ApiConstants.baseKYCImageUrl}${document.documentPhotoFront}';
+              '${ApiConstants.baseKYCImageUrl}${document.documentPhotoFront}';
         }
 
         // Set the document number in the text controller
@@ -65,22 +65,20 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
         }
 
         String fetchedDocumentType = document.documentsType ?? '';
-        String mappedDocumentType = documentTypeMap[fetchedDocumentType.toLowerCase()] ??
+        String mappedDocumentType = documentTypeMap[
+                fetchedDocumentType.toLowerCase()] ??
             'Select ID Of Individual'; // Default to the 'Select ID Of Individual' if no valid type found
 
         setState(() {
-          selectedRole = mappedDocumentType; // Set the selected role to the mapped value
+          selectedRole =
+              mappedDocumentType; // Set the selected role to the mapped value
+          isLoading = false;
         });
       }
-
     } catch (error) {
       setState(() {
         isLoading = false;
         errorMessage = error.toString();
-      });
-    } finally {
-      setState(() {
-        isLoading = false;
       });
     }
   }
@@ -104,14 +102,233 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                       const CircularProgressIndicator(
                         color: kPrimaryColor,
                       ),
-                    if (errorMessage != null) // Show error message if there's an error
+                    if (errorMessage !=
+                        null) // Show error message if there's an error
                       Text(errorMessage!,
                           style: const TextStyle(color: Colors.red)),
                     const SizedBox(
                       height: defaultPadding,
                     ),
 
-                    Card(
+                    if (documentPhotoFrontUrl != null)
+                      Card(
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: imagePath != null
+                                  ? Image.file(
+                                      File(imagePath!),
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: 200,
+                                    )
+                                  : Image.network(
+                                      documentPhotoFrontUrl.toString(),
+                                      fit: BoxFit.fitHeight,
+                                      width: double.infinity,
+                                      height: 200,
+                                    ),
+                            ),
+                            Positioned(
+                              bottom: 8,
+                              right: 8,
+                              child: GestureDetector(
+                                onTap: () async {
+                                  final ImagePicker picker = ImagePicker();
+                                  final XFile? image = await picker.pickImage(
+                                      source: ImageSource.gallery);
+
+                                  if (image != null) {
+                                    setState(() {
+                                      imagePath =
+                                          image.path; // Store the image path
+                                    });
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text('Image selected')),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text('No image selected.')),
+                                    );
+                                  }
+                                },
+                                child: const CircleAvatar(
+                                  backgroundColor: Colors.white,
+                                  child: Icon(
+                                    Icons.edit,
+                                    color: kPrimaryColor,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (isLoading)
+                      Card(
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: imagePath != null
+                                  ? Image.file(
+                                      File(imagePath!),
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: 250,
+                                    )
+                                  : Image.network(
+                                      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmN0el3AEK0rjTxhTGTBJ05JGJ7rc4_GSW6Q&s',
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: 250,
+                                    ),
+                            ),
+                            Positioned(
+                              bottom: 8,
+                              right: 8,
+                              child: GestureDetector(
+                                onTap: () async {
+                                  final ImagePicker picker = ImagePicker();
+                                  final XFile? image = await picker.pickImage(
+                                      source: ImageSource.gallery);
+
+                                  if (image != null) {
+                                    setState(() {
+                                      imagePath =
+                                          image.path; // Store the image path
+                                    });
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text('Image selected')),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text('No image selected.')),
+                                    );
+                                  }
+                                },
+                                child: const CircleAvatar(
+                                  backgroundColor: Colors.white,
+                                  child: Icon(
+                                    Icons.edit,
+                                    color: kPrimaryColor,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // Document ID Number
+                    const SizedBox(height: defaultPadding),
+                    TextFormField(
+                      controller: _documentsNoController,
+                      keyboardType: TextInputType.text,
+                      textInputAction: TextInputAction.next,
+                      cursorColor: kPrimaryColor,
+                      onSaved: (value) {},
+                      readOnly: false,
+                      style: const TextStyle(color: kPrimaryColor),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your Document ID No';
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        labelText: "Document ID No",
+                        labelStyle: const TextStyle(color: kPrimaryColor),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(),
+                        ),
+                      ),
+                    ),
+
+                    // Document Type Dropdown
+                    const SizedBox(height: 25),
+                    DropdownButtonFormField<String>(
+                      value: selectedRole,
+                      // This binds to the selectedRole state
+                      style:
+                          const TextStyle(color: kPrimaryColor, fontSize: 17),
+                      decoration: InputDecoration(
+                        labelText: 'ID Of Individual',
+                        labelStyle: const TextStyle(color: kPrimaryColor),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(),
+                        ),
+                      ),
+                      items: [
+                        'Select ID Of Individual',
+                        'Passport',
+                        'Driving License'
+                      ].map((String role) {
+                        return DropdownMenuItem(
+                          value: role,
+                          // Ensure this value is unique and matches the `selectedRole`
+                          child: Text(role),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          selectedRole = newValue!; // Update the selected role
+                        });
+                      },
+                    ),
+
+                    // Update Button
+                    const SizedBox(height: 35),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 50),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kPrimaryColor,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 32, vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed: () {
+                          if (selectedRole == "Select ID Of Individual") {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text('Please Select ID Of Individual')),
+                            );
+                          } else if (_formKey.currentState!.validate()) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text('Form submitted successfully!')),
+                            );
+                          }
+                        },
+                        child: const Text('Update',
+                            style: TextStyle(color: Colors.white)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/*
+ Card(
                       child: Stack(
                         children: [
                           ClipRRect(
@@ -121,12 +338,13 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                               File(imagePath!),
                               fit: BoxFit.cover,
                               width: double.infinity,
-                              height: 200,
+                              height: 250,
                             )
-                                : Image.network(documentPhotoFrontUrl!,
-                              fit: BoxFit.fitHeight,
+                                : Image.network(
+                              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmN0el3AEK0rjTxhTGTBJ05JGJ7rc4_GSW6Q&s',
+                              fit: BoxFit.cover,
                               width: double.infinity,
-                              height: 200,
+                              height: 250,
                             ),
                           ),
                           Positioned(
@@ -162,97 +380,4 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                         ],
                       ),
                     ),
-
-                    // Document ID Number
-                    const SizedBox(height: defaultPadding),
-                    TextFormField(
-                      controller: _documentsNoController,
-                      keyboardType: TextInputType.text,
-                      textInputAction: TextInputAction.next,
-                      cursorColor: kPrimaryColor,
-                      onSaved: (value) {},
-                      readOnly: false,
-                      style: const TextStyle(color: kPrimaryColor),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your Document ID No';
-                        }
-                        return null;
-                      },
-                      decoration: InputDecoration(
-                        labelText: "Document ID No",
-                        labelStyle: const TextStyle(color: kPrimaryColor),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(),
-                        ),
-                      ),
-                    ),
-
-                    // Document Type Dropdown
-                    const SizedBox(height: 25),
-                    DropdownButtonFormField<String>(
-                      value: selectedRole, // This binds to the selectedRole state
-                      style: const TextStyle(color: kPrimaryColor, fontSize: 17),
-                      decoration: InputDecoration(
-                        labelText: 'ID Of Individual',
-                        labelStyle: const TextStyle(color: kPrimaryColor),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(),
-                        ),
-                      ),
-                      items: [
-                        'Select ID Of Individual',
-                        'Passport',
-                        'Driving License'
-                      ]
-                          .map((String role) {
-                        return DropdownMenuItem(
-                          value: role, // Ensure this value is unique and matches the `selectedRole`
-                          child: Text(role),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
-                        setState(() {
-                          selectedRole = newValue!; // Update the selected role
-                        });
-                      },
-                    ),
-
-                    // Update Button
-                    const SizedBox(height: 35),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 50),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: kPrimaryColor,
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        onPressed: () {
-                          if (selectedRole == "Select ID Of Individual") {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Please Select ID Of Individual')),
-                            );
-                          } else if (_formKey.currentState!.validate()) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Form submitted successfully!')),
-                            );
-                          }
-                        },
-                        child: const Text('Update', style: TextStyle(color: Colors.white)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+* */
