@@ -44,6 +44,7 @@ class _UserInformationScreenState extends State<UserInformationScreen> {
     try {
       final response = await _userProfileApi.userProfile();
 
+      AuthManager.saveUserImage(response.ownerProfile!);
 
       // Set the profile image URL dynamically
       if (response.ownerProfile != null) {
