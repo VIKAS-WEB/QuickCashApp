@@ -5,7 +5,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:quickcash/Screens/UserProfileScreen/DocumentsScreen/model/documentsApi.dart';
 import '../../../constants.dart';
 import '../../../util/apiConstants.dart';
-import '../../../util/auth_manager.dart';
 
 class DocumentsScreen extends StatefulWidget {
   const DocumentsScreen({super.key});
@@ -57,7 +56,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
         // Set the document photo front URL
         if (document.documentPhotoFront != null) {
           documentPhotoFrontUrl =
-          '${ApiConstants.baseImageUrl}${AuthManager.getUserId()}/${document.documentPhotoFront}';
+          '${ApiConstants.baseKYCImageUrl}${document.documentPhotoFront}';
         }
 
         // Set the document number in the text controller
@@ -74,7 +73,6 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
         });
       }
 
-      print('Document Photo: ${response.documentsDetails?.first.documentPhotoFront}');
     } catch (error) {
       setState(() {
         isLoading = false;
@@ -123,13 +121,12 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                               File(imagePath!),
                               fit: BoxFit.cover,
                               width: double.infinity,
-                              height: 250,
+                              height: 200,
                             )
-                                : Image.network(
-                              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmN0el3AEK0rjTxhTGTBJ05JGJ7rc4_GSW6Q&s',
-                              fit: BoxFit.cover,
+                                : Image.network(documentPhotoFrontUrl!,
+                              fit: BoxFit.fitHeight,
                               width: double.infinity,
-                              height: 250,
+                              height: 200,
                             ),
                           ),
                           Positioned(
