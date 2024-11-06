@@ -5,7 +5,7 @@ import 'package:quickcash/Screens/UserProfileScreen/documents_screen.dart';
 import 'package:quickcash/Screens/UserProfileScreen/login_history.dart';
 import 'package:quickcash/Screens/UserProfileScreen/security_screen.dart';
 import 'package:quickcash/Screens/UserProfileScreen/update_details_screen.dart';
-import 'package:quickcash/Screens/UserProfileScreen/userInformation_screen.dart';
+import 'package:quickcash/Screens/UserProfileScreen/UserProfileScreen/userInformation_screen.dart';
 
 List<String> titles = <String>[
   'User Information',

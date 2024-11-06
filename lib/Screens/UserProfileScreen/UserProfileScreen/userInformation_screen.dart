@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../constants.dart';
+import 'package:quickcash/Screens/UserProfileScreen/UserProfileScreen/model/userProfileApi.dart';
+import '../../../../constants.dart';
 
 class UserInformationScreen extends StatefulWidget {
   const UserInformationScreen({super.key});
@@ -9,6 +10,46 @@ class UserInformationScreen extends StatefulWidget {
 }
 
 class _UserInformationScreenState extends State<UserInformationScreen>{
+  final UserProfileApi _userProfileApi = UserProfileApi();
+
+  @override
+  void initState() {
+    super.initState();
+    mUserProfile();
+  }
+
+  bool isLoading = false;
+  String? errorMessage;
+
+  Future<void> mUserProfile() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final response = await _userProfileApi.userProfile();
+
+      print(response.name);
+      print(response.email);
+      print(response.mobile);
+      print(response.country);
+      print(response.defaultCurrency.toString());
+      print(response.address);
+      print(response.accountDetails?.length);
+
+
+      setState(() {
+        isLoading = false;
+      });
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,11 +80,19 @@ class _UserInformationScreenState extends State<UserInformationScreen>{
 
                   const SizedBox(height: defaultPadding),
 
+                  if (isLoading) const CircularProgressIndicator(color: kPrimaryColor,), // Show loading indicator
+                  if (errorMessage != null) // Show error message if there's an error
+                    Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+                  const SizedBox(height: defaultPadding,),
+
+
                   TextFormField(
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
-                    onSaved: (value){},
+                    onSaved: (value){
+                      value = name;
+                    },
                     readOnly: true,
                     style: const TextStyle(color: kPrimaryColor),
 
