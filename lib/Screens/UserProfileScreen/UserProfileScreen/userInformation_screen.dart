@@ -90,9 +90,7 @@ class _UserInformationScreenState extends State<UserInformationScreen>{
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
-                    onSaved: (value){
-                      value = name;
-                    },
+                    onSaved: (value){},
                     readOnly: true,
                     style: const TextStyle(color: kPrimaryColor),
 
