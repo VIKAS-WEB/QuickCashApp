@@ -48,6 +48,7 @@ class UserProfileResponse {
   final String? country;
   final String? defaultCurrency;
   final String? address;
+  final String? ownerProfile;
   final List<AccountDetail>? accountDetails; // List of AccountDetail
 
   UserProfileResponse({
@@ -57,6 +58,7 @@ class UserProfileResponse {
     this.country,
     this.defaultCurrency,
     this.address,
+    this.ownerProfile,
     this.accountDetails,
   });
 
@@ -68,6 +70,7 @@ class UserProfileResponse {
       country: json['data']?['country'] as String?,
       defaultCurrency: json['data']?['defaultCurrency'] as String?,
       address: json['data']?['address'] as String?,
+      ownerProfile: json['data']?['ownerProfile'] as String?,
       accountDetails: (json['data']?['accountDetails'] as List<dynamic>?)
           ?.map((item) => AccountDetail.fromJson(item as Map<String, dynamic>))
           .toList(),

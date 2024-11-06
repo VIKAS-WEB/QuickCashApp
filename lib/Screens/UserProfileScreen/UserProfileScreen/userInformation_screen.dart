@@ -9,17 +9,26 @@ class UserInformationScreen extends StatefulWidget {
   State<UserInformationScreen> createState() => _UserInformationScreenState();
 }
 
-class _UserInformationScreenState extends State<UserInformationScreen>{
+class _UserInformationScreenState extends State<UserInformationScreen> {
   final UserProfileApi _userProfileApi = UserProfileApi();
+
+  // Add text controllers to bind to the text fields
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _mobileController = TextEditingController();
+  final TextEditingController _countryController = TextEditingController();
+  final TextEditingController _totalAccountsController = TextEditingController();
+  final TextEditingController _defaultCurrencyController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+
+  bool isLoading = false;
+  String? errorMessage;
 
   @override
   void initState() {
     super.initState();
     mUserProfile();
   }
-
-  bool isLoading = false;
-  String? errorMessage;
 
   Future<void> mUserProfile() async {
     setState(() {
@@ -30,25 +39,39 @@ class _UserInformationScreenState extends State<UserInformationScreen>{
     try {
       final response = await _userProfileApi.userProfile();
 
-      print(response.name);
-      print(response.email);
-      print(response.mobile);
-      print(response.country);
-      print(response.defaultCurrency.toString());
-      print(response.address);
-      print(response.accountDetails?.length);
+      print(response.ownerProfile);
+
+
+      if(response.name !=null) {
+        _fullNameController.text = response.name!;
+      }
+      if(response.email !=null){
+        _emailController.text = response.email!;
+      }
+      if(response.mobile !=null){
+        _mobileController.text = response.mobile!;
+      }
+      if(response.country !=null){
+        _countryController.text = response.country!;
+      }
+      if(response.defaultCurrency !=null){
+        _defaultCurrencyController.text = response.defaultCurrency.toString();
+      }
+      if (response.address !=null) {
+        _addressController.text = response.address!;
+      }
+      _totalAccountsController.text = response.accountDetails?.length.toString() ?? '0';
 
 
       setState(() {
         isLoading = false;
       });
-    }catch (error) {
+    } catch (error) {
       setState(() {
         isLoading = false;
         errorMessage = error.toString();
       });
     }
-
   }
 
   @override
@@ -75,7 +98,7 @@ class _UserInformationScreenState extends State<UserInformationScreen>{
 
                   const Text(
                     'User Name',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold,color: kPrimaryColor),
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: kPrimaryColor),
                   ),
 
                   const SizedBox(height: defaultPadding),
@@ -86,11 +109,13 @@ class _UserInformationScreenState extends State<UserInformationScreen>{
                   const SizedBox(height: defaultPadding,),
 
 
+                  // Update the text fields with TextEditingController
                   TextFormField(
+                    controller: _fullNameController, // Bind the controller
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
-                    onSaved: (value){},
+                    onSaved: (value) {},
                     readOnly: true,
                     style: const TextStyle(color: kPrimaryColor),
 
@@ -106,6 +131,7 @@ class _UserInformationScreenState extends State<UserInformationScreen>{
 
                   const SizedBox(height: defaultPadding),
                   TextFormField(
+                    controller: _emailController, // Bind the controller
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
@@ -125,6 +151,7 @@ class _UserInformationScreenState extends State<UserInformationScreen>{
 
                   const SizedBox(height: defaultPadding),
                   TextFormField(
+                    controller: _mobileController, // Bind the controller
                     keyboardType: TextInputType.phone,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
@@ -144,6 +171,7 @@ class _UserInformationScreenState extends State<UserInformationScreen>{
 
                   const SizedBox(height: defaultPadding),
                   TextFormField(
+                    controller: _countryController, // Bind the controller
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
@@ -163,6 +191,7 @@ class _UserInformationScreenState extends State<UserInformationScreen>{
 
                   const SizedBox(height: defaultPadding),
                   TextFormField(
+                    controller: _totalAccountsController, // Bind the controller
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
@@ -182,6 +211,7 @@ class _UserInformationScreenState extends State<UserInformationScreen>{
 
                   const SizedBox(height: defaultPadding),
                   TextFormField(
+                    controller: _defaultCurrencyController, // Bind the controller
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
@@ -201,6 +231,7 @@ class _UserInformationScreenState extends State<UserInformationScreen>{
 
                   const SizedBox(height: defaultPadding),
                   TextFormField(
+                    controller: _addressController, // Bind the controller
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
@@ -219,7 +250,6 @@ class _UserInformationScreenState extends State<UserInformationScreen>{
                   ),
 
                   const SizedBox(height: 30.0),
-
                 ],
               ),
             ),
@@ -229,3 +259,4 @@ class _UserInformationScreenState extends State<UserInformationScreen>{
     );
   }
 }
+
