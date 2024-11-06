@@ -9,17 +9,39 @@ class AuthManager {
     _sharedPref = await SharedPreferences.getInstance();
   }
 
-  static Future<void> saveToken(String token) async {
-    await _sharedPref.setString('access_token', token);
-    authChangeNotifier.value = token;
-  }
-
+  // Save UserId
   static Future<void> saveUserId(String id) async {
     await _sharedPref.setString('user_id', id);
   }
 
   static String getUserId() {
     return _sharedPref.getString('user_id') ?? '';
+  }
+
+
+  // Save UserName
+  static Future<void> saveUserName(String name) async {
+    await _sharedPref.setString('user_name', name);
+  }
+
+  static String getUserName() {
+    return _sharedPref.getString('user_name') ?? '';
+  }
+
+  // Save UserEmail
+  static Future<void> saveUserEmail(String email) async {
+    await _sharedPref.setString('user_email', email);
+  }
+
+  static String getUserEmail() {
+    return _sharedPref.getString('user_email') ?? '';
+  }
+
+
+  // Access Token
+  static Future<void> saveToken(String token) async {
+    await _sharedPref.setString('access_token', token);
+    authChangeNotifier.value = token;
   }
 
   static String getToken(){

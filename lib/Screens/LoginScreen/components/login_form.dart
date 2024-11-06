@@ -48,6 +48,8 @@ class _LoginFormState extends State<LoginForm> {
         // Save user ID and token to SharedPreferences
         await AuthManager.saveUserId(response.userId);
         await AuthManager.saveToken(response.token);
+        await AuthManager.saveUserName(response.name);
+        await AuthManager.saveUserEmail(response.email);
 
         Navigator.pushReplacement(
           context,
