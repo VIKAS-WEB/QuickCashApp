@@ -2,7 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../constants.dart';
+import 'package:quickcash/Screens/UserProfileScreen/DocumentsScreen/model/documentsApi.dart';
+import '../../../constants.dart';
+import '../../../util/apiConstants.dart';
+import '../../../util/auth_manager.dart';
 
 class DocumentsScreen extends StatefulWidget {
   const DocumentsScreen({super.key});
@@ -13,8 +16,52 @@ class DocumentsScreen extends StatefulWidget {
 
 class _DocumentsScreenState extends State<DocumentsScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final DocumentsApi _documentsApi = DocumentsApi();
+
   String selectedRole = 'Select ID Of Individual';
-  String? imagePath; // Variable to store the selected image path
+  String? imagePath;
+  String? documentPhotoFrontUrl;
+
+  bool isLoading = false;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    mDocumentsApi();
+  }
+
+
+  Future<void> mDocumentsApi() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final response =  await _documentsApi.documentsApi();
+
+      if (response.documentsDetails?.first.documentPhotoFront !=null){
+        documentPhotoFrontUrl =
+        '${ApiConstants.baseImageUrl}${AuthManager.getUserId()}/${response.documentsDetails?.first.documentPhotoFront}';
+      }
+
+      print(response.documentsDetails?.first.documentsType);
+      print(response.documentsDetails?.first.documentsName);
+      print(response.documentsDetails?.first.documentPhotoFront);
+
+
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+
+
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -41,13 +88,13 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                               File(imagePath!),
                               fit: BoxFit.cover,
                               width: double.infinity,
-                              height: 200,
+                              height: 250,
                             )
                                 : Image.network(
                               'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmN0el3AEK0rjTxhTGTBJ05JGJ7rc4_GSW6Q&s',
                               fit: BoxFit.cover,
                               width: double.infinity,
-                              height: 200,
+                              height: 250,
                             ),
                           ),
                           Positioned(

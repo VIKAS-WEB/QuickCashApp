@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/UserProfileScreen/accounts_list_screen.dart';
 import 'package:quickcash/Screens/UserProfileScreen/additional_information_screen.dart';
-import 'package:quickcash/Screens/UserProfileScreen/documents_screen.dart';
+import 'package:quickcash/Screens/UserProfileScreen/DocumentsScreen/documents_screen.dart';
 import 'package:quickcash/Screens/UserProfileScreen/login_history.dart';
 import 'package:quickcash/Screens/UserProfileScreen/security_screen.dart';
 import 'package:quickcash/Screens/UserProfileScreen/update_details_screen.dart';
