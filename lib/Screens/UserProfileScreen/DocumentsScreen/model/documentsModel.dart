@@ -7,12 +7,12 @@ class DocumentsRequest {
 
 class DocumentsDetail {
   final String? documentsType;
-  final String? documentsName;
+  final String? documentsNo;
   final String? documentPhotoFront;
 
   DocumentsDetail({
     this.documentsType,
-    this.documentsName,
+    this.documentsNo,
     this.documentPhotoFront,
 
   });
@@ -20,7 +20,7 @@ class DocumentsDetail {
   factory DocumentsDetail.fromJson(Map<String, dynamic> json) {
     return DocumentsDetail(
       documentsType: json['documentType'] as String?,
-      documentsName: json['documentNumber'] as String?,
+      documentsNo: json['documentNumber'] as String?,
       documentPhotoFront: json['documentPhotoFront'] as String?,
     );
   }

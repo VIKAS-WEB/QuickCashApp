@@ -22,6 +22,9 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   String? imagePath;
   String? documentPhotoFrontUrl;
 
+  // Add Text controllers
+  final TextEditingController _documentsNoController = TextEditingController();
+
   bool isLoading = false;
   String? errorMessage;
 
@@ -46,11 +49,17 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
         '${ApiConstants.baseImageUrl}${AuthManager.getUserId()}/${response.documentsDetails?.first.documentPhotoFront}';
       }
 
+      if(response.documentsDetails?.first.documentsNo !=null){
+        _documentsNoController.text = response.documentsDetails!.first.documentsNo!;
+      }
+
       print(response.documentsDetails?.first.documentsType);
-      print(response.documentsDetails?.first.documentsName);
+      print(response.documentsDetails?.first.documentsNo);
       print(response.documentsDetails?.first.documentPhotoFront);
 
-
+      setState(() {
+        isLoading = false;
+      });
 
     }catch (error) {
       setState(() {
@@ -77,6 +86,19 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     const SizedBox(height: defaultPadding),
+
+                    if (isLoading)
+                      const CircularProgressIndicator(
+                        color: kPrimaryColor,
+                      ),
+                    // Show loading indicator
+                    if (errorMessage !=
+                        null) // Show error message if there's an error
+                      Text(errorMessage!,
+                          style: const TextStyle(color: Colors.red)),
+                    const SizedBox(
+                      height: defaultPadding,
+                    ),
 
                     Card(
                       child: Stack(
@@ -134,6 +156,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                     // Document ID Number
                     const SizedBox(height: defaultPadding),
                     TextFormField(
+                      controller: _documentsNoController,
                       keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.next,
                       cursorColor: kPrimaryColor,
@@ -156,7 +179,8 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                       ),
                     ),
 
-                    // ID of Individual
+
+                    // Documents Type
                     const SizedBox(height: 25),
                     DropdownButtonFormField<String>(
                       value: selectedRole,
