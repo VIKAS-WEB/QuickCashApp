@@ -88,7 +88,8 @@ class _AccountsListScreen extends State<AccountsListScreen> {
                                 Text(
                                   'Currency: ${account['currency']}',
                                   style: const TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
                                     color: kPrimaryColor,
                                   ),
                                 ),
@@ -100,7 +101,8 @@ class _AccountsListScreen extends State<AccountsListScreen> {
                                 const Text(
                                   'IBAN / Routing / Account Number:',
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
                                     color: kPrimaryColor,
                                   ),
                                 ),
@@ -108,7 +110,8 @@ class _AccountsListScreen extends State<AccountsListScreen> {
                                 Text(
                                   '${account['iban']}',
                                   style: const TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
                                     color: kPrimaryColor,
                                   ),
                                 ),
@@ -120,7 +123,8 @@ class _AccountsListScreen extends State<AccountsListScreen> {
                                 const Text(
                                   'BIC / IFSC:',
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
                                     color: kPrimaryColor,
                                   ),
                                 ),
@@ -128,7 +132,8 @@ class _AccountsListScreen extends State<AccountsListScreen> {
                                 Text(
                                   '${account['bic']}',
                                   style: const TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
                                     color: kPrimaryColor,
                                   ),
                                 ),
@@ -137,13 +142,24 @@ class _AccountsListScreen extends State<AccountsListScreen> {
                                 const Divider(color: kWhiteColor),
                                 const SizedBox(height: smallPadding),
 
-                                Text(
-                                  'Balance: ${account['balance']}',
-                                  style: const TextStyle(
-                                    fontSize: 14,
+                                const Text(
+                                  'Balance:',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
                                     color: kPrimaryColor,
                                   ),
                                 ),
+
+                                Text(
+                                  '${account['balance']}',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: kPrimaryColor,
+                                  ),
+                                ),
+
                               ],
                             ),
                           ],
