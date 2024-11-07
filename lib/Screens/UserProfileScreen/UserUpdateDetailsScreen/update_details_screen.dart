@@ -119,9 +119,10 @@ class _UpdateDetailsScreenState extends State<UpdateDetailsScreen> {
         title: selectedRole,
       );
 
+      print(selectedRole);
+
       final response = await _profileUpdateApi.userProfileUpdate(request);
 
-      print(response.message);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(response.message ?? 'Profile updated successfully')),
@@ -140,41 +141,6 @@ class _UpdateDetailsScreenState extends State<UpdateDetailsScreen> {
     }
   }
 
-  /*Future<void> mUserProfileUpdate () async {
-    setState(() {
-      isLoading = true;
-      errorMessage = null;
-    });
-
-    try{
-
-      final response = await _profileUpdateApi.userProfileUpdate(
-        name: name.text,
-        email: email.text,
-        mobile: mobile.text,
-        address: address.text,
-        country: country.text,
-        state: state.text,
-        city: city.text,
-        postalCode: postalCode.text,
-        title: selectedRole.toString(),
-      );
-
-      print('Profile updated successfully: ${response}');
-
-      setState(() {
-        isLoading = false;
-      });
-
-    } catch (error) {
-      setState(() {
-        isLoading = false;
-        errorMessage = error.toString();
-      });
-    }
-
-  }*/
-
 
   @override
   Widget build(BuildContext context) {
@@ -191,12 +157,18 @@ class _UpdateDetailsScreenState extends State<UpdateDetailsScreen> {
                   children: [
                     const SizedBox(height: defaultPadding),
 
-
+                    if (isLoading)
+                      const CircularProgressIndicator(
+                        color: kPrimaryColor,
+                      ),
                     // Show loading indicator
-                    if (errorMessage != null) // Show error message if there's an error
-                      Text(errorMessage!, style: const TextStyle(color: Colors.red)),
-                    const SizedBox(height: defaultPadding,),
-
+                    if (errorMessage !=
+                        null) // Show error message if there's an error
+                      Text(errorMessage!,
+                          style: const TextStyle(color: Colors.red)),
+                    const SizedBox(
+                      height: defaultPadding,
+                    ),
                     // User Name
                     TextFormField(
                       controller: name,
