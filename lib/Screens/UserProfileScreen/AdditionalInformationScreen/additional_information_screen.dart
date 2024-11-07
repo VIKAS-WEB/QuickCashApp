@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Import the services package
-import '../../../constants.dart';
+import 'package:quickcash/Screens/UserProfileScreen/AdditionalInformationScreen/model/additionalInformationApi.dart';
+import 'package:quickcash/util/apiConstants.dart';
+import '../../../../constants.dart';
 
 class AdditionalInfoScreen extends StatefulWidget {
   const AdditionalInfoScreen({super.key});
@@ -10,15 +12,89 @@ class AdditionalInfoScreen extends StatefulWidget {
 }
 
 class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
-  // Store the referral link
-  final String referralLink = "https://example.com/referral"; // Replace with your actual referral link
+
+  final AdditionalInformationApi _additionalInformationApi = AdditionalInformationApi();
+
+  // Add text controllers to bind to the text fields
+  final TextEditingController _stateController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
+  final TextEditingController _zipCodeController = TextEditingController();
+  final TextEditingController _documentSubmittedController = TextEditingController();
+  final TextEditingController _documentNoController = TextEditingController();
+  final TextEditingController _referralLinkController = TextEditingController();
 
   void _copyReferralLink() {
-    Clipboard.setData(ClipboardData(text: referralLink)).then((_) {
+    Clipboard.setData(ClipboardData(text: _referralLinkController.text)).then((_) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Referral link copied to clipboard!')),
       );
     });
+  }
+
+  // Api Integration -------
+  bool isLoading = false;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    mAdditionalInformation();
+  }
+
+  Future<void> mAdditionalInformation() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final response = await _additionalInformationApi.additionalInformation();
+
+      if (response.state != null) {
+        _stateController.text = response.state!;
+      }
+      if (response.city != null) {
+        _cityController.text = response.city!;
+      }
+      if (response.postalCode != null) {
+        _zipCodeController.text = response.postalCode!;
+      }
+
+      if (response.documentSubmitted != null) {
+        // Capitalize the first letter of 'documentSubmitted' to 'Document Submitted'
+        _documentSubmittedController.text = mCapitalizeFirstLetter(response.documentSubmitted!);
+      }
+
+      if (response.documentNo != null) {
+        _documentNoController.text = response.documentNo!;
+      }
+
+      if (response.referralDetails?.first.referralCode != null) {
+        // Construct the full referral link
+        final referralCode = response.referralDetails?.first.referralCode.toString() ?? '';
+        final referralLink = '${ApiConstants.baseReferralCodeUrl}$referralCode';
+
+        // Set the full referral link to the controller
+        _referralLinkController.text = referralLink;
+      }
+
+      setState(() {
+        isLoading = false;
+      });
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
+  // Helper method to capitalize the first letter of a string
+  String mCapitalizeFirstLetter(String text) {
+    if (text.isEmpty) {
+      return text;
+    }
+    return text[0].toUpperCase() + text.substring(1);
   }
 
   @override
@@ -31,9 +107,24 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
               padding: const EdgeInsets.all(defaultPadding),
               child: Column(
                 children: [
+
+                  const SizedBox(height: defaultPadding),
+
+                  if (isLoading)
+                    const CircularProgressIndicator(
+                      color: kPrimaryColor,
+                    ),
+                  // Show loading indicator
+                  if (errorMessage != null) // Show error message if there's an error
+                    Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+                  const SizedBox(
+                    height: defaultPadding,
+                  ),
+
                   // State
                   const SizedBox(height: defaultPadding),
                   TextFormField(
+                    controller: _stateController,
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
@@ -53,6 +144,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                   // City
                   const SizedBox(height: defaultPadding),
                   TextFormField(
+                    controller: _cityController,
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
@@ -72,6 +164,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                   // Zip Code
                   const SizedBox(height: defaultPadding),
                   TextFormField(
+                    controller: _zipCodeController,
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
@@ -91,6 +184,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                   // Document Submitted
                   const SizedBox(height: defaultPadding),
                   TextFormField(
+                    controller: _documentSubmittedController,
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
@@ -110,6 +204,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                   // Document Number
                   const SizedBox(height: defaultPadding),
                   TextFormField(
+                    controller: _documentNoController,
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
@@ -129,11 +224,14 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                   // Referral Link
                   const SizedBox(height: 20),
                   TextFormField(
+                    controller: _referralLinkController,
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
                     onSaved: (value) {},
                     readOnly: true,
+                    maxLines: 4,
+                    minLines: 1,
                     style: const TextStyle(color: kPrimaryColor),
                     decoration: InputDecoration(
                       labelText: "Referral Link",
@@ -143,7 +241,6 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                         borderSide: const BorderSide(),
                       ),
                     ),
-                    initialValue: referralLink, // Show the referral link
                   ),
 
                   Row(
