@@ -34,7 +34,7 @@ class UserProfileUpdateRequest {
       'state': state,
       'city': city,
       'postalcode': postalCode,
-      'ownertitle': title,
+      'ownerTitle': title,
     };
   }
 }
