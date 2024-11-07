@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:quickcash/Screens/UserProfileScreen/BeneficiaryAccountListScreen/model/beneficiaryAccountApi.dart';
+import 'package:quickcash/Screens/UserProfileScreen/BeneficiaryAccountListScreen/model/beneficiaryAccountModel.dart';
 
 import '../../../constants.dart';
 
@@ -6,11 +8,16 @@ class BeneficiaryAccountListScreen extends StatefulWidget {
   const BeneficiaryAccountListScreen({super.key});
 
   @override
-  State<BeneficiaryAccountListScreen> createState() => _BeneficiaryAccountListState();
+  State<BeneficiaryAccountListScreen> createState() =>
+      _BeneficiaryAccountListState();
 }
 
 class _BeneficiaryAccountListState extends State<BeneficiaryAccountListScreen> {
-  final List<Map<String, String>> recentTrades = [
+  final BeneficiaryListApi _beneficiaryListApi = BeneficiaryListApi();
+
+  List<BeneficiaryAccountListDetails> beneficiaryAccountData = [];
+
+  /* final List<Map<String, String>> recentTrades = [
     {
       "currency": "USD",
       "iban": "LT955424154545454",
@@ -42,104 +49,172 @@ class _BeneficiaryAccountListState extends State<BeneficiaryAccountListScreen> {
     },
 
     // Add more trades here if needed
-  ];
+  ];*/
+
+  bool isLoading = false;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    mBeneficiaryAccountList();
+  }
+
+  Future<void> mBeneficiaryAccountList() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final response = await _beneficiaryListApi.beneficiaryAccountListApi();
+
+      if (response.beneficiaryAccountList != null &&
+          response.beneficiaryAccountList!.isNotEmpty) {
+        setState(() {
+          beneficiaryAccountData = response.beneficiaryAccountList!;
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No accounts found.';
+        });
+      }
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.all(defaultPadding),  // This will add padding to the entire screen body
-        child: ListView.builder(
-          itemCount: recentTrades.length,
-          itemBuilder: (context, index) {
-            final trade = recentTrades[index];
-            return Container(
-              margin: const EdgeInsets.only(bottom: defaultPadding),  // Margin for card spacing
-              decoration: BoxDecoration(
-                color: kWhiteColor,  // Background color of the container
-                borderRadius: BorderRadius.circular(smallPadding),  // Rounded corners for the container
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    spreadRadius: 1,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-                border: Border.all(
-                  color: kPurpleColor,  // Purple border color
-                  width: 1,  // Border width
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(defaultPadding),  // Padding for content inside the container
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+        padding: const EdgeInsets.all(defaultPadding),
+        child: Column(
+          children: [
 
-                    // Display currency code inside a circle
-                    const Center(
-                      child: CircleAvatar(
-                        radius: 50, // Size of the circle
-                        backgroundColor: kPrimaryColor, // Background color of the circle
-                        child: Text(
-                          'USD', // Display the currency code
-                          style: TextStyle(
-                            fontSize: 30, // Font size of the currency code
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white, // Text color
-                          ),
+            if (isLoading)
+              const Center(child: CircularProgressIndicator()),
+            if (errorMessage != null)
+              Center(child: Text(errorMessage!, style: const TextStyle(color: Colors.red))),
+            if (!isLoading && errorMessage == null && beneficiaryAccountData.isNotEmpty)
+
+            Expanded(
+              child: ListView.builder(
+                itemCount: beneficiaryAccountData.length,
+                itemBuilder: (context, index) {
+                  final beneficiaryList = beneficiaryAccountData[index];
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: defaultPadding),
+                    // Margin for card spacing
+                    decoration: BoxDecoration(
+                      color: kWhiteColor,
+                      // Background color of the container
+                      borderRadius: BorderRadius.circular(smallPadding),
+                      // Rounded corners for the container
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                          offset: const Offset(0, 4),
                         ),
+                      ],
+                      border: Border.all(
+                        color: kPurpleColor, // Purple border color
+                        width: 1, // Border width
                       ),
                     ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(defaultPadding),
+                      // Padding for content inside the container
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Display currency code inside a circle
+                          Center(
+                            child: CircleAvatar(
+                              radius: 50,
+                              // Size of the circle
+                              backgroundColor: kPrimaryColor,
+                              // Background color of the circle
+                              child: Text(
+                                  beneficiaryList.currency ?? 'N/A', // Display the currency code
+                                style: const TextStyle(
+                                  fontSize: 30,
+                                  // Font size of the currency code
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white, // Text color
+                                ),
+                              ),
+                            ),
+                          ),
 
-                    const SizedBox(height: largePadding,),
+                          const SizedBox(
+                            height: largePadding,
+                          ),
 
-                    const Text(
-                      "Currency:",
-                      style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      "${trade['currency']}",
-                      style: const TextStyle(color: kPrimaryColor),
-                    ),
+                          const Text(
+                            "Currency:",
+                            style: TextStyle(
+                                color: kPrimaryColor,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            beneficiaryList.currency ?? 'N/A',
+                            style: const TextStyle(color: kPrimaryColor),
+                          ),
 
+                          const SizedBox(height: 8), // Small space between rows
+                          const Text(
+                            "IBAN / Routing / Account Number",
+                            style: TextStyle(
+                                color: kPrimaryColor,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            beneficiaryList.iban ?? 'N/A',
+                            style: const TextStyle(color: kPrimaryColor),
+                          ),
 
-                    const SizedBox(height: 8),  // Small space between rows
-                    const Text(
-                      "IBAN / Routing / Account Number",
-                      style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      "${trade['iban']}",
-                      style: const TextStyle(color: kPrimaryColor),
-                    ),
+                          const SizedBox(
+                            height: smallPadding,
+                          ),
 
-                    const SizedBox(height: smallPadding,),
+                          const Text(
+                            "BIC / IFSC:",
+                            style: TextStyle(
+                                color: kPrimaryColor,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            beneficiaryList.bic ?? 'N/A',
+                            style: const TextStyle(color: kPrimaryColor),
+                          ),
 
-                    const Text(
-                      "BIC / IFSC:",
-                      style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold),
+                          const SizedBox(height: 8), // Small space between rows
+                          const Text(
+                            "Balance:",
+                            style: TextStyle(
+                                color: kPrimaryColor,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            '${beneficiaryList.balance ?? 0.0}',
+                            style: const TextStyle(color: kPrimaryColor),
+                          ),
+                        ],
+                      ),
                     ),
-                    Text(
-                      "${trade['bic']}",
-                      style: const TextStyle(color: kPrimaryColor),
-                    ),
-
-                    const SizedBox(height: 8),  // Small space between rows
-                    const Text(
-                      "Balance:",
-                      style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      "${trade['balance']}",
-                      style: const TextStyle(color: kPrimaryColor),
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );
