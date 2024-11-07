@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../constants.dart';
+import '../../../constants.dart';
 
 class SecurityScreen extends StatefulWidget {
   const SecurityScreen({super.key});
@@ -11,6 +11,8 @@ class SecurityScreen extends StatefulWidget {
 
 class _SecurityScreenState extends State<SecurityScreen> {
   final _formKey = GlobalKey<FormState>();
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   bool _isPasswordValid(String password) {
     // Regex to check password criteria
@@ -35,9 +37,9 @@ class _SecurityScreenState extends State<SecurityScreen> {
                     // Password
                     TextFormField(
                       textInputAction: TextInputAction.next,
-                      obscureText: true,
+                      obscureText: !_isPasswordVisible,
                       cursorColor: kPrimaryColor,
-                      onSaved: (value){},
+                      onSaved: (value) {},
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your password';
@@ -47,10 +49,8 @@ class _SecurityScreenState extends State<SecurityScreen> {
                         }
                         return null;
                       },
-
                       readOnly: false,
                       style: const TextStyle(color: kPrimaryColor),
-
                       decoration: InputDecoration(
                         labelText: "Password",
                         labelStyle: const TextStyle(color: kPrimaryColor),
@@ -58,18 +58,29 @@ class _SecurityScreenState extends State<SecurityScreen> {
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(),
                         ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isPasswordVisible
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: kPrimaryColor,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                        ),
                       ),
                     ),
-
 
                     // Confirm Password
                     const SizedBox(height: defaultPadding),
                     TextFormField(
                       textInputAction: TextInputAction.done,
-                      obscureText: true,
+                      obscureText: !_isConfirmPasswordVisible,
                       cursorColor: kPrimaryColor,
-                      onSaved: (value){},
-
+                      onSaved: (value) {},
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your confirm password';
@@ -77,19 +88,29 @@ class _SecurityScreenState extends State<SecurityScreen> {
                         if (!_isPasswordValid(value)) {
                           return 'Confirm password must contain at least one lowercase letter, one uppercase letter, one number, and one special character.';
                         }
-
                         return null;
                       },
-
                       readOnly: false,
                       style: const TextStyle(color: kPrimaryColor),
-
                       decoration: InputDecoration(
                         labelText: "Confirm Password",
                         labelStyle: const TextStyle(color: kPrimaryColor),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(),
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isConfirmPasswordVisible
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: kPrimaryColor,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                            });
+                          },
                         ),
                       ),
                     ),
@@ -116,11 +137,9 @@ class _SecurityScreenState extends State<SecurityScreen> {
                             );
                           }
                         },
-
                         child: const Text('Submit', style: TextStyle(color: Colors.white)),
                       ),
                     ),
-
                   ],
                 ),
               ),
@@ -130,5 +149,4 @@ class _SecurityScreenState extends State<SecurityScreen> {
       ),
     );
   }
-
 }
