@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/UserProfileScreen/UserProfileScreen/model/userProfileApi.dart';
+import 'package:quickcash/Screens/UserProfileScreen/UserUpdateDetailsScreen/model/userUpdateDetailsApi.dart';
 import 'package:quickcash/constants.dart';
 import 'package:country_state_city_pro/country_state_city_pro.dart';
 
 import '../../../util/auth_manager.dart';
+import 'model/userUpdateDetailsModel.dart';
 
 class UpdateDetailsScreen extends StatefulWidget {
   const UpdateDetailsScreen({super.key});
@@ -14,6 +16,7 @@ class UpdateDetailsScreen extends StatefulWidget {
 
 class _UpdateDetailsScreenState extends State<UpdateDetailsScreen> {
   final UserProfileApi _userProfileApi = UserProfileApi();
+  final UserProfileUpdateApi _profileUpdateApi = UserProfileUpdateApi();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String selectedRole = 'Select Title';
 
@@ -28,10 +31,9 @@ class _UpdateDetailsScreenState extends State<UpdateDetailsScreen> {
 
 
 
-  // Api Integration -----------------------------------------
+  // Get User Details Api Integration -----------------------------------------
   bool isLoading = false;
   String? errorMessage;
-  String? profileImageUrl;
 
   @override
   void initState() {
@@ -91,6 +93,87 @@ class _UpdateDetailsScreenState extends State<UpdateDetailsScreen> {
       });
     }
   }
+
+
+  // User Profile Update Api ------------------
+  Future<void> mUserProfileUpdate() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    int mobileNumber = int.parse(mobile.text);
+    int postal = int.parse(postalCode.text);
+
+    try {
+      final request = UserProfileUpdateRequest(
+        userId: AuthManager.getUserId(),
+        name: name.text,
+        email: email.text,
+        mobile: mobileNumber,
+        address: address.text,
+        country: country.text,
+        state: state.text,
+        city: city.text,
+        postalCode: postal,
+        title: selectedRole,
+      );
+
+      final response = await _profileUpdateApi.userProfileUpdate(request);
+
+      print(response.message);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response.message ?? 'Profile updated successfully')),
+      );
+
+
+      setState(() {
+        mUserProfile();
+        isLoading = false;
+      });
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
+  /*Future<void> mUserProfileUpdate () async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try{
+
+      final response = await _profileUpdateApi.userProfileUpdate(
+        name: name.text,
+        email: email.text,
+        mobile: mobile.text,
+        address: address.text,
+        country: country.text,
+        state: state.text,
+        city: city.text,
+        postalCode: postalCode.text,
+        title: selectedRole.toString(),
+      );
+
+      print('Profile updated successfully: ${response}');
+
+      setState(() {
+        isLoading = false;
+      });
+
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+
+  }*/
 
 
   @override
@@ -177,7 +260,7 @@ class _UpdateDetailsScreenState extends State<UpdateDetailsScreen> {
                       textInputAction: TextInputAction.next,
                       cursorColor: kPrimaryColor,
                       onSaved: (value) {},
-                      readOnly: true,
+                      readOnly: false,
                       style: const TextStyle(color: kPrimaryColor),
                       decoration: InputDecoration(
                         labelText: "Mobile Number",
@@ -218,10 +301,12 @@ class _UpdateDetailsScreenState extends State<UpdateDetailsScreen> {
                     TextFormField(
                       controller: address,
                       keyboardType: TextInputType.text,
-                      textInputAction: TextInputAction.next,
+                      textInputAction: TextInputAction.none,
                       cursorColor: kPrimaryColor,
                       onSaved: (value) {},
                       readOnly: false,
+                      minLines: 1,
+                      maxLines: 6,
                       style: const TextStyle(color: kPrimaryColor),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -336,7 +421,7 @@ class _UpdateDetailsScreenState extends State<UpdateDetailsScreen> {
                             );
 
                           } else if(_formKey.currentState!.validate()){
-
+                            mUserProfileUpdate();
                           }
 
                         },
