@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/UserProfileScreen/AccountListsScreen/accounts_list_screen.dart';
 import 'package:quickcash/Screens/UserProfileScreen/AdditionalInformationScreen/additional_information_screen.dart';
+import 'package:quickcash/Screens/UserProfileScreen/BeneficiaryAccountListScreen/beneficiaryAccountListScreen.dart';
 import 'package:quickcash/Screens/UserProfileScreen/DocumentsScreen/documents_screen.dart';
 import 'package:quickcash/Screens/UserProfileScreen/login_history.dart';
 import 'package:quickcash/Screens/UserProfileScreen/security_screen.dart';
@@ -15,7 +16,7 @@ List<String> titles = <String>[
   'Documents',
   'Additional Information',
   'Accounts List',
-  'Beneficiary Account List'
+  'BeneficiaryAccountListScreen'
 ];
 
 class ProfileMainScreen extends StatefulWidget {
@@ -67,9 +68,7 @@ class _ProfileMainScreen extends State<ProfileMainScreen> {
                   DocumentsScreen(),
                   AdditionalInfoScreen(),
                   AccountsListScreen(),
-
-                  // Placeholder for other tabs
-                  Center(child: Text('Beneficiary Account List \n No Data Found')),
+                  BeneficiaryAccountListScreen(),
                 ],
               ),
             ),

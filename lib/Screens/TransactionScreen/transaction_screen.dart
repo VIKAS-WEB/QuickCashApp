@@ -68,7 +68,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
     return Scaffold(
       body: Column(
         children: [
-          const SizedBox(height: 48),
+          const SizedBox(height: 88),
           const Center(
             child: Text(
               "Transaction History",
