@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl_phone_field/phone_number.dart';
 import 'package:quickcash/Screens/UserProfileScreen/UserProfileScreen/model/userProfileApi.dart';
 import 'package:quickcash/constants.dart';
-import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:country_state_city_pro/country_state_city_pro.dart';
 
-import '../../../util/apiConstants.dart';
 import '../../../util/auth_manager.dart';
 
 class UpdateDetailsScreen extends StatefulWidget {
@@ -258,6 +255,7 @@ class _UpdateDetailsScreenState extends State<UpdateDetailsScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(),
+
                         ),
                       ),
                     ),
