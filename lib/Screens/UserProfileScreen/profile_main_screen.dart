@@ -3,7 +3,7 @@ import 'package:quickcash/Screens/UserProfileScreen/AccountListsScreen/accounts_
 import 'package:quickcash/Screens/UserProfileScreen/AdditionalInformationScreen/additional_information_screen.dart';
 import 'package:quickcash/Screens/UserProfileScreen/BeneficiaryAccountListScreen/beneficiaryAccountListScreen.dart';
 import 'package:quickcash/Screens/UserProfileScreen/DocumentsScreen/documents_screen.dart';
-import 'package:quickcash/Screens/UserProfileScreen/login_history.dart';
+import 'package:quickcash/Screens/UserProfileScreen/LoginHistoryScreen/login_history.dart';
 import 'package:quickcash/Screens/UserProfileScreen/security_screen.dart';
 import 'package:quickcash/Screens/UserProfileScreen/update_details_screen.dart';
 import 'package:quickcash/Screens/UserProfileScreen/UserProfileScreen/userInformation_screen.dart';

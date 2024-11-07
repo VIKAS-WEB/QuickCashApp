@@ -17,40 +17,6 @@ class _BeneficiaryAccountListState extends State<BeneficiaryAccountListScreen> {
 
   List<BeneficiaryAccountListDetails> beneficiaryAccountData = [];
 
-  /* final List<Map<String, String>> recentTrades = [
-    {
-      "currency": "USD",
-      "iban": "LT955424154545454",
-      "bic": "321456",
-      "balance": "\$0.00018000"
-    },
-    {
-      "currency": "USD",
-      "iban": "LT955424154545454",
-      "bic": "321456",
-      "balance": "\$0.00018000"
-    },
-    {
-      "currency": "USD",
-      "iban": "LT955424154545454",
-      "bic": "321456",
-      "balance": "\$0.00018000"
-    },
-    {
-      "currency": "USD",
-      "iban": "LT955424154545454",
-      "bic": "321456",
-      "balance": "\$0.00018000"
-    },
-    {"currency": "USD",
-      "iban": "LT955424154545454",
-      "bic": "321456",
-      "balance": "\$0.00018000"
-    },
-
-    // Add more trades here if needed
-  ];*/
-
   bool isLoading = false;
   String? errorMessage;
 
