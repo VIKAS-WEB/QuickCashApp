@@ -5,7 +5,7 @@ import 'package:quickcash/Screens/UserProfileScreen/BeneficiaryAccountListScreen
 import 'package:quickcash/Screens/UserProfileScreen/DocumentsScreen/documents_screen.dart';
 import 'package:quickcash/Screens/UserProfileScreen/LoginHistoryScreen/login_history.dart';
 import 'package:quickcash/Screens/UserProfileScreen/security_screen.dart';
-import 'package:quickcash/Screens/UserProfileScreen/update_details_screen.dart';
+import 'package:quickcash/Screens/UserProfileScreen/UserUpdateDetailsScreen/update_details_screen.dart';
 import 'package:quickcash/Screens/UserProfileScreen/UserProfileScreen/userInformation_screen.dart';
 
 List<String> titles = <String>[

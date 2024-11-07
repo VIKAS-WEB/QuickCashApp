@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:intl_phone_field/phone_number.dart';
+import 'package:quickcash/Screens/UserProfileScreen/UserProfileScreen/model/userProfileApi.dart';
 import 'package:quickcash/constants.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:country_state_city_pro/country_state_city_pro.dart';
+
+import '../../../util/apiConstants.dart';
+import '../../../util/auth_manager.dart';
 
 class UpdateDetailsScreen extends StatefulWidget {
   const UpdateDetailsScreen({super.key});
@@ -11,11 +16,85 @@ class UpdateDetailsScreen extends StatefulWidget {
 }
 
 class _UpdateDetailsScreenState extends State<UpdateDetailsScreen> {
+  final UserProfileApi _userProfileApi = UserProfileApi();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  TextEditingController country = TextEditingController();
-  TextEditingController state = TextEditingController();
-  TextEditingController city = TextEditingController();
   String selectedRole = 'Select Title';
+
+  final TextEditingController name = TextEditingController();
+  final TextEditingController email = TextEditingController();
+  final TextEditingController mobile = TextEditingController();
+  final TextEditingController country = TextEditingController();
+  final TextEditingController state = TextEditingController();
+  final TextEditingController city = TextEditingController();
+  final TextEditingController postalCode = TextEditingController();
+  final TextEditingController address = TextEditingController();
+
+
+
+  // Api Integration -----------------------------------------
+  bool isLoading = false;
+  String? errorMessage;
+  String? profileImageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    mUserProfile();
+  }
+
+  Future<void> mUserProfile() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final response = await _userProfileApi.userProfile();
+
+      AuthManager.saveUserImage(response.ownerProfile!);
+
+      if (response.name != null) {
+        name.text = response.name!;
+      }
+      if (response.email != null) {
+        email.text = response.email!;
+      }
+      if (response.mobile != null) {
+        mobile.text = response.mobile!;
+      }
+      if (response.country != null) {
+        country.text = response.country!;
+      }
+      if (response.state != null) {
+        state.text = response.state!;
+      }
+      if (response.city != null) {
+        city.text = response.city!;
+      }
+      if (response.address != null) {
+        address.text = response.address!;
+      }
+      if(response.postalCode !=null){
+        postalCode.text = response.postalCode!;
+      }
+
+      if (response.title !=null) {
+        selectedRole = response.title!;
+      }
+
+
+      setState(() {
+        isLoading = false;
+      });
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+        selectedRole;
+      });
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -32,8 +111,15 @@ class _UpdateDetailsScreenState extends State<UpdateDetailsScreen> {
                   children: [
                     const SizedBox(height: defaultPadding),
 
+
+                    // Show loading indicator
+                    if (errorMessage != null) // Show error message if there's an error
+                      Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+                    const SizedBox(height: defaultPadding,),
+
                     // User Name
                     TextFormField(
+                      controller: name,
                       keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.next,
                       cursorColor: kPrimaryColor,
@@ -59,6 +145,7 @@ class _UpdateDetailsScreenState extends State<UpdateDetailsScreen> {
                     // User Email
                     const SizedBox(height: defaultPadding),
                     TextFormField(
+                      controller: email,
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       cursorColor: kPrimaryColor,
@@ -86,7 +173,25 @@ class _UpdateDetailsScreenState extends State<UpdateDetailsScreen> {
 
                     // User Phone Number
                     const SizedBox(height: defaultPadding),
-                    IntlPhoneField(
+                    TextFormField(
+                      controller: mobile,
+                      // Bind the controller
+                      keyboardType: TextInputType.phone,
+                      textInputAction: TextInputAction.next,
+                      cursorColor: kPrimaryColor,
+                      onSaved: (value) {},
+                      readOnly: true,
+                      style: const TextStyle(color: kPrimaryColor),
+                      decoration: InputDecoration(
+                        labelText: "Mobile Number",
+                        labelStyle: const TextStyle(color: kPrimaryColor),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide()),
+                      ),
+                    ),
+                    /*IntlPhoneField(
+                      controller: mobile,
                       keyboardType: TextInputType.phone,
                       focusNode: FocusNode(),
                       style: const TextStyle(color: kPrimaryColor),
@@ -100,18 +205,21 @@ class _UpdateDetailsScreenState extends State<UpdateDetailsScreen> {
                         ),
                       ),
                       initialCountryCode: 'NP',
-                      onChanged: (phone) {},
+                      onChanged: (phone) {
+                        phone = mobile as PhoneNumber;
+                      },
                       validator: (value) {
                         if (value == null || value.completeNumber.isEmpty) {
                           return 'Please enter your phone number';
                         }
                         return null;
                       },
-                    ),
+                    ),*/
 
                     // User Address
                     const SizedBox(height: defaultPadding),
                     TextFormField(
+                      controller: address,
                       keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.next,
                       cursorColor: kPrimaryColor,
@@ -157,6 +265,7 @@ class _UpdateDetailsScreenState extends State<UpdateDetailsScreen> {
                     // Postal Code
                     const SizedBox(height: defaultPadding),
                     TextFormField(
+                      controller: postalCode,
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.done,
                       cursorColor: kPrimaryColor,

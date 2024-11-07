@@ -1,7 +1,4 @@
-// login_model.dart
 class UserProfileRequest {
-
-
   UserProfileRequest();
 
 }
@@ -49,6 +46,11 @@ class UserProfileResponse {
   final String? defaultCurrency;
   final String? address;
   final String? ownerProfile;
+
+  final String? state;
+  final String? city;
+  final String? postalCode;
+  final String? title;
   final List<AccountDetail>? accountDetails; // List of AccountDetail
 
   UserProfileResponse({
@@ -59,6 +61,12 @@ class UserProfileResponse {
     this.defaultCurrency,
     this.address,
     this.ownerProfile,
+
+    this.state,
+    this.city,
+    this.postalCode,
+    this.title,
+
     this.accountDetails,
   });
 
@@ -70,6 +78,15 @@ class UserProfileResponse {
       country: json['data']?['country'] as String?,
       defaultCurrency: json['data']?['defaultCurrency'] as String?,
       address: json['data']?['address'] as String?,
+
+
+      state: json['data']?['state'] as String?,
+      city: json['data']?['city'] as String?,
+      postalCode: json['data']?['postalcode'] as String?,
+      title: json['data']?['ownerTitle'] as String?,
+
+
+
       ownerProfile: json['data']?['ownerProfile'] as String?,
       accountDetails: (json['data']?['accountDetails'] as List<dynamic>?)
           ?.map((item) => AccountDetail.fromJson(item as Map<String, dynamic>))
