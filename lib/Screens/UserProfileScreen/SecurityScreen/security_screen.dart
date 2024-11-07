@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:quickcash/Screens/UserProfileScreen/SecurityScreen/SecurityModel/securityApi.dart';
+import 'package:quickcash/util/auth_manager.dart';
 
 import '../../../constants.dart';
+import '../../../util/customSnackBar.dart';
 
 class SecurityScreen extends StatefulWidget {
   const SecurityScreen({super.key});
@@ -17,13 +20,83 @@ class _SecurityScreenState extends State<SecurityScreen> {
 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
-  bool _isPasswordMatch = false;  // Track if password and confirm password match
+  bool _isPasswordMatch = false;
+
+  final SecurityApi _securityApi = SecurityApi();
 
   bool _isPasswordValid(String password) {
     // Regex to check password criteria
     final regex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$');
     return regex.hasMatch(password);
   }
+
+
+  // Api Integration ------------------
+  bool isLoading = false;
+  String? errorMessage;
+
+  Future<void> mSecurity() async{
+    if (_formKey.currentState!.validate()) {
+      // Check if passwords match
+      if (_passwordController.text != _confirmPasswordController.text) {
+        // If passwords do not match, show a SnackBar
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Passwords do not match!')),
+        );
+        setState(() {
+          _isPasswordMatch = false;
+
+        });
+        return;
+      } else {
+        setState(() {
+          _isPasswordMatch = true;
+        });
+
+        _formKey.currentState!.save();
+
+        setState(() {
+          isLoading = true;
+          errorMessage = null;
+        });
+
+        try{
+
+          final response = await _securityApi.security(AuthManager.getUserEmail(), AuthManager.getUserName());
+
+          setState(() {
+            isLoading = false;
+          });
+
+          print(response.message);
+          print(response.otp);
+
+          CustomSnackBar.showSnackBar(
+            context: context,
+            message: response.message!,
+            color: kGreeneColor, // Set the color of the SnackBar
+          );
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Otp has been Sent On Registered EmailId')),
+          );
+
+        }
+        catch (error) {
+          setState(() {
+            isLoading = false;
+            errorMessage = error.toString();
+          });
+        }
+
+
+
+
+      }
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +112,12 @@ class _SecurityScreenState extends State<SecurityScreen> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     const SizedBox(height: defaultPadding),
+
+                    if (isLoading) const CircularProgressIndicator(color: kPrimaryColor,), // Show loading indicator
+                    if (errorMessage != null) // Show error message if there's an error
+                      Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+                    const SizedBox(height: defaultPadding,),
+
 
                     // Password
                     TextFormField(
@@ -160,31 +239,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            // Check if passwords match
-                            if (_passwordController.text != _confirmPasswordController.text) {
-                              // If passwords do not match, show a SnackBar
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Passwords do not match!')),
-                              );
-                              setState(() {
-                                _isPasswordMatch = false;  // Hide OTP field if passwords do not match
-                              });
-                              return;
-                            } else {
-                              setState(() {
-                                _isPasswordMatch = true;  // Show OTP field if passwords match
-                              });
-
-                              _formKey.currentState!.save();
-
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Otp has been Sent On Registered EmailId')),
-                              );
-                            }
-                          }
-                        },
+                        onPressed: isLoading ? null : mSecurity,
                         child: const Text('Submit', style: TextStyle(color: Colors.white)),
                       ),
                     ),
