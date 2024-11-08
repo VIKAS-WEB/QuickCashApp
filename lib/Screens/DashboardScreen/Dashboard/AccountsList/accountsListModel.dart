@@ -1,31 +1,25 @@
 class AccountsList {
-  final String? transactionDate;
-  final String? transactionId;
-  final String? transactionType;
-  final String? transactionAmount;
-  final double? balance;  // Change from int? to double?
-  final String? transactionStatus;
+  final String? country;
+  final String? currency;
+  final String? amount;
+  final String? ibanText;
+  final String? status;
 
   AccountsList({
-    this.transactionDate,
-    this.transactionId,
-    this.transactionType,
-    this.transactionAmount,
-    this.balance,
-    this.transactionStatus,
+    this.country,
+    this.currency,
+    this.amount,
+    this.ibanText,
+    this.status,
   });
 
   factory AccountsList.fromJson(Map<String, dynamic> json) {
     return AccountsList(
-      transactionDate: json['createdAt'] as String?,
-      transactionId: json['trx'] as String?,
-      transactionType: json['trans_type'] as String?,
-      transactionAmount: json['amountText'] as String?,
-      // Safely cast to double
-      balance: (json['postBalance'] is int
-          ? (json['postBalance'] as int).toDouble()
-          : json['postBalance']) as double?,
-      transactionStatus: json['status'] as String?,
+      country: json['country'] as String?,
+      currency: json['currency'] as String?,
+      amount: json['amount'] as String?,
+      ibanText: json['ibanText'] as String?,
+      status: json['status'] as String?,
     );
   }
 }

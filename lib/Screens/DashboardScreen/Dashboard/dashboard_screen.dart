@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/DashboardScreen/AddMoneyScreen/add_money_screen.dart';
+import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListApi.dart';
+import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListModel.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/TransactionList/transactionListApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/ExchangeScreen/exchange_money_screen.dart';
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/send_money_screen.dart';
@@ -20,7 +22,9 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
 final TransactionListApi _transactionListApi = TransactionListApi();
+final AccountsListApi _accountsListApi = AccountsListApi();
 
+  List<AccountsList> accountsListData = [];
   List<TransactionListDetails> transactionList = [];
   bool isLoading = false;
   String? errorMessage;
@@ -33,7 +37,33 @@ final TransactionListApi _transactionListApi = TransactionListApi();
   }
 
   Future<void> mAccounts() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
 
+
+    try{
+      final response = await _accountsListApi.accountsListApi();
+
+      if(response.accountsList !=null && response.accountsList!.isNotEmpty){
+        setState(() {
+          accountsListData = response.accountsList!;
+          isLoading = false;
+        });
+      }else{
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Account Found';
+        });
+      }
+
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
   }
 
   // Transaction List Api
@@ -144,7 +174,6 @@ final TransactionListApi _transactionListApi = TransactionListApi();
                       currencyCode: "USD",
                       accountNumber: "US1000000001",
                       balance: "\$325.170",
-                      accountName: "USD account",
                       bgColor: Colors.purple,
                     ),
                     const AccountCard(
@@ -152,7 +181,6 @@ final TransactionListApi _transactionListApi = TransactionListApi();
                       currencyCode: "EUR",
                       accountNumber: "EU1000000004",
                       balance: "€19.766",
-                      accountName: "Euro Account",
                       bgColor: Colors.white,
                     ),
                     const AccountCard(
@@ -160,7 +188,6 @@ final TransactionListApi _transactionListApi = TransactionListApi();
                       currencyCode: "INR",
                       accountNumber: "IN1000000008",
                       balance: "₹300.000",
-                      accountName: "INR account",
                       bgColor: Colors.white,
                     ),
 
@@ -365,7 +392,6 @@ class AccountCard extends StatelessWidget {
   final String currencyCode;
   final String accountNumber;
   final String balance;
-  final String accountName;
   final Color bgColor;
 
   const AccountCard({super.key,
@@ -373,7 +399,6 @@ class AccountCard extends StatelessWidget {
     required this.currencyCode,
     required this.accountNumber,
     required this.balance,
-    required this.accountName,
     required this.bgColor,
   });
 
@@ -427,13 +452,6 @@ class AccountCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                accountName,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: currencyCode == 'USD' ? Colors.white : Colors.black,
-                ),
-              ),
             ],
           ),
           Text(
