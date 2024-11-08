@@ -88,7 +88,12 @@ class _SecurityScreenState extends State<SecurityScreen> {
         isLoading = false;
         errorMessage = null;
         isOtpSent = false;
+        _confirmPasswordController.clear();
+        _passwordController.clear();
+        _otpController.clear();
+        AuthManager.saveOTP("");
       });
+
 
       CustomSnackBar.showSnackBar(
         context: context,
@@ -205,8 +210,8 @@ class _SecurityScreenState extends State<SecurityScreen> {
                       ),
                     ),
 
-                    // OTP
-                    if (_isPasswordMatch) ...[
+                    // OTP field visibility check
+                    if (_isPasswordMatch && isOtpSent) ...[
                       const SizedBox(height: defaultPadding),
                       TextFormField(
                         controller: _otpController,
@@ -223,6 +228,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
                         ),
                       ),
                     ],
+
 
                     // Submit Button
                     const SizedBox(height: 35),
