@@ -154,6 +154,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
                       textInputAction: TextInputAction.next,
                       obscureText: !_isPasswordVisible,
                       cursorColor: kPrimaryColor,
+                      style: const TextStyle(color: kPrimaryColor),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your password';
@@ -165,6 +166,11 @@ class _SecurityScreenState extends State<SecurityScreen> {
                       },
                       decoration: InputDecoration(
                         labelText: "Password",
+                        labelStyle: const TextStyle(color: kPrimaryColor),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(),
+                        ),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
@@ -185,6 +191,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
                       controller: _confirmPasswordController,
                       obscureText: !_isConfirmPasswordVisible,
                       cursorColor: kPrimaryColor,
+                      style: const TextStyle(color: kPrimaryColor),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your confirm password';
@@ -196,6 +203,11 @@ class _SecurityScreenState extends State<SecurityScreen> {
                       },
                       decoration: InputDecoration(
                         labelText: "Confirm Password",
+                        labelStyle: const TextStyle(color: kPrimaryColor),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(),
+                        ),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _isConfirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
@@ -217,14 +229,20 @@ class _SecurityScreenState extends State<SecurityScreen> {
                         controller: _otpController,
                         keyboardType: TextInputType.number,
                         cursorColor: kPrimaryColor,
+                        style: const TextStyle(color: kPrimaryColor),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter OTP';
                           }
                           return null;
                         },
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: "OTP",
+                          labelStyle: const TextStyle(color: kPrimaryColor),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(),
+                          ),
                         ),
                       ),
                     ],
