@@ -12,7 +12,7 @@ class AccountsListApi {
     _dio.options.headers['Authorization'] = AuthManager.getToken();
   }
 
-  Future<AccountListResponse> transactionListApi() async {
+  Future<AccountListResponse> accountsListApi() async {
     try {
       final response = await _dio.get(
         'account/list/${AuthManager.getUserId()}',
