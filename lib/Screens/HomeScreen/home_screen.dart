@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/CardsScreen/card_screen.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/buy_and_sell_home_screen.dart';
 import 'package:quickcash/Screens/CryptoScreen/WalletAddress/walletAddress_screen.dart';
-import 'package:quickcash/Screens/DashboardScreen/dashboard_screen.dart';
+import 'package:quickcash/Screens/DashboardScreen/Dashboard/dashboard_screen.dart';
 import 'package:quickcash/Screens/HomeScreen/my_drawer_header.dart';
 import 'package:quickcash/Screens/InvoicesScreen/CategoriesScreen/categories_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ClientsScreen/clients_screen.dart';
