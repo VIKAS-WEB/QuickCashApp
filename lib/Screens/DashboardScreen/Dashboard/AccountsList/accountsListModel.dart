@@ -18,7 +18,7 @@ class AccountsListsData {
     return AccountsListsData(
       country: json['country'] as String?,
       currency: json['currency'] as String?,
-      iban: json['ibanText'] as String?,
+      iban: json['iban'] as String?,
       status: json['status'] as bool?,
       amount: (json['amount'] is int
           ? (json['amount'] as int).toDouble()

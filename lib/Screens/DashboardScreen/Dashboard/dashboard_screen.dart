@@ -1,3 +1,4 @@
+import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/DashboardScreen/AddMoneyScreen/add_money_screen.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListApi.dart';
@@ -30,7 +31,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String? errorMessage;
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     mAccounts();
     mTransactionList();
@@ -42,22 +43,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
       errorMessage = null;
     });
 
-
-    try{
+    try {
       final response = await _accountsListApi.accountsListApi();
 
-      if(response.accountsList !=null && response.accountsList!.isNotEmpty){
+      if (response.accountsList != null && response.accountsList!.isNotEmpty) {
         setState(() {
           accountsListData = response.accountsList!;
           isLoading = false;
         });
-      }else{
+      } else {
         setState(() {
           isLoading = false;
           errorMessage = 'No Account Found';
         });
       }
-
     } catch (error) {
       setState(() {
         isLoading = false;
@@ -73,29 +72,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
       errorMessage = null;
     });
 
-    try{
+    try {
       final response = await _transactionListApi.transactionListApi();
 
-      if(response.transactionList !=null && response.transactionList!.isNotEmpty){
+      if (response.transactionList != null &&
+          response.transactionList!.isNotEmpty) {
         setState(() {
           transactionList = response.transactionList!;
           isLoading = false;
         });
-      }else{
+      } else {
         setState(() {
           isLoading = false;
           errorMessage = 'No Transaction List';
         });
       }
-
-
     } catch (error) {
       setState(() {
         isLoading = false;
         errorMessage = error.toString();
       });
     }
-
   }
 
   Color _getStatusColor(String status) {
@@ -127,7 +124,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 25.0,),
+            const SizedBox(
+              height: 25.0,
+            ),
             const Card(
               margin: EdgeInsets.all(16.0),
               child: Padding(
@@ -161,20 +160,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
 
-
-
             // Loading and Error Handling
-            if (isLoading)
-              const Center(child: CircularProgressIndicator()),
+            if (isLoading) const Center(child: CircularProgressIndicator()),
             if (errorMessage != null)
               Center(
                   child: Text(
-                    errorMessage!,
-                    style: const TextStyle(color: Colors.red),
-                  )),
+                errorMessage!,
+                style: const TextStyle(color: Colors.red),
+              )),
 
             // Account list (only when not loading and no error)
-            if (!isLoading && errorMessage == null && accountsListData.isNotEmpty)
+            if (!isLoading &&
+                errorMessage == null &&
+                accountsListData.isNotEmpty)
               SizedBox(
                 height: 170, // Set height for the horizontal list view
                 child: ListView.builder(
@@ -194,53 +192,71 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: Container(
                           width: 320,
                           padding: const EdgeInsets.all(defaultPadding),
-                          child:  Column(
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-
-                                  const CircleAvatar(
-                                    radius: 20,
-                                    backgroundImage: AssetImage(
-                                      'assets/icons/menu_crypto.png', // Ensure this path is correct
-                                    ),
+                                  CountryFlag.fromCountryCode(
+                                    width: 35,
+                                    height: 35,
+                                    accountsData.country!,
+                                    shape: const Circle(),
                                   ),
                                   Text(
                                     "${accountsData.currency}",
-                                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: kPrimaryColor),
+                                    style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: kPrimaryColor),
                                   ),
                                 ],
                               ),
-
-                              const SizedBox(height: defaultPadding,),
-                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              const SizedBox(
+                                height: defaultPadding,
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   const Text(
                                     "IBAN",
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPrimaryColor),
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: kPrimaryColor),
                                   ),
                                   Text(
                                     "${accountsData.iban}",
-                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPrimaryColor),
+                                    style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: kPrimaryColor),
                                   ),
                                 ],
                               ),
-
-                              const SizedBox(height: defaultPadding,),
+                              const SizedBox(
+                                height: defaultPadding,
+                              ),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   const Text(
                                     "Balance",
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPrimaryColor),
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: kPrimaryColor),
                                   ),
                                   Text(
                                     "${accountsData.amount}",
-                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPrimaryColor),
+                                    style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: kPrimaryColor),
                                   ),
                                 ],
                               ),
@@ -256,13 +272,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             // The Accounts design
             Card(
               margin: const EdgeInsets.all(16.0),
-              child: Padding(padding: const EdgeInsets.all(10),
+              color: Colors.white,
+              elevation: 5,
+              child: Padding(
+                padding: const EdgeInsets.all(10),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-
-                    const SizedBox(height: defaultPadding),
-
+                    const SizedBox(height: smallPadding),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
@@ -270,33 +287,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const AddMoneyScreen()),
+                              MaterialPageRoute(
+                                  builder: (context) => const AddMoneyScreen()),
                             );
                             // Add your onPressed code here!
                           },
-                          label: const Text('Add Money',style: TextStyle(color: Colors.white),),
-                          icon: const Icon(Icons.add,color: Colors.white,),
+                          label: const Text(
+                            'Add Money',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          icon: const Icon(
+                            Icons.add,
+                            color: Colors.white,
+                          ),
                           backgroundColor: kPrimaryColor,
                         ),
-
                         const SizedBox(width: 35),
-
                         FloatingActionButton.extended(
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const ExchangeMoneyScreen()),
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const ExchangeMoneyScreen()),
                             );
                           },
-                          label: const Text(' Exchange  ',style: TextStyle(color: Colors.white),),
-                          icon: const Icon(Icons.currency_exchange,color: Colors.white,),
+                          label: const Text(
+                            ' Exchange  ',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          icon: const Icon(
+                            Icons.currency_exchange,
+                            color: Colors.white,
+                          ),
                           backgroundColor: kPrimaryColor,
                         ),
                       ],
                     ),
-
                     const SizedBox(height: defaultPadding),
-
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
@@ -304,26 +332,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const SendMoneyScreen()),
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const SendMoneyScreen()),
                             );
                             // Add your onPressed code here!
                           },
-                          label: const Text('Send Money',style: TextStyle(color: Colors.white),),
-                          icon: const Icon(Icons.send,color: Colors.white,),
+                          label: const Text(
+                            'Send Money',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          icon: const Icon(
+                            Icons.send,
+                            color: Colors.white,
+                          ),
                           backgroundColor: kPrimaryColor,
                         ),
-
                         const SizedBox(width: 30),
                         FloatingActionButton.extended(
                           onPressed: () {
                             // Add your onPressed code here!
                           },
-                          label: const Text('All Account',style: TextStyle(color: Colors.white),),
-                          icon: const Icon(Icons.select_all,color: Colors.white,),
+                          label: const Text(
+                            'All Account',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          icon: const Icon(
+                            Icons.select_all,
+                            color: Colors.white,
+                          ),
                           backgroundColor: kPrimaryColor,
                         ),
                       ],
                     ),
+
+                    const SizedBox(height: smallPadding,),
+
                   ],
                 ),
               ),
@@ -333,7 +377,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(
               height: largePadding,
             ),
-            const Padding(padding: EdgeInsets.symmetric(horizontal: defaultPadding),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: defaultPadding),
               child: Text(
                 "Transaction List",
                 style: TextStyle(
@@ -348,7 +393,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Column(
               children: transactionList.map((transaction) {
                 return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   color: kPrimaryColor, // Custom background color
                   child: InkWell(
                     onTap: () => {
@@ -356,7 +402,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => TransactionDetailPage(
-                            transactionId: transaction.transactionId, // Passing transactionId here
+                            transactionId: transaction
+                                .transactionId, // Passing transactionId here
                           ),
                         ),
                       )
@@ -370,9 +417,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text("Date:",
-                                  style: TextStyle(color: Colors.white, fontSize: 16)),
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16)),
                               Text(formatDate(transaction.transactionDate),
-                                  style: const TextStyle(color: Colors.white, fontSize: 16)),
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 16)),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -382,9 +431,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text("Transaction ID:",
-                                  style: TextStyle(color: Colors.white, fontSize: 16)),
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16)),
                               Text("${transaction.transactionId}",
-                                  style: const TextStyle(color: Colors.white, fontSize: 16)),
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 16)),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -394,9 +445,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text("Type:",
-                                  style: TextStyle(color: Colors.white, fontSize: 16)),
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16)),
                               Text("${transaction.transactionType}",
-                                  style: const TextStyle(color: Colors.white, fontSize: 16)),
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 16)),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -406,9 +459,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text("Amount:",
-                                  style: TextStyle(color: Colors.white, fontSize: 16)),
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16)),
                               Text("${transaction.transactionAmount}",
-                                  style: const TextStyle(color: Colors.white, fontSize: 16)),
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 16)),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -418,9 +473,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text("Balance:",
-                                  style: TextStyle(color: Colors.white, fontSize: 16)),
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16)),
                               Text("${transaction.balance}",
-                                  style: const TextStyle(color: Colors.white, fontSize: 16)),
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 16)),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -429,16 +486,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text("Status:",
-                                  style: TextStyle(color: Colors.white, fontSize: 16)),
-
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16)),
                               OutlinedButton(
-                                onPressed: (){},
+                                onPressed: () {},
                                 style: ButtonStyle(
-                                    backgroundColor: WidgetStateProperty.all(_getStatusColor(transaction.transactionStatus!))
-                                ),
+                                    backgroundColor: WidgetStateProperty.all(
+                                        _getStatusColor(
+                                            transaction.transactionStatus!))),
                                 child: Text("${transaction.transactionStatus}",
-                                    style: const TextStyle(color: Colors.white)),),
-
+                                    style:
+                                        const TextStyle(color: Colors.white)),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -464,7 +523,8 @@ class AccountCard extends StatelessWidget {
   final String balance;
   final Color bgColor;
 
-  const AccountCard({super.key,
+  const AccountCard({
+    super.key,
     required this.flag,
     required this.currencyCode,
     required this.accountNumber,
@@ -507,7 +567,8 @@ class AccountCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: currencyCode == 'USD' ? Colors.white : Colors.black,
+                      color:
+                          currencyCode == 'USD' ? Colors.white : Colors.black,
                     ),
                   ),
                 ],
@@ -546,7 +607,8 @@ class IndicatorWidget extends StatelessWidget {
   final Color color;
   final IconData icon;
 
-  const IndicatorWidget({super.key,
+  const IndicatorWidget({
+    super.key,
     required this.label,
     required this.amount,
     required this.percentage,
