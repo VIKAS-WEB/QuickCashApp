@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:quickcash/Screens/UserProfileScreen/SecurityScreen/SecurityModel/securityApi.dart';
+import 'package:quickcash/Screens/UserProfileScreen/SecurityScreen/ChangePasswordModel/changePasswordApi.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import 'package:quickcash/util/customSnackBar.dart';
 
 import '../../../constants.dart';
+import 'SendOTPModel/sendOTPApi.dart';
 
 class SecurityScreen extends StatefulWidget {
   const SecurityScreen({super.key});
@@ -21,8 +22,10 @@ class _SecurityScreenState extends State<SecurityScreen> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _isPasswordMatch = false;
+  bool isOtpSent = false;
 
-  final SecurityApi _securityApi = SecurityApi();
+  final SendOTPApi _securityApi = SendOTPApi();
+  final ChangePasswordApi _changePasswordApi = ChangePasswordApi();
 
   bool _isPasswordValid(String password) {
     // Regex to check password criteria
@@ -30,18 +33,14 @@ class _SecurityScreenState extends State<SecurityScreen> {
     return regex.hasMatch(password);
   }
 
-
-  // Api Integration ------------------
   bool isLoading = false;
   String? errorMessage;
 
-  Future<void> mSendOtpApi() async{
+  Future<void> mSendOtpApi() async {
     if (_formKey.currentState!.validate()) {
-      // Check if passwords match
       if (_passwordController.text != _confirmPasswordController.text) {
-        // If passwords do not match, show a SnackBar
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Passwords do not match!')),
+          const SnackBar(content: Text('Passwords does not match!')),
         );
         setState(() {
           _isPasswordMatch = false;
@@ -50,32 +49,24 @@ class _SecurityScreenState extends State<SecurityScreen> {
       } else {
         setState(() {
           _isPasswordMatch = true;
-        });
-
-        _formKey.currentState!.save();
-
-        setState(() {
           isLoading = true;
           errorMessage = null;
         });
 
-        try{
-
-          final response = await _securityApi.security(AuthManager.getUserEmail(), AuthManager.getUserName());
-
+        try {
+          final response = await _securityApi.sendOTP(AuthManager.getUserEmail(), AuthManager.getUserName());
           setState(() {
             isLoading = false;
+            isOtpSent = true;
           });
 
-          print(response.message);
-          print(response.otp);
-          print(AuthManager.getToken());
-
           AuthManager.saveOTP(response.otp.toString());
-
-          CustomSnackBar.showSnackBar(context: context, message: response.message!, color: kPrimaryColor);
-        }
-        catch (error) {
+          CustomSnackBar.showSnackBar(
+            context: context,
+            message: response.message!,
+            color: kPrimaryColor,
+          );
+        } catch (error) {
           setState(() {
             isLoading = false;
             errorMessage = error.toString();
@@ -85,7 +76,53 @@ class _SecurityScreenState extends State<SecurityScreen> {
     }
   }
 
+  Future<void> mChangePasswordApi() async {
+    setState(() {
+      isLoading = true;
+    });
 
+    try {
+      final response = await _changePasswordApi.changePassword(_passwordController.text, _confirmPasswordController.text);
+
+      setState(() {
+        isLoading = false;
+        errorMessage = null;
+        isOtpSent = false;
+      });
+
+      CustomSnackBar.showSnackBar(
+        context: context,
+        message: response.message!,
+        color: kPrimaryColor,
+      );
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
+  void handleSubmit() {
+    if (!isOtpSent) {
+      // If OTP has not been sent, send OTP
+      mSendOtpApi();
+    } else {
+      // If OTP has already been sent, verify OTP and change password
+      final savedOtp = AuthManager.getOtp();
+      final enteredOtp = _otpController.text;
+
+      if (enteredOtp == savedOtp) {
+        mChangePasswordApi();
+      } else {
+        CustomSnackBar.showSnackBar(
+          context: context,
+          message: 'Invalid OTP. Please try again.',
+          color: Colors.red,
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,12 +138,10 @@ class _SecurityScreenState extends State<SecurityScreen> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     const SizedBox(height: defaultPadding),
-
-                    if (isLoading) const CircularProgressIndicator(color: kPrimaryColor,), // Show loading indicator
-                    if (errorMessage != null) // Show error message if there's an error
+                    if (isLoading) const CircularProgressIndicator(color: kPrimaryColor),
+                    if (errorMessage != null)
                       Text(errorMessage!, style: const TextStyle(color: Colors.red)),
-                    const SizedBox(height: defaultPadding,),
-
+                    const SizedBox(height: defaultPadding),
 
                     // Password
                     TextFormField(
@@ -114,7 +149,6 @@ class _SecurityScreenState extends State<SecurityScreen> {
                       textInputAction: TextInputAction.next,
                       obscureText: !_isPasswordVisible,
                       cursorColor: kPrimaryColor,
-                      onSaved: (value) {},
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your password';
@@ -124,19 +158,11 @@ class _SecurityScreenState extends State<SecurityScreen> {
                         }
                         return null;
                       },
-                      style: const TextStyle(color: kPrimaryColor),
                       decoration: InputDecoration(
                         labelText: "Password",
-                        labelStyle: const TextStyle(color: kPrimaryColor),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(),
-                        ),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _isPasswordVisible
-                                ? Icons.visibility_off
-                                : Icons.visibility,
+                            _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
                             color: kPrimaryColor,
                           ),
                           onPressed: () {
@@ -152,10 +178,8 @@ class _SecurityScreenState extends State<SecurityScreen> {
                     const SizedBox(height: defaultPadding),
                     TextFormField(
                       controller: _confirmPasswordController,
-                      textInputAction: TextInputAction.done,
                       obscureText: !_isConfirmPasswordVisible,
                       cursorColor: kPrimaryColor,
-                      onSaved: (value) {},
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your confirm password';
@@ -165,19 +189,11 @@ class _SecurityScreenState extends State<SecurityScreen> {
                         }
                         return null;
                       },
-                      style: const TextStyle(color: kPrimaryColor),
                       decoration: InputDecoration(
                         labelText: "Confirm Password",
-                        labelStyle: const TextStyle(color: kPrimaryColor),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(),
-                        ),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _isConfirmPasswordVisible
-                                ? Icons.visibility_off
-                                : Icons.visibility,
+                            _isConfirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
                             color: kPrimaryColor,
                           ),
                           onPressed: () {
@@ -189,48 +205,30 @@ class _SecurityScreenState extends State<SecurityScreen> {
                       ),
                     ),
 
-                    // OTP - Only show if password and confirm password match
+                    // OTP
                     if (_isPasswordMatch) ...[
                       const SizedBox(height: defaultPadding),
                       TextFormField(
                         controller: _otpController,
                         keyboardType: TextInputType.number,
-                        textInputAction: TextInputAction.done,
                         cursorColor: kPrimaryColor,
-                        onSaved: (value) {},
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter OTP';
                           }
                           return null;
                         },
-                        style: const TextStyle(color: kPrimaryColor),
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: "OTP",
-                          labelStyle: const TextStyle(color: kPrimaryColor),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(),
-                          ),
                         ),
                       ),
                     ],
 
                     // Submit Button
                     const SizedBox(height: 35),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 50),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: kPrimaryColor,
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        onPressed: isLoading ? null : mSendOtpApi,
-                        child: const Text('Submit', style: TextStyle(color: Colors.white)),
-                      ),
+                    ElevatedButton(
+                      onPressed: isLoading ? null : handleSubmit,
+                      child: const Text('Submit'),
                     ),
                   ],
                 ),

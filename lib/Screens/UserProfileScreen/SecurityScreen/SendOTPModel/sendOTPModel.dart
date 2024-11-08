@@ -1,9 +1,9 @@
 
-class SecurityRequest {
+class SendOTPRequest {
   final String email;
   final String name;
 
-  SecurityRequest({required this.email, required this.name});
+  SendOTPRequest({required this.email, required this.name});
 
   Map<String, dynamic> toJson() {
     return {
@@ -13,15 +13,15 @@ class SecurityRequest {
   }
 }
 
-class SecurityResponse {
+class SendOTPResponse {
   final String? message;
   final int? otp;
 
 
-  SecurityResponse({this.message, this.otp});
+  SendOTPResponse({this.message, this.otp});
 
-  factory SecurityResponse.fromJson(Map<String, dynamic> json) {
-    return SecurityResponse(
+  factory SendOTPResponse.fromJson(Map<String, dynamic> json) {
+    return SendOTPResponse(
       message: json['message'] as String?,
       otp: json['data'] as int?,
     );
