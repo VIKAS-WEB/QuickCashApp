@@ -9,6 +9,8 @@ import 'package:percent_indicator/percent_indicator.dart';
 import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart';
 
+import '../../TransactionScreen/transaction_details_screen.dart';
+
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -64,9 +66,14 @@ final TransactionListApi _transactionListApi = TransactionListApi();
 
 
 
-  void _navigateToDetail(Map<String, String> transaction) {
-
-  }
+void _navigateToDetail(Map<String, String> transaction) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => TransactionDetailPage(transaction: transaction),
+    ),
+  );
+}
 
   Color _getStatusColor(String status) {
     switch (status) {
