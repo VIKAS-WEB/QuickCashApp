@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/DashboardScreen/AddMoneyScreen/add_money_screen.dart';
-import 'package:quickcash/Screens/DashboardScreen/Dashboard/TransactionListModel/transactionListApi.dart';
-import 'package:quickcash/Screens/DashboardScreen/Dashboard/TransactionListModel/transactionListModel.dart';
+import 'package:quickcash/Screens/DashboardScreen/Dashboard/TransactionList/transactionListApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/ExchangeScreen/exchange_money_screen.dart';
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/send_money_screen.dart';
 import 'package:quickcash/Screens/TransactionScreen/transaction_details_screen.dart';
@@ -9,6 +8,8 @@ import 'package:quickcash/components/background.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart';
+
+import 'TransactionList/transactionListModel.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -27,9 +28,15 @@ final TransactionListApi _transactionListApi = TransactionListApi();
   @override
   void initState(){
     super.initState();
+    mAccounts();
     mTransactionList();
   }
 
+  Future<void> mAccounts() async {
+
+  }
+
+  // Transaction List Api
   Future<void> mTransactionList() async {
     setState(() {
       isLoading = true;

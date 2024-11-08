@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:quickcash/Screens/DashboardScreen/Dashboard/TransactionListModel/transactionListModel.dart';
+import 'package:quickcash/Screens/DashboardScreen/Dashboard/TransactionList/transactionListModel.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import '../../../../util/apiConstants.dart';
 

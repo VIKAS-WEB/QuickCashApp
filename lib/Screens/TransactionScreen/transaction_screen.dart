@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:quickcash/Screens/DashboardScreen/Dashboard/TransactionListModel/transactionListApi.dart';
+import 'package:quickcash/Screens/DashboardScreen/Dashboard/TransactionList/transactionListApi.dart';
 import 'package:quickcash/Screens/TransactionScreen/transaction_details_screen.dart';
 import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart';
 
-import '../DashboardScreen/Dashboard/TransactionListModel/transactionListModel.dart';
+import '../DashboardScreen/Dashboard/TransactionList/transactionListModel.dart';
 
 class TransactionScreen extends StatefulWidget {
   const TransactionScreen({super.key});
