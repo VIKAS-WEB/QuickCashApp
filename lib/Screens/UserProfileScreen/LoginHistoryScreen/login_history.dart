@@ -52,13 +52,40 @@ class _LoginHistoryScreen extends State<LoginHistoryScreen> {
     }
   }
 
-  // Function to format the date
+  // Function to get ordinal suffix for the day
+  String getOrdinalSuffix(int day) {
+    if (day >= 11 && day <= 13) {
+      return '${day}th';
+    }
+    switch (day % 10) {
+      case 1:
+        return '${day}st';
+      case 2:
+        return '${day}nd';
+      case 3:
+        return '${day}rd';
+      default:
+        return '${day}th';
+    }
+  }
+
+// Function to format the date
   String formatDate(String? dateTime) {
     if (dateTime == null) {
       return 'Date not available'; // Fallback text if dateTime is null
     }
     DateTime date = DateTime.parse(dateTime);
-    return DateFormat('MMMM d, yyyy, h:mm:ss a').format(date);
+
+    // Get the ordinal suffix for the day
+    String ordinalDay = getOrdinalSuffix(date.day);
+
+    // Format the date and time
+    String formattedDate = DateFormat('MMMM d, yyyy, h:mm:ss a').format(date);
+
+    // Replace the day (without the suffix) with the day including the ordinal suffix
+    formattedDate = formattedDate.replaceFirst('${date.day}', ordinalDay);
+
+    return formattedDate;
   }
 
   @override

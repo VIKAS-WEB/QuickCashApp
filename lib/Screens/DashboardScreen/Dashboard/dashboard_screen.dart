@@ -7,6 +7,7 @@ import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/send_money_scr
 import 'package:quickcash/components/background.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:quickcash/constants.dart';
+import 'package:intl/intl.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -17,48 +18,6 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
 final TransactionListApi _transactionListApi = TransactionListApi();
-  /*final List<Map<String, String>> transactionList = [
-    {
-      'date': '2024-10-16',
-      'trx': '242464216390',
-      'type': 'Exchange',
-      'amount': '+\$22.01',
-      'balance': '\$555555.22',
-      'status': 'Success',
-    },
-    {
-      'date': '2024-10-15',
-      'trx': '242464216389',
-      'type': 'Exchange',
-      'amount': '-\$50.00',
-      'balance': '\$555533.22',
-      'status': 'Failed',
-    },
-    {
-      'date': '2024-10-14',
-      'trx': '242464216388',
-      'type': 'Exchange',
-      'amount': '+\$100.00',
-      'balance': '\$555583.22',
-      'status': 'Success',
-    },
-    {
-      'date': '2024-10-13',
-      'trx': '242464216387',
-      'type': 'Exchange',
-      'amount': '-\$30.00',
-      'balance': '\$555553.22',
-      'status': 'Pending',
-    },
-    {
-      'date': '2024-10-12',
-      'trx': '242464216386',
-      'type': 'Exchange',
-      'amount': '-\$10.00',
-      'balance': '\$555543.22',
-      'status': 'Success',
-    },
-  ];*/
 
   List<TransactionListDetails> transactionList = [];
   bool isLoading = false;
@@ -118,9 +77,19 @@ final TransactionListApi _transactionListApi = TransactionListApi();
       case 'Pending':
         return Colors.orange;
       default:
-        return kPrimaryColor; // Default color if status is unknown
+        return kPrimaryColor;
     }
   }
+
+// Function to format the date
+  String formatDate(String? dateTime) {
+    if (dateTime == null) {
+      return 'Date not available'; // Fallback text if dateTime is null
+    }
+    DateTime date = DateTime.parse(dateTime);
+    return DateFormat('yyyy-MM-dd').format(date);
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -296,7 +265,7 @@ final TransactionListApi _transactionListApi = TransactionListApi();
                             children: [
                               const Text("Date:",
                                   style: TextStyle(color: Colors.white, fontSize: 16)),
-                              Text("${transaction.transactionDate}",
+                              Text(formatDate(transaction.transactionDate),
                                   style: const TextStyle(color: Colors.white, fontSize: 16)),
                             ],
                           ),
@@ -367,7 +336,6 @@ final TransactionListApi _transactionListApi = TransactionListApi();
                             ],
                           ),
                           const SizedBox(height: 8),
-
                         ],
                       ),
                     ),
@@ -375,9 +343,6 @@ final TransactionListApi _transactionListApi = TransactionListApi();
                 );
               }).toList(),
             ),
-
-
-
           ],
         ),
       ),
