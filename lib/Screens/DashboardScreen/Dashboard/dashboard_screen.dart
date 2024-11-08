@@ -64,7 +64,7 @@ final TransactionListApi _transactionListApi = TransactionListApi();
 
 
 
-  void _navigateToDetail(Map<String, String> transaction) {
+  void _navigateToDetail(String transactionID) {
 
   }
 
@@ -254,7 +254,7 @@ final TransactionListApi _transactionListApi = TransactionListApi();
                   margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   color: kPrimaryColor, // Custom background color
                   child: InkWell(
-                    onTap: () => _navigateToDetail(transaction.transactionId! as Map<String, String>), // Navigate on tap
+                    onTap: () => _navigateToDetail(transaction.transactionId.toString()), // Navigate on tap
                     child: ListTile(
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
