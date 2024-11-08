@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:quickcash/components/background.dart';
 import 'package:quickcash/constants.dart';
 
 class InvoiceTransactionsScreen extends StatefulWidget {
