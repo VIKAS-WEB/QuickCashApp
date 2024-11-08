@@ -37,13 +37,22 @@ class AuthManager {
     return _sharedPref.getString('user_email') ?? '';
   }
 
-  // Save UserEmail
+  // Save UserImage
   static Future<void> saveUserImage(String image) async {
     await _sharedPref.setString('user_image', image);
   }
 
   static String getUserImage() {
     return _sharedPref.getString('user_image') ?? '';
+  }
+
+  // Save OTP
+  static Future<void> saveOTP(String otp) async {
+    await _sharedPref.setString('otp', otp);
+  }
+
+  static String getOtp() {
+    return _sharedPref.getString('otp') ?? '';
   }
 
   // Access Token

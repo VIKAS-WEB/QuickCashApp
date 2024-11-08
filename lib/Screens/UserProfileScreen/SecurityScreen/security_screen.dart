@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/UserProfileScreen/SecurityScreen/SecurityModel/securityApi.dart';
 import 'package:quickcash/util/auth_manager.dart';
+import 'package:quickcash/util/customSnackBar.dart';
 
 import '../../../constants.dart';
-import '../../../util/customSnackBar.dart';
 
 class SecurityScreen extends StatefulWidget {
   const SecurityScreen({super.key});
@@ -70,17 +70,11 @@ class _SecurityScreenState extends State<SecurityScreen> {
 
           print(response.message);
           print(response.otp);
+          print(AuthManager.getToken());
 
-          CustomSnackBar.showSnackBar(
-            context: context,
-            message: response.message!,
-            color: kGreeneColor, // Set the color of the SnackBar
-          );
+          AuthManager.saveOTP(response.otp.toString());
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Otp has been Sent On Registered EmailId')),
-          );
-
+          CustomSnackBar.showSnackBar(context: context, message: response.message!, color: kPrimaryColor);
         }
         catch (error) {
           setState(() {
@@ -88,10 +82,6 @@ class _SecurityScreenState extends State<SecurityScreen> {
             errorMessage = error.toString();
           });
         }
-
-
-
-
       }
     }
   }
