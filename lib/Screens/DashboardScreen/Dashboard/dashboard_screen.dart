@@ -17,6 +17,48 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
 final TransactionListApi _transactionListApi = TransactionListApi();
+  /*final List<Map<String, String>> transactionList = [
+    {
+      'date': '2024-10-16',
+      'trx': '242464216390',
+      'type': 'Exchange',
+      'amount': '+\$22.01',
+      'balance': '\$555555.22',
+      'status': 'Success',
+    },
+    {
+      'date': '2024-10-15',
+      'trx': '242464216389',
+      'type': 'Exchange',
+      'amount': '-\$50.00',
+      'balance': '\$555533.22',
+      'status': 'Failed',
+    },
+    {
+      'date': '2024-10-14',
+      'trx': '242464216388',
+      'type': 'Exchange',
+      'amount': '+\$100.00',
+      'balance': '\$555583.22',
+      'status': 'Success',
+    },
+    {
+      'date': '2024-10-13',
+      'trx': '242464216387',
+      'type': 'Exchange',
+      'amount': '-\$30.00',
+      'balance': '\$555553.22',
+      'status': 'Pending',
+    },
+    {
+      'date': '2024-10-12',
+      'trx': '242464216386',
+      'type': 'Exchange',
+      'amount': '-\$10.00',
+      'balance': '\$555543.22',
+      'status': 'Success',
+    },
+  ];*/
 
   List<TransactionListDetails> transactionList = [];
   bool isLoading = false;
@@ -58,6 +100,12 @@ final TransactionListApi _transactionListApi = TransactionListApi();
         errorMessage = error.toString();
       });
     }
+
+  }
+
+
+
+  void _navigateToDetail(Map<String, String> transaction) {
 
   }
 
@@ -232,117 +280,100 @@ final TransactionListApi _transactionListApi = TransactionListApi();
               height: smallPadding,
             ),
             Column(
-              children: [
-                const SizedBox(height: defaultPadding), // Adjust the height as needed
-                if (isLoading)
-                  const Center(child: CircularProgressIndicator()),
-                if (errorMessage != null)
-                  Center(child: Text(errorMessage!, style: const TextStyle(color: Colors.red))),
-                if (!isLoading && errorMessage == null && transactionList.isNotEmpty)
+              children: transactionList.map((transaction) {
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  color: kPrimaryColor, // Custom background color
+                  child: InkWell(
+                    onTap: () => _navigateToDetail(transaction.transactionId! as Map<String, String>), // Navigate on tap
+                    child: ListTile(
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: defaultPadding),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text("Date:",
+                                  style: TextStyle(color: Colors.white, fontSize: 16)),
+                              Text("${transaction.transactionDate}",
+                                  style: const TextStyle(color: Colors.white, fontSize: 16)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Divider(),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text("Transaction ID:",
+                                  style: TextStyle(color: Colors.white, fontSize: 16)),
+                              Text("${transaction.transactionId}",
+                                  style: const TextStyle(color: Colors.white, fontSize: 16)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Divider(),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text("Type:",
+                                  style: TextStyle(color: Colors.white, fontSize: 16)),
+                              Text("${transaction.transactionType}",
+                                  style: const TextStyle(color: Colors.white, fontSize: 16)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Divider(),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text("Amount:",
+                                  style: TextStyle(color: Colors.white, fontSize: 16)),
+                              Text("${transaction.transactionAmount}",
+                                  style: const TextStyle(color: Colors.white, fontSize: 16)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Divider(),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text("Balance:",
+                                  style: TextStyle(color: Colors.white, fontSize: 16)),
+                              Text("${transaction.balance}",
+                                  style: const TextStyle(color: Colors.white, fontSize: 16)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Divider(),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text("Status:",
+                                  style: TextStyle(color: Colors.white, fontSize: 16)),
 
-                  Expanded(
-                      child: ListView.builder(
-                        itemCount: transactionList.length,
-                          itemBuilder: (context, index){
-                          final transaction = transactionList[index];
-                            return Card(
-                              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                              color: kPrimaryColor, // Custom background color
-                              child: InkWell(
-                                onTap: () => {}, // Navigate on tap
-                                child: ListTile(
-                                  subtitle: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const SizedBox(height: defaultPadding),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          const Text("Date:",
-                                              style: TextStyle(color: Colors.white, fontSize: 16)),
-                                          Text("${transaction.transactionDate}",
-                                              style: const TextStyle(color: Colors.white, fontSize: 16)),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      const Divider(),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          const Text("Transaction ID:",
-                                              style: TextStyle(color: Colors.white, fontSize: 16)),
-                                          Text("${transaction.transactionId}",
-                                              style: const TextStyle(color: Colors.white, fontSize: 16)),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      const Divider(),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          const Text("Type:",
-                                              style: TextStyle(color: Colors.white, fontSize: 16)),
-                                          Text("${transaction.transactionType}",
-                                              style: const TextStyle(color: Colors.white, fontSize: 16)),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      const Divider(),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          const Text("Amount:",
-                                              style: TextStyle(color: Colors.white, fontSize: 16)),
-                                          Text("${transaction.transactionAmount}",
-                                              style: const TextStyle(color: Colors.white, fontSize: 16)),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      const Divider(),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          const Text("Balance:",
-                                              style: TextStyle(color: Colors.white, fontSize: 16)),
-                                          Text(transaction.balance.toString(),
-                                              style: const TextStyle(color: Colors.white, fontSize: 16)),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      const Divider(),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          const Text("Status:",
-                                              style: TextStyle(color: Colors.white, fontSize: 16)),
-
-                                          OutlinedButton(
-                                            onPressed: (){},
-                                            style: ButtonStyle(
-                                                backgroundColor: WidgetStateProperty.all(_getStatusColor(transaction.transactionStatus!))
-                                            ),
-                                            child: Text("${transaction.transactionStatus}",
-                                                style: const TextStyle(color: Colors.white)),),
-
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-
-                                    ],
-                                  ),
+                              OutlinedButton(
+                                onPressed: (){},
+                                style: ButtonStyle(
+                                    backgroundColor: WidgetStateProperty.all(_getStatusColor(transaction.transactionStatus!))
                                 ),
-                              ),
-                            );
-                          },
+                                child: Text("${transaction.transactionStatus}",
+                                    style: const TextStyle(color: Colors.white)),),
+
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+
+                        ],
                       ),
+                    ),
                   ),
-
-
-              ],
+                );
+              }).toList(),
             ),
 
 

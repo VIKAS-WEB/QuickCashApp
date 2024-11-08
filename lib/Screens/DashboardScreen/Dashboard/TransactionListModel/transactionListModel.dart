@@ -1,10 +1,9 @@
-
 class TransactionListDetails {
   final String? transactionDate;
   final String? transactionId;
   final String? transactionType;
   final String? transactionAmount;
-  final int? balance;
+  final double? balance;  // Change from int? to double?
   final String? transactionStatus;
 
   TransactionListDetails({
@@ -22,7 +21,10 @@ class TransactionListDetails {
       transactionId: json['trx'] as String?,
       transactionType: json['trans_type'] as String?,
       transactionAmount: json['amountText'] as String?,
-      balance: json['postBalance']! as int?,
+      // Safely cast to double
+      balance: (json['postBalance'] is int
+          ? (json['postBalance'] as int).toDouble()
+          : json['postBalance']) as double?,
       transactionStatus: json['status'] as String?,
     );
   }
@@ -37,7 +39,7 @@ class TransactionListResponse {
 
   factory TransactionListResponse.fromJson(Map<String, dynamic> json) {
     return TransactionListResponse(
-      transactionList: (json['data'] as List<dynamic>?)
+      transactionList: (json['data'] as List<dynamic>? )
           ?.map((item) => TransactionListDetails.fromJson(item as Map<String, dynamic>))
           .toList(),
     );
