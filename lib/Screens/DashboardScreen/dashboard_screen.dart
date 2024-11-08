@@ -15,16 +15,74 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
 
+  final List<Map<String, String>> transactionList = [
+    {
+      'date': '2024-10-16',
+      'trx': '242464216390',
+      'type': 'Exchange',
+      'amount': '+\$22.01',
+      'balance': '\$555555.22',
+      'status': 'Success',
+    },
+    {
+      'date': '2024-10-15',
+      'trx': '242464216389',
+      'type': 'Exchange',
+      'amount': '-\$50.00',
+      'balance': '\$555533.22',
+      'status': 'Failed',
+    },
+    {
+      'date': '2024-10-14',
+      'trx': '242464216388',
+      'type': 'Exchange',
+      'amount': '+\$100.00',
+      'balance': '\$555583.22',
+      'status': 'Success',
+    },
+    {
+      'date': '2024-10-13',
+      'trx': '242464216387',
+      'type': 'Exchange',
+      'amount': '-\$30.00',
+      'balance': '\$555553.22',
+      'status': 'Pending',
+    },
+    {
+      'date': '2024-10-12',
+      'trx': '242464216386',
+      'type': 'Exchange',
+      'amount': '-\$10.00',
+      'balance': '\$555543.22',
+      'status': 'Success',
+    },
+  ];
+
+  void _navigateToDetail(Map<String, String> transaction) {
+
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'Success':
+        return Colors.green;
+      case 'Failed':
+        return Colors.red;
+      case 'Pending':
+        return Colors.orange;
+      default:
+        return kPrimaryColor; // Default color if status is unknown
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Background(
       child: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // New card with indicator widgets for Deposit, Debit, and Fee Debit
-
             const SizedBox(height: 25.0,),
-
             const Card(
               margin: EdgeInsets.all(16.0),
               child: Padding(
@@ -159,79 +217,116 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
 
             // Transaction List Design
-            const Card(
-              margin: EdgeInsets.all(16.0),
-              child: Padding(
-                padding: EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      "Transaction List",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
+            const SizedBox(
+              height: largePadding,
+            ),
+            const Padding(padding: EdgeInsets.symmetric(horizontal: defaultPadding),
+            child: Text(
+              "Transaction List",
+              style: TextStyle(
+                  color: kPrimaryColor,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold),
+            ),
+            ),
+            const SizedBox(
+              height: smallPadding,
+            ),
+            Column(
+              children: transactionList.map((transaction) {
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  color: kPrimaryColor, // Custom background color
+                  child: InkWell(
+                    onTap: () => _navigateToDetail(transaction), // Navigate on tap
+                    child: ListTile(
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: defaultPadding),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text("Date:",
+                                  style: TextStyle(color: Colors.white, fontSize: 16)),
+                              Text("${transaction['date']}",
+                                  style: const TextStyle(color: Colors.white, fontSize: 16)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Divider(),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text("Transaction ID:",
+                                  style: TextStyle(color: Colors.white, fontSize: 16)),
+                              Text("${transaction['trx']}",
+                                  style: const TextStyle(color: Colors.white, fontSize: 16)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Divider(),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text("Type:",
+                                  style: TextStyle(color: Colors.white, fontSize: 16)),
+                              Text("${transaction['type']}",
+                                  style: const TextStyle(color: Colors.white, fontSize: 16)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Divider(),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text("Amount:",
+                                  style: TextStyle(color: Colors.white, fontSize: 16)),
+                              Text("${transaction['amount']}",
+                                  style: const TextStyle(color: Colors.white, fontSize: 16)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Divider(),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text("Balance:",
+                                  style: TextStyle(color: Colors.white, fontSize: 16)),
+                              Text("${transaction['balance']}",
+                                  style: const TextStyle(color: Colors.white, fontSize: 16)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Divider(),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text("Status:",
+                                  style: TextStyle(color: Colors.white, fontSize: 16)),
+
+                              OutlinedButton(
+                                  onPressed: (){},
+                                   style: ButtonStyle(
+                                    backgroundColor: WidgetStateProperty.all(_getStatusColor(transaction['status']!))
+                                ),
+                                   child: Text("${transaction['status']}",
+                                  style: const TextStyle(color: Colors.white)),),
+
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+
+                        ],
                       ),
                     ),
-
-                    Divider(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text(
-                          "Date of Transaction"),
-                        Text("2024-10-09"),
-                      ],
-                    ),
-
-                    Divider(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text("Trx"),
-                        Text("255554445454544"),
-                      ],
-                    ),
-
-                    Divider(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text("Type"),
-                        Text("Add Money",style: TextStyle(color: Colors.green),),
-                      ],
-                    ),
-
-                    Divider(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text("Amount"),
-                        Text("+\$3565545455.21",style: TextStyle(color: Colors.green, fontWeight: FontWeight.w500),),
-                      ],
-                    ),
-
-                    Divider(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text("Balance"),
-                        Text("\$3325.20",),
-                      ],
-                    ),
-
-                    Divider(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text("Status"),
-                        Text("Success",style: TextStyle(color: Colors.green),),
-                      ],
-                    ),
-
-                  ],
-                ),
-              ),
+                  ),
+                );
+              }).toList(),
             ),
 
 
