@@ -20,9 +20,9 @@ class AccountsListsData {
       currency: json['currency'] as String?,
       iban: json['ibanText'] as String?,
       status: json['status'] as bool?,
-      amount: (json['postBalance'] is int
-          ? (json['postBalance'] as int).toDouble()
-          : json['postBalance']) as double?,
+      amount: (json['amount'] is int
+          ? (json['amount'] as int).toDouble()
+          : json['amount']) as double?,
     );
   }
 }

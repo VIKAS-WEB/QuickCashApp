@@ -176,7 +176,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             // Account list (only when not loading and no error)
             if (!isLoading && errorMessage == null && accountsListData.isNotEmpty)
               SizedBox(
-                height: 190, // Set height for the horizontal list view
+                height: 170, // Set height for the horizontal list view
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: accountsListData.length,
@@ -194,7 +194,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: Container(
                           width: 320,
                           padding: const EdgeInsets.all(defaultPadding),
-                          child: const Column(
+                          child:  Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
 
@@ -202,52 +202,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
 
-                                  CircleAvatar(
+                                  const CircleAvatar(
                                     radius: 20,
                                     backgroundImage: AssetImage(
                                       'assets/icons/menu_crypto.png', // Ensure this path is correct
                                     ),
                                   ),
                                   Text(
-                                    "USD",
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: kPrimaryColor),
+                                    "${accountsData.currency}",
+                                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: kPrimaryColor),
                                   ),
                                 ],
                               ),
 
-                              SizedBox(height: defaultPadding,),
-                              Row(
+                              const SizedBox(height: defaultPadding,),
+                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
+                                  const Text(
                                     "IBAN",
                                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPrimaryColor),
                                   ),
                                   Text(
-                                    "US1000000001",
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPrimaryColor),
+                                    "${accountsData.iban}",
+                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPrimaryColor),
                                   ),
                                 ],
                               ),
 
-                              SizedBox(height: defaultPadding,),
+                              const SizedBox(height: defaultPadding,),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
+                                  const Text(
                                     "Balance",
                                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPrimaryColor),
                                   ),
                                   Text(
-                                    "362.5093297443351",
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPrimaryColor),
+                                    "${accountsData.amount}",
+                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPrimaryColor),
                                   ),
                                 ],
-                              ),
-
-                              Text(
-                                "Default",
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kGreeneColor),
                               ),
                             ],
                           ),
