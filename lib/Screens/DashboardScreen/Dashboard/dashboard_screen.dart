@@ -4,6 +4,7 @@ import 'package:quickcash/Screens/DashboardScreen/Dashboard/TransactionListModel
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/TransactionListModel/transactionListModel.dart';
 import 'package:quickcash/Screens/DashboardScreen/ExchangeScreen/exchange_money_screen.dart';
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/send_money_screen.dart';
+import 'package:quickcash/Screens/TransactionScreen/transaction_details_screen.dart';
 import 'package:quickcash/components/background.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:quickcash/constants.dart';
@@ -35,9 +36,7 @@ final TransactionListApi _transactionListApi = TransactionListApi();
       errorMessage = null;
     });
 
-
     try{
-
       final response = await _transactionListApi.transactionListApi();
 
       if(response.transactionList !=null && response.transactionList!.isNotEmpty){
@@ -59,12 +58,6 @@ final TransactionListApi _transactionListApi = TransactionListApi();
         errorMessage = error.toString();
       });
     }
-
-  }
-
-
-
-  void _navigateToDetail(String transactionID) {
 
   }
 
@@ -254,7 +247,16 @@ final TransactionListApi _transactionListApi = TransactionListApi();
                   margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   color: kPrimaryColor, // Custom background color
                   child: InkWell(
-                    onTap: () => _navigateToDetail(transaction.transactionId.toString()), // Navigate on tap
+                    onTap: () => {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TransactionDetailPage(
+                              transactionId: transaction.transactionId, // Passing transactionId here
+                            ),
+                          ),
+                        )
+                    }, // Navigate on tap
                     child: ListTile(
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

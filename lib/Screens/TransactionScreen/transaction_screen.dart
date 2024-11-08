@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:quickcash/Screens/DashboardScreen/Dashboard/TransactionListModel/transactionListApi.dart';
 import 'package:quickcash/Screens/TransactionScreen/transaction_details_screen.dart';
 import 'package:quickcash/constants.dart';
+import 'package:intl/intl.dart';
+
+import '../DashboardScreen/Dashboard/TransactionListModel/transactionListModel.dart';
 
 class TransactionScreen extends StatefulWidget {
   const TransactionScreen({super.key});
@@ -10,57 +14,67 @@ class TransactionScreen extends StatefulWidget {
 }
 
 class _TransactionScreenState extends State<TransactionScreen> {
-  // Sample Transaction History
-  final List<Map<String, String>> transactionHistory = [
-    {
-      'date': '2024-10-16',
-      'trx': '242464216390',
-      'type': 'Add Money',
-      'amount': '+\$22.01',
-      'balance': '\$555555.22',
-      'status': 'Success',
-    },
-    {
-      'date': '2024-10-15',
-      'trx': '242464216389',
-      'type': 'Withdraw',
-      'amount': '-\$50.00',
-      'balance': '\$555533.22',
-      'status': 'Success',
-    },
-    {
-      'date': '2024-10-14',
-      'trx': '242464216388',
-      'type': 'Add Money',
-      'amount': '+\$100.00',
-      'balance': '\$555583.22',
-      'status': 'Success',
-    },
-    {
-      'date': '2024-10-13',
-      'trx': '242464216387',
-      'type': 'Transfer',
-      'amount': '-\$30.00',
-      'balance': '\$555553.22',
-      'status': 'Success',
-    },
-    {
-      'date': '2024-10-12',
-      'trx': '242464216386',
-      'type': 'Payment',
-      'amount': '-\$10.00',
-      'balance': '\$555543.22',
-      'status': 'Success',
-    },
-  ];
+  final TransactionListApi _transactionListApi = TransactionListApi();
 
-  void _navigateToDetail(Map<String, String> transaction) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TransactionDetailPage(transaction: transaction),
-      ),
-    );
+  List<TransactionListDetails> transactionList = [];
+  bool isLoading = false;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    mTransactionList();
+  }
+
+  Future<void> mTransactionList() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final response = await _transactionListApi.transactionListApi();
+
+      if (response.transactionList != null &&
+          response.transactionList!.isNotEmpty) {
+        setState(() {
+          transactionList = response.transactionList!;
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Transaction List';
+        });
+      }
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'Success':
+        return Colors.green;
+      case 'Failed':
+        return Colors.red;
+      case 'Pending':
+        return Colors.orange;
+      default:
+        return kPrimaryColor;
+    }
+  }
+
+// Function to format the date
+  String formatDate(String? dateTime) {
+    if (dateTime == null) {
+      return 'Date not available'; // Fallback text if dateTime is null
+    }
+    DateTime date = DateTime.parse(dateTime);
+    return DateFormat('yyyy-MM-dd').format(date);
   }
 
   @override
@@ -79,12 +93,22 @@ class _TransactionScreenState extends State<TransactionScreen> {
           Expanded(
             child: SingleChildScrollView(
               child: Column(
-                children: transactionHistory.map((transaction) {
+                children: transactionList.map((transaction) {
                   return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     color: kPrimaryColor, // Custom background color
                     child: InkWell(
-                      onTap: () => _navigateToDetail(transaction), // Navigate on tap
+                      onTap: () => {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TransactionDetailPage(
+                              transactionId: transaction.transactionId, // Passing transactionId here
+                            ),
+                          ),
+                        )
+                      }, // Navigate on tap
                       child: ListTile(
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,9 +118,11 @@ class _TransactionScreenState extends State<TransactionScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 const Text("Date:",
-                                    style: TextStyle(color: Colors.white, fontSize: 16)),
-                                Text("${transaction['date']}",
-                                    style: const TextStyle(color: Colors.white, fontSize: 16)),
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 16)),
+                                Text(formatDate(transaction.transactionDate),
+                                    style: const TextStyle(
+                                        color: Colors.white, fontSize: 16)),
                               ],
                             ),
                             const SizedBox(height: 8),
@@ -106,9 +132,11 @@ class _TransactionScreenState extends State<TransactionScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 const Text("Transaction ID:",
-                                    style: TextStyle(color: Colors.white, fontSize: 16)),
-                                Text("${transaction['trx']}",
-                                    style: const TextStyle(color: Colors.white, fontSize: 16)),
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 16)),
+                                Text("${transaction.transactionId}",
+                                    style: const TextStyle(
+                                        color: Colors.white, fontSize: 16)),
                               ],
                             ),
                             const SizedBox(height: 8),
@@ -118,9 +146,11 @@ class _TransactionScreenState extends State<TransactionScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 const Text("Type:",
-                                    style: TextStyle(color: Colors.white, fontSize: 16)),
-                                Text("${transaction['type']}",
-                                    style: const TextStyle(color: Colors.white, fontSize: 16)),
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 16)),
+                                Text("${transaction.transactionType}",
+                                    style: const TextStyle(
+                                        color: Colors.white, fontSize: 16)),
                               ],
                             ),
                             const SizedBox(height: 8),
@@ -130,9 +160,11 @@ class _TransactionScreenState extends State<TransactionScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 const Text("Amount:",
-                                    style: TextStyle(color: Colors.white, fontSize: 16)),
-                                Text("${transaction['amount']}",
-                                    style: const TextStyle(color: Colors.white, fontSize: 16)),
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 16)),
+                                Text("${transaction.transactionAmount}",
+                                    style: const TextStyle(
+                                        color: Colors.white, fontSize: 16)),
                               ],
                             ),
                             const SizedBox(height: 8),
@@ -142,9 +174,11 @@ class _TransactionScreenState extends State<TransactionScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 const Text("Balance:",
-                                    style: TextStyle(color: Colors.white, fontSize: 16)),
-                                Text("${transaction['balance']}",
-                                    style: const TextStyle(color: Colors.white, fontSize: 16)),
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 16)),
+                                Text("${transaction.balance}",
+                                    style: const TextStyle(
+                                        color: Colors.white, fontSize: 16)),
                               ],
                             ),
                             const SizedBox(height: 8),
@@ -153,19 +187,22 @@ class _TransactionScreenState extends State<TransactionScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 const Text("Status:",
-                                    style: TextStyle(color: Colors.white, fontSize: 16)),
-                                FilledButton.tonal(
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 16)),
+                                OutlinedButton(
                                   onPressed: () {},
                                   style: ButtonStyle(
-                                    backgroundColor: WidgetStateProperty.all(Colors.white),
-                                  ),
-                                  child: Text("${transaction['status']}",
-                                      style: const TextStyle(color: Colors.green)),
+                                      backgroundColor: WidgetStateProperty.all(
+                                          _getStatusColor(
+                                              transaction.transactionStatus!))),
+                                  child: Text(
+                                      "${transaction.transactionStatus}",
+                                      style:
+                                          const TextStyle(color: Colors.white)),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 8),
-
                           ],
                         ),
                       ),

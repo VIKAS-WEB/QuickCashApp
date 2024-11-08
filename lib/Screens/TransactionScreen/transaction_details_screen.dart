@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:quickcash/constants.dart';
 
-class TransactionDetailPage extends StatelessWidget {
-  final Map<String, String> transaction;
+class TransactionDetailPage extends StatefulWidget {
+  final String? transactionId;
+  const TransactionDetailPage({super.key,this.transactionId});
 
-  const TransactionDetailPage({super.key, required this.transaction});
+  @override
+  State<TransactionDetailPage> createState() => _TransactionDetailPageState();
+
+}
+
+class _TransactionDetailPageState extends State<TransactionDetailPage>{
 
   @override
   Widget build(BuildContext context) {
@@ -326,4 +332,5 @@ class TransactionDetailPage extends StatelessWidget {
       ),
     );
   }
+
 }
