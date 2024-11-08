@@ -35,7 +35,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
   bool isLoading = false;
   String? errorMessage;
 
-  Future<void> mSecurity() async{
+  Future<void> mSendOtpApi() async{
     if (_formKey.currentState!.validate()) {
       // Check if passwords match
       if (_passwordController.text != _confirmPasswordController.text) {
@@ -45,7 +45,6 @@ class _SecurityScreenState extends State<SecurityScreen> {
         );
         setState(() {
           _isPasswordMatch = false;
-
         });
         return;
       } else {
@@ -229,7 +228,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        onPressed: isLoading ? null : mSecurity,
+                        onPressed: isLoading ? null : mSendOtpApi,
                         child: const Text('Submit', style: TextStyle(color: Colors.white)),
                       ),
                     ),
