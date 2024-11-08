@@ -21,10 +21,10 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-final TransactionListApi _transactionListApi = TransactionListApi();
-final AccountsListApi _accountsListApi = AccountsListApi();
+  final TransactionListApi _transactionListApi = TransactionListApi();
+  final AccountsListApi _accountsListApi = AccountsListApi();
 
-  List<AccountsList> accountsListData = [];
+  List<AccountsListsData> accountsListData = [];
   List<TransactionListDetails> transactionList = [];
   bool isLoading = false;
   String? errorMessage;
@@ -120,7 +120,6 @@ final AccountsListApi _accountsListApi = AccountsListApi();
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Background(
@@ -162,6 +161,103 @@ final AccountsListApi _accountsListApi = AccountsListApi();
               ),
             ),
 
+
+
+            // Loading and Error Handling
+            if (isLoading)
+              const Center(child: CircularProgressIndicator()),
+            if (errorMessage != null)
+              Center(
+                  child: Text(
+                    errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                  )),
+
+            // Account list (only when not loading and no error)
+            if (!isLoading && errorMessage == null && accountsListData.isNotEmpty)
+              SizedBox(
+                height: 190, // Set height for the horizontal list view
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: accountsListData.length,
+                  itemBuilder: (context, index) {
+                    final accountsData = accountsListData[index];
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Card(
+                        elevation: 5,
+                        color: kWhiteColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(defaultPadding),
+                        ),
+                        child: Container(
+                          width: 320,
+                          padding: const EdgeInsets.all(defaultPadding),
+                          child: const Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+
+                                  CircleAvatar(
+                                    radius: 20,
+                                    backgroundImage: AssetImage(
+                                      'assets/icons/menu_crypto.png', // Ensure this path is correct
+                                    ),
+                                  ),
+                                  Text(
+                                    "USD",
+                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: kPrimaryColor),
+                                  ),
+                                ],
+                              ),
+
+                              SizedBox(height: defaultPadding,),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "IBAN",
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPrimaryColor),
+                                  ),
+                                  Text(
+                                    "US1000000001",
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPrimaryColor),
+                                  ),
+                                ],
+                              ),
+
+                              SizedBox(height: defaultPadding,),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Balance",
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPrimaryColor),
+                                  ),
+                                  Text(
+                                    "362.5093297443351",
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPrimaryColor),
+                                  ),
+                                ],
+                              ),
+
+                              Text(
+                                "Default",
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kGreeneColor),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
             // The Accounts design
             Card(
               margin: const EdgeInsets.all(16.0),
@@ -169,27 +265,6 @@ final AccountsListApi _accountsListApi = AccountsListApi();
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const AccountCard(
-                      flag: "🇺🇸",
-                      currencyCode: "USD",
-                      accountNumber: "US1000000001",
-                      balance: "\$325.170",
-                      bgColor: Colors.purple,
-                    ),
-                    const AccountCard(
-                      flag: "🇪🇺",
-                      currencyCode: "EUR",
-                      accountNumber: "EU1000000004",
-                      balance: "€19.766",
-                      bgColor: Colors.white,
-                    ),
-                    const AccountCard(
-                      flag: "🇮🇳",
-                      currencyCode: "INR",
-                      accountNumber: "IN1000000008",
-                      balance: "₹300.000",
-                      bgColor: Colors.white,
-                    ),
 
                     const SizedBox(height: defaultPadding),
 
@@ -264,13 +339,13 @@ final AccountsListApi _accountsListApi = AccountsListApi();
               height: largePadding,
             ),
             const Padding(padding: EdgeInsets.symmetric(horizontal: defaultPadding),
-            child: Text(
-              "Transaction List",
-              style: TextStyle(
-                  color: kPrimaryColor,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold),
-            ),
+              child: Text(
+                "Transaction List",
+                style: TextStyle(
+                    color: kPrimaryColor,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold),
+              ),
             ),
             const SizedBox(
               height: smallPadding,
@@ -283,13 +358,13 @@ final AccountsListApi _accountsListApi = AccountsListApi();
                   child: InkWell(
                     onTap: () => {
                       Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => TransactionDetailPage(
-                              transactionId: transaction.transactionId, // Passing transactionId here
-                            ),
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TransactionDetailPage(
+                            transactionId: transaction.transactionId, // Passing transactionId here
                           ),
-                        )
+                        ),
+                      )
                     }, // Navigate on tap
                     child: ListTile(
                       subtitle: Column(

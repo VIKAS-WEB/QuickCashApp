@@ -1,253 +1,344 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:quickcash/Screens/UserProfileScreen/DocumentsScreen/model/documentsApi.dart';
-import '../../../constants.dart';
-import '../../../util/apiConstants.dart';
-import '../../../util/auth_manager.dart';
+import 'package:quickcash/Screens/DashboardScreen/AddMoneyScreen/add_money_screen.dart';
+import 'package:quickcash/Screens/DashboardScreen/ExchangeScreen/exchange_money_screen.dart';
+import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/send_money_screen.dart';
+import 'package:quickcash/components/background.dart';
+import 'package:quickcash/constants.dart';
 
-class DocumentsScreens extends StatefulWidget {
-  const DocumentsScreens({super.key});
+class DashboardScreen extends StatefulWidget {
+  const DashboardScreen({super.key});
 
   @override
-  State<DocumentsScreens> createState() => _DocumentsScreenState();
+  State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DocumentsScreenState extends State<DocumentsScreens> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final DocumentsApi _documentsApi = DocumentsApi();
-
-  String selectedRole = 'Select ID Of Individual'; // Default value for dropdown
-  String? imagePath;
-  String? documentPhotoFrontUrl;
-
-  // Add Text controllers
-  final TextEditingController _documentsNoController = TextEditingController();
-
+class _DashboardScreenState extends State<DashboardScreen> {
+  // Simulate loading and error states
   bool isLoading = false;
   String? errorMessage;
 
-  @override
-  void initState() {
-    super.initState();
-    mDocumentsApi();  // Fetch data on initialization
-  }
-
-  Future<void> mDocumentsApi() async {
-    setState(() {
-      isLoading = true;
-      errorMessage = null;
-    });
-
-    try {
-      final response = await _documentsApi.documentsApi();
-
-      if (response.documentsDetails?.isNotEmpty ?? false) {
-        final document = response.documentsDetails!.first;
-
-        // Check if the document photo URL is not null
-        if (document.documentPhotoFront != null) {
-          documentPhotoFrontUrl =
-          '${ApiConstants.baseImageUrl}${AuthManager.getUserId()}/${document.documentPhotoFront}';
-        }
-
-        // Check if the document number is not null
-        if (document.documentsNo != null) {
-          _documentsNoController.text = document.documentsNo!;
-        }
-
-        // Set the selected role (document type) based on the fetched data
-        if (document.documentsType != null) {
-          setState(() {
-            selectedRole = document.documentsType!; // Set the dropdown value
-          });
-        }
-      }
-
-      print('Document Type: ${response.documentsDetails?.first.documentsType}');
-      print('Document Number: ${response.documentsDetails?.first.documentsNo}');
-      print('Document Photo: ${response.documentsDetails?.first.documentPhotoFront}');
-
-    } catch (error) {
-      setState(() {
-        isLoading = false;
-        errorMessage = error.toString();
-      });
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
+  // Sample account data
+  final List<Map<String, dynamic>> accountData = [
+    {
+      'currency': 'USD',
+      'iban': 'US1000000001',
+      'bicCode': 'USD12345',
+      'amount': 325.170,
+    },
+    {
+      'currency': 'EUR',
+      'iban': 'EU1000000004',
+      'bicCode': 'EUR67890',
+      'amount': 19.766,
+    },
+    {
+      'currency': 'INR',
+      'iban': 'IN1000000008',
+      'bicCode': 'INR112233',
+      'amount': 300.000,
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(defaultPadding),
+    return Background(
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 25.0),
+
+            // The Accounts design using ListView.builder
+            Card(
+              margin: const EdgeInsets.all(16.0),
+              child: Padding(
+                padding: const EdgeInsets.all(10),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    const SizedBox(height: defaultPadding),
+                    const SizedBox(height: 20),
 
+                    // Loading and Error Handling
                     if (isLoading)
-                      const CircularProgressIndicator(
-                        color: kPrimaryColor,
-                      ),
-                    // Show loading indicator
-                    if (errorMessage != null) // Show error message if there's an error
-                      Text(errorMessage!,
-                          style: const TextStyle(color: Colors.red)),
-                    const SizedBox(
-                      height: defaultPadding,
-                    ),
+                      const Center(child: CircularProgressIndicator()),
+                    if (errorMessage != null)
+                      Center(
+                          child: Text(
+                            errorMessage!,
+                            style: const TextStyle(color: Colors.red),
+                          )),
 
-                    // Document Image Section
-                    Card(
-                      child: Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: imagePath != null
-                                ? Image.file(
-                              File(imagePath!),
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: 250,
-                            )
-                                : Image.network(
-                              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmN0el3AEK0rjTxhTGTBJ05JGJ7rc4_GSW6Q&s',
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: 250,
-                            ),
-                          ),
-                          Positioned(
-                            bottom: 8,
-                            right: 8,
-                            child: GestureDetector(
-                              onTap: () async {
-                                final ImagePicker picker = ImagePicker();
-                                final XFile? image = await picker.pickImage(
-                                    source: ImageSource.gallery);
+                    // Account list (only when not loading and no error)
+                    if (!isLoading && errorMessage == null && accountData.isNotEmpty)
+                      SizedBox(
+                        height: 250, // Set height for the horizontal list view
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: accountData.length,
+                          itemBuilder: (context, index) {
+                            var account = accountData[index];
 
-                                if (image != null) {
-                                  setState(() {
-                                    imagePath = image.path; // Store the image path
-                                  });
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Image selected')),
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('No image selected.')),
-                                  );
-                                }
-                              },
-                              child: const CircleAvatar(
-                                backgroundColor: Colors.white,
-                                child: Icon(
-                                  Icons.edit,
-                                  color: kPrimaryColor,
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Card(
+                                elevation: 5,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(defaultPadding),
+                                ),
+                                child: Container(
+                                  width: 320,
+                                  padding: const EdgeInsets.all(defaultPadding),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(height: largePadding),
+
+                                      // Currency code inside a circle
+                                      Center(
+                                        child: CircleAvatar(
+                                          radius: 60, // Size of the circle
+                                          backgroundColor: kPrimaryColor, // Background color of the circle
+                                          child: Text(
+                                            account['currency'] ?? 'N/A', // Display the currency code
+                                            style: const TextStyle(
+                                              fontSize: 30, // Font size of the currency code
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white, // Text color
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+
+                                      const SizedBox(height: 35),
+                                      const Divider(color: kWhiteColor),
+                                      const SizedBox(height: defaultPadding),
+
+                                      // Account details
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Currency: ${account['currency'] ?? 'N/A'}',
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: kPrimaryColor,
+                                            ),
+                                          ),
+                                          const SizedBox(height: smallPadding),
+                                          const Divider(color: kWhiteColor),
+                                          const SizedBox(height: smallPadding),
+
+                                          const Text(
+                                            'IBAN / Routing / Account Number:',
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                              color: kPrimaryColor,
+                                            ),
+                                          ),
+                                          Text(
+                                            account['iban'] ?? 'N/A',
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: kPrimaryColor,
+                                            ),
+                                          ),
+                                          const SizedBox(height: smallPadding),
+                                          const Divider(color: kWhiteColor),
+                                          const SizedBox(height: smallPadding),
+
+                                          const Text(
+                                            'BIC / IFSC:',
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                              color: kPrimaryColor,
+                                            ),
+                                          ),
+                                          Text(
+                                            account['bicCode'] ?? 'N/A',
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: kPrimaryColor,
+                                            ),
+                                          ),
+                                          const SizedBox(height: smallPadding),
+                                          const Divider(color: kWhiteColor),
+                                          const SizedBox(height: smallPadding),
+
+                                          const Text(
+                                            'Balance:',
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                              color: kPrimaryColor,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${account['amount'] ?? 0.0}',
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: kPrimaryColor,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Document ID Number
-                    const SizedBox(height: defaultPadding),
-                    TextFormField(
-                      controller: _documentsNoController,
-                      keyboardType: TextInputType.text,
-                      textInputAction: TextInputAction.next,
-                      cursorColor: kPrimaryColor,
-                      onSaved: (value) {},
-                      readOnly: false,
-                      style: const TextStyle(color: kPrimaryColor),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your Document ID No';
-                        }
-                        return null;
-                      },
-                      decoration: InputDecoration(
-                        labelText: "Document ID No",
-                        labelStyle: const TextStyle(color: kPrimaryColor),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(),
-                        ),
-                      ),
-                    ),
-
-                    // Document Type (Dropdown)
-                    const SizedBox(height: 25),
-                    DropdownButtonFormField<String>(
-                      value: selectedRole, // Set the dropdown value to selectedRole
-                      style: const TextStyle(color: kPrimaryColor),
-                      decoration: InputDecoration(
-                        labelText: 'ID Of Individual',
-                        labelStyle: const TextStyle(color: kPrimaryColor),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(),
-                        ),
-                      ),
-                      items: ['Select ID Of Individual', 'Passport', 'Driving License']
-                          .map((String role) {
-                        return DropdownMenuItem(
-                          value: role,
-                          child: Text(role),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
-                        setState(() {
-                          selectedRole = newValue!; // Update selected role
-                        });
-                      },
-                    ),
-
-                    // Update Button
-                    const SizedBox(height: 35),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 50),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: kPrimaryColor,
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        onPressed: () {
-                          if (selectedRole == "Select ID Of Individual") {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Please Select ID Of Individual')),
                             );
-                          } else if (_formKey.currentState!.validate()) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Form submitted successfully!')),
-                            );
-                          }
-                        },
-                        child: const Text('Update', style: TextStyle(color: Colors.white)),
+                          },
+                        ),
                       ),
-                    ),
+                    const SizedBox(height: 30),
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+
+            // Action buttons at the bottom
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                FloatingActionButton.extended(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AddMoneyScreen()),
+                    );
+                  },
+                  label: const Text('Add Money', style: TextStyle(color: Colors.white)),
+                  icon: const Icon(Icons.add, color: Colors.white),
+                  backgroundColor: kPrimaryColor,
+                ),
+                const SizedBox(width: 35),
+                FloatingActionButton.extended(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ExchangeMoneyScreen()),
+                    );
+                  },
+                  label: const Text('Exchange', style: TextStyle(color: Colors.white)),
+                  icon: const Icon(Icons.currency_exchange, color: Colors.white),
+                  backgroundColor: kPrimaryColor,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 }
+
+
+
+
+
+/*
+
+
+ // Loading and Error Handling
+            if (isLoading)
+              const Center(child: CircularProgressIndicator()),
+            if (errorMessage != null)
+              Center(
+                  child: Text(
+                    errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                  )),
+
+            // Account list (only when not loading and no error)
+            if (!isLoading && errorMessage == null && accountData.isNotEmpty)
+              SizedBox(
+                height: 190, // Set height for the horizontal list view
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: accountData.length,
+                  itemBuilder: (context, index) {
+                    var account = accountData[index];
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Card(
+                        elevation: 5,
+                        color: kWhiteColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(defaultPadding),
+                        ),
+                        child: Container(
+                          width: 320,
+                          padding: const EdgeInsets.all(defaultPadding),
+                          child: const Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+
+                                  CircleAvatar(
+                                    radius: 20,
+                                    backgroundImage: AssetImage(
+                                      'assets/icons/menu_crypto.png', // Ensure this path is correct
+                                    ),
+                                  ),
+                                  Text(
+                                    "USD",
+                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: kPrimaryColor),
+                                  ),
+                                ],
+                              ),
+
+                              SizedBox(height: defaultPadding,),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "IBAN",
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPrimaryColor),
+                                  ),
+                                  Text(
+                                    "US1000000001",
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPrimaryColor),
+                                  ),
+                                ],
+                              ),
+
+                              SizedBox(height: defaultPadding,),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Balance",
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPrimaryColor),
+                                  ),
+                                  Text(
+                                    "362.5093297443351",
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPrimaryColor),
+                                  ),
+                                ],
+                              ),
+
+                              Text(
+                                "Default",
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kGreeneColor),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+
+
+
+* */

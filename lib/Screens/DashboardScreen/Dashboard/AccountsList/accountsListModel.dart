@@ -1,31 +1,34 @@
-class AccountsList {
+
+class AccountsListsData {
   final String? country;
   final String? currency;
-  final String? amount;
-  final String? ibanText;
-  final String? status;
+  final String? iban;
+  final bool? status;
+  final double? amount;
 
-  AccountsList({
+  AccountsListsData({
     this.country,
     this.currency,
-    this.amount,
-    this.ibanText,
+    this.iban,
     this.status,
+    this.amount,
   });
 
-  factory AccountsList.fromJson(Map<String, dynamic> json) {
-    return AccountsList(
+  factory AccountsListsData.fromJson(Map<String, dynamic> json) {
+    return AccountsListsData(
       country: json['country'] as String?,
       currency: json['currency'] as String?,
-      amount: json['amount'] as String?,
-      ibanText: json['ibanText'] as String?,
-      status: json['status'] as String?,
+      iban: json['ibanText'] as String?,
+      status: json['status'] as bool?,
+      amount: (json['postBalance'] is int
+          ? (json['postBalance'] as int).toDouble()
+          : json['postBalance']) as double?,
     );
   }
 }
 
 class AccountListResponse {
-  final List<AccountsList>? accountsList;
+  final List<AccountsListsData>? accountsList;
 
   AccountListResponse({
     this.accountsList,
@@ -34,7 +37,7 @@ class AccountListResponse {
   factory AccountListResponse.fromJson(Map<String, dynamic> json) {
     return AccountListResponse(
       accountsList: (json['data'] as List<dynamic>? )
-          ?.map((item) => AccountsList.fromJson(item as Map<String, dynamic>))
+          ?.map((item) => AccountsListsData.fromJson(item as Map<String, dynamic>))
           .toList(),
     );
   }
