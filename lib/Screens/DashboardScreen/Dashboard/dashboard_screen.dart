@@ -29,6 +29,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<TransactionListDetails> transactionList = [];
   bool isLoading = false;
   String? errorMessage;
+  int? _selectedIndex;
 
   @override
   void initState() {
@@ -169,23 +170,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: const TextStyle(color: Colors.red),
               )),
 
+
+
+
+
             // Account list (only when not loading and no error)
             if (!isLoading &&
                 errorMessage == null &&
                 accountsListData.isNotEmpty)
-              SizedBox(
-                height: 170, // Set height for the horizontal list view
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: accountsListData.length,
-                  itemBuilder: (context, index) {
-                    final accountsData = accountsListData[index];
 
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            SizedBox(
+              height: 170, // Set height for the horizontal list view
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: accountsListData.length,
+                itemBuilder: (context, index) {
+                  final accountsData = accountsListData[index];
+                  final isSelected = index == _selectedIndex;
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedIndex = index;
+                        });
+                      },
                       child: Card(
                         elevation: 5,
-                        color: kWhiteColor,
+                        color: isSelected ? kPrimaryColor : Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(defaultPadding),
                         ),
@@ -196,8 +209,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   CountryFlag.fromCountryCode(
                                     width: 35,
@@ -207,10 +219,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ),
                                   Text(
                                     "${accountsData.currency}",
-                                    style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: kPrimaryColor),
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: isSelected ? Colors.white : kPrimaryColor,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -218,22 +231,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 height: defaultPadding,
                               ),
                               Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text(
+                                  Text(
                                     "IBAN",
                                     style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: kPrimaryColor),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: isSelected ? Colors.white : kPrimaryColor,
+                                    ),
                                   ),
                                   Text(
                                     "${accountsData.iban}",
-                                    style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: kPrimaryColor),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: isSelected ? Colors.white : kPrimaryColor,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -241,22 +255,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 height: defaultPadding,
                               ),
                               Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text(
+                                  Text(
                                     "Balance",
                                     style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: kPrimaryColor),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: isSelected ? Colors.white : kPrimaryColor,
+                                    ),
                                   ),
                                   Text(
                                     "${accountsData.amount}",
-                                    style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: kPrimaryColor),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: isSelected ? Colors.white : kPrimaryColor,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -264,10 +279,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
+            ),
+
+
+
+
+
+
+
+
+
+
+
 
             // The Accounts design
             Card(
