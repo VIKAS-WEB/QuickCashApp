@@ -12,6 +12,7 @@ import 'package:quickcash/components/background.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart';
+import 'package:quickcash/test_code.dart';
 import 'package:quickcash/util/auth_manager.dart';
 
 import 'TransactionList/transactionListModel.dart';
@@ -133,6 +134,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  // Transaction Status Color
   Color _getStatusColor(String status) {
     switch (status) {
       case 'Success':
@@ -165,38 +167,126 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(
               height: 25.0,
             ),
-            const Card(
-              margin: EdgeInsets.all(16.0),
-              child: Padding(
-                padding: EdgeInsets.all(defaultPadding),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IndicatorWidget(
+
+            const SizedBox(height: defaultPadding,),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Padding(padding: const EdgeInsets.all(defaultPadding),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    width: 300,
+                    height: 200,
+                    padding: const EdgeInsets.all(defaultPadding),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const IndicatorWidget(
                       label: "Deposit",
                       amount: 1008.22,
                       percentage: 0.75,
                       color: Colors.teal,
                       icon: Icons.arrow_upward,
                     ),
-                    IndicatorWidget(
+                  ),
+
+                  const SizedBox(width: defaultPadding,),
+
+                  Container(
+                    width: 300,
+                    height: 200,
+                    padding: const EdgeInsets.all(defaultPadding),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const IndicatorWidget(
                       label: "Debit",
                       amount: 1008.552,
                       percentage: 0.75,
                       color: Colors.orange,
                       icon: Icons.arrow_downward,
                     ),
-                    IndicatorWidget(
+                  ),
+
+                  const SizedBox(width: defaultPadding,),
+
+                  Container(
+                    width: 300,
+                    height: 200,
+                    padding: const EdgeInsets.all(defaultPadding),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const IndicatorWidget(
                       label: "Fee Debit",
                       amount: 1008.242,
                       percentage: 0.45,
                       color: Colors.purple,
                       icon: Icons.attach_money,
                     ),
-                  ],
-                ),
-              ),
+                  ),
+
+                  const SizedBox(width: defaultPadding,),
+
+                  Container(
+                    width: 300,
+                    height: 200,
+                    padding: const EdgeInsets.all(defaultPadding),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const IndicatorWidget(
+                      label: "Fee Debit",
+                      amount: 1008.242,
+                      percentage: 0.45,
+                      color: Colors.purple,
+                      icon: Icons.attach_money,
+                    ),
+                  ),
+
+                ],
+              ),)
             ),
+
+            const SizedBox(height: defaultPadding,),
 
             // Loading and Error Handling
             if (isLoading) const Center(child: CircularProgressIndicator()),
@@ -224,7 +314,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
 
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    padding: const EdgeInsets.symmetric(horizontal: smallPadding),
                     child: GestureDetector(
                       onTap: () {
                         setState(() {
@@ -321,7 +411,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
 
-            // The Accounts design
+            // The Accounts design ----------------
             Card(
               margin: const EdgeInsets.all(16.0),
               color: Colors.white,
@@ -404,6 +494,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         FloatingActionButton.extended(
                           onPressed: () {
                             // Add your onPressed code here!
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                  const MyApp()),
+                            );
                           },
                           label: const Text(
                             'All Account',
@@ -596,89 +692,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-// Account Card widget (adapted from the previous design)
-class AccountCard extends StatelessWidget {
-  final String flag;
-  final String currencyCode;
-  final String accountNumber;
-  final String balance;
-  final Color bgColor;
 
-  const AccountCard({
-    super.key,
-    required this.flag,
-    required this.currencyCode,
-    required this.accountNumber,
-    required this.balance,
-    required this.bgColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(8.0),
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    flag,
-                    style: const TextStyle(fontSize: 30),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    currencyCode,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color:
-                          currencyCode == 'USD' ? Colors.white : Colors.black,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                accountNumber,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: currencyCode == 'USD' ? Colors.white : Colors.black,
-                ),
-              ),
-              const SizedBox(height: 4),
-            ],
-          ),
-          Text(
-            balance,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: currencyCode == 'USD' ? Colors.white : Colors.black,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 // Indicator Widget for Deposit, Debit, and Fee Debit
 class IndicatorWidget extends StatelessWidget {
@@ -702,9 +716,10 @@ class IndicatorWidget extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+
         CircularPercentIndicator(
           radius: 50.0,
-          lineWidth: 12.0,
+          lineWidth: defaultPadding,
           percent: percentage,
           center: Icon(icon, size: 30, color: color),
           progressColor: color,
