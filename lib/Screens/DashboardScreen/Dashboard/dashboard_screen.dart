@@ -16,6 +16,7 @@ import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:quickcash/util/auth_manager.dart';
 
+import 'RevenueList/revenueListApi.dart';
 import 'TransactionList/transactionListModel.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -29,6 +30,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final TransactionListApi _transactionListApi = TransactionListApi();
   final AccountsListApi _accountsListApi = AccountsListApi();
   final AccountListTransactionApi _accountListTransactionApi = AccountListTransactionApi();
+  final RevenueListApi _revenueListApi = RevenueListApi();
 
   List<AccountsListsData> accountsListData = [];
   List<TransactionListDetails> transactionList = [];
@@ -37,12 +39,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String? errorTransactionMessage;
   String? errorMessage;
   int? _selectedIndex;
+  double? creditAmount;
+  double? debitAmount;
+  double? investingAmount;
+  double? earningAmount;
 
   @override
   void initState() {
     super.initState();
     mAccounts();
+    mRevenueList();
     mTransactionList();
+
   }
 
   // Accounts List Api ---------------
@@ -101,9 +109,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
         errorTransactionMessage = error.toString();
       });
     }
+  }
 
+  // Revenue List Api ------------
+  Future<void> mRevenueList() async {
+    setState(() {
+      errorMessage = null;
+    });
+
+    try{
+      final response = await _revenueListApi.revenueListApi();
+
+      creditAmount = response.creditAmount!;
+      debitAmount = response.debitAmount!;
+      investingAmount = response.investingAmount!;
+      earningAmount = response.earningAmount!;
+
+
+
+    }catch (error) {
+      setState(() {
+        isTransactionLoading = false;
+        errorTransactionMessage = error.toString();
+      });
+    }
 
   }
+
 
   // Transaction List Api   ------
   Future<void> mTransactionList() async {
@@ -171,49 +203,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             const SizedBox(height: largePadding,),
 
-            const SingleChildScrollView(
+             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Padding(
-                padding: EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16.0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 25),
+                    const SizedBox(height: 25),
                     GaugeContainer(
                       child: GaugeWidget(
                         label: 'Credit',
-                        currentAmount: 250.18,
-                        totalAmount: 1000.0,
+                        currentAmount: creditAmount!,
+                        totalAmount: creditAmount!,
                         color: Colors.green,
                         icon: Icons.arrow_downward_rounded,
                       ),
                     ),
-                    SizedBox(width: 16),
+                    const SizedBox(width: 16),
                     GaugeContainer(
                       child: GaugeWidget(
                         label: 'Debit',
-                        currentAmount: 400.75,
-                        totalAmount: 1000.0,
+                        currentAmount: debitAmount!,
+                        totalAmount: creditAmount!,
                         color: Colors.red,
                         icon: Icons.arrow_upward_rounded,
                       ),
                     ),
-                    SizedBox(width: 16),
+                    const SizedBox(width: 16),
                     GaugeContainer(
                       child: GaugeWidget(
                         label: 'Investing',
-                        currentAmount: 700.0,
-                        totalAmount: 1000.0,
+                        currentAmount: investingAmount!,
+                        totalAmount: creditAmount!,
                         color: Colors.purple,
                         icon: Icons.attach_money,
                       ),
                     ),
-                    SizedBox(width: 16),
+                    const SizedBox(width: 16),
                     GaugeContainer(
                       child: GaugeWidget(
                         label: 'Earning',
-                        currentAmount: 700.0,
-                        totalAmount: 1000.0,
+                        currentAmount: earningAmount!,
+                        totalAmount: creditAmount!,
                         color: Colors.lightGreen,
                         icon: Icons.attach_money,
                       ),
