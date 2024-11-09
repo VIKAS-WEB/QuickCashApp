@@ -22,7 +22,7 @@ class AccountsListsData {
       country: json['country'] as String?,
       currency: json['currency'] as String?,
       iban: json['iban'] as String?,
-      status: json['status'] as bool?,
+      status: json['defaultAccount'] as bool?,
       amount: (json['amount'] is int
           ? (json['amount'] as int).toDouble()
           : json['amount']) as double?,

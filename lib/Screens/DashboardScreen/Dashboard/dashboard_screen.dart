@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/DashboardScreen/AddMoneyScreen/add_money_screen.dart';
+import 'package:quickcash/Screens/DashboardScreen/AllAccountsScreen/allAccountsScreen.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountListTransactionApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListModel.dart';
@@ -474,7 +475,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               context,
                               MaterialPageRoute(
                                   builder: (context) =>
-                                   MyApp()),
+                                   const AllAccountsScreen()),
                             );
                           },
                           label: const Text(
@@ -540,7 +541,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             Column(
               children: transactionList.map((transaction) {
-                print("Transaction Status: ${transaction.transactionStatus ?? 'Unknown'}");
                 return Card(
                   margin:
                       const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
