@@ -1,6 +1,7 @@
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/DashboardScreen/AddMoneyScreen/add_money_screen.dart';
+import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountListTransactionApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListModel.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/TransactionList/transactionListApi.dart';
@@ -11,6 +12,7 @@ import 'package:quickcash/components/background.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart';
+import 'package:quickcash/util/auth_manager.dart';
 
 import 'TransactionList/transactionListModel.dart';
 
@@ -24,10 +26,13 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final TransactionListApi _transactionListApi = TransactionListApi();
   final AccountsListApi _accountsListApi = AccountsListApi();
+  final AccountListTransactionApi _accountListTransactionApi = AccountListTransactionApi();
 
   List<AccountsListsData> accountsListData = [];
   List<TransactionListDetails> transactionList = [];
   bool isLoading = false;
+  bool isTransactionLoading = false;
+  String? errorTransactionMessage;
   String? errorMessage;
   int? _selectedIndex;
 
@@ -38,9 +43,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     mTransactionList();
   }
 
+  // Accounts List Api ---------------
   Future<void> mAccounts() async {
     setState(() {
-      isLoading = true;
+      //isLoading = true;
       errorMessage = null;
     });
 
@@ -66,11 +72,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  // Transaction List Api
+  // Account List Transaction Api ------
+  Future<void> mAccountListTransaction(accountId, currency) async {
+    setState(() {
+      //isTransactionLoading = true;
+      errorTransactionMessage = null;
+    });
+
+    try{
+      final response = await _accountListTransactionApi.accountListTransaction(accountId, currency, AuthManager.getUserId());
+      if (response.transactionList != null &&
+          response.transactionList!.isNotEmpty) {
+        setState(() {
+          transactionList = response.transactionList!;
+          isTransactionLoading = false;
+        });
+      } else {
+        setState(() {
+          isTransactionLoading = false;
+          errorTransactionMessage = 'No Transaction List';
+        });
+      }
+    }catch (error) {
+      setState(() {
+        isTransactionLoading = false;
+        errorTransactionMessage = error.toString();
+      });
+    }
+
+
+  }
+
+  // Transaction List Api   ------
   Future<void> mTransactionList() async {
     setState(() {
-      isLoading = true;
-      errorMessage = null;
+     // isTransactionLoading = true;
+      errorTransactionMessage = null;
     });
 
     try {
@@ -80,18 +117,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
           response.transactionList!.isNotEmpty) {
         setState(() {
           transactionList = response.transactionList!;
-          isLoading = false;
+          isTransactionLoading = false;
         });
       } else {
         setState(() {
-          isLoading = false;
-          errorMessage = 'No Transaction List';
+          isTransactionLoading = false;
+          errorTransactionMessage = 'No Transaction List';
         });
       }
     } catch (error) {
       setState(() {
-        isLoading = false;
-        errorMessage = error.toString();
+        isTransactionLoading = false;
+        errorTransactionMessage = error.toString();
       });
     }
   }
@@ -171,9 +208,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               )),
 
 
-
-
-
             // Account list (only when not loading and no error)
             if (!isLoading &&
                 errorMessage == null &&
@@ -188,12 +222,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   final accountsData = accountsListData[index];
                   final isSelected = index == _selectedIndex;
 
+
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: GestureDetector(
                       onTap: () {
                         setState(() {
                           _selectedIndex = index;
+                          mAccountListTransaction(accountsData.accountId, accountsData.currency);
                         });
                       },
                       child: Card(
@@ -284,17 +320,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 },
               ),
             ),
-
-
-
-
-
-
-
-
-
-
-
 
             // The Accounts design
             Card(
@@ -417,6 +442,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(
               height: smallPadding,
             ),
+
+            // Loading and Error Handling
+            if (isTransactionLoading) const Center(child: CircularProgressIndicator()),
+            if (errorTransactionMessage != null)
+
+
+              SizedBox(height: 190,
+              child: Padding(padding: const EdgeInsets.all(largePadding),
+              child: Card(
+                color: kPrimaryColor,
+                elevation: 4,
+                child: Center(
+                    child: Text(
+                      errorTransactionMessage!,
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                    )),
+              ),)
+              ),
+
+
+
+
+
+            // Account list (only when not loading and no error)
+            if (!isTransactionLoading &&
+                errorTransactionMessage == null &&
+                transactionList.isNotEmpty)
+
+
             Column(
               children: transactionList.map((transaction) {
                 return Card(

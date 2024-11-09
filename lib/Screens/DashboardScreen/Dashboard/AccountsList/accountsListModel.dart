@@ -1,5 +1,6 @@
 
 class AccountsListsData {
+  final String? accountId;
   final String? country;
   final String? currency;
   final String? iban;
@@ -7,6 +8,7 @@ class AccountsListsData {
   final double? amount;
 
   AccountsListsData({
+    this.accountId,
     this.country,
     this.currency,
     this.iban,
@@ -16,6 +18,7 @@ class AccountsListsData {
 
   factory AccountsListsData.fromJson(Map<String, dynamic> json) {
     return AccountsListsData(
+      accountId: json['_id'] as String?,
       country: json['country'] as String?,
       currency: json['currency'] as String?,
       iban: json['iban'] as String?,
