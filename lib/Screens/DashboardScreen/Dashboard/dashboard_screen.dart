@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/DashboardScreen/AddMoneyScreen/add_money_screen.dart';
@@ -12,7 +14,6 @@ import 'package:quickcash/components/background.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart';
-import 'package:quickcash/test_code.dart';
 import 'package:quickcash/util/auth_manager.dart';
 
 import 'TransactionList/transactionListModel.dart';
@@ -168,125 +169,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
               height: 25.0,
             ),
 
-            const SizedBox(height: defaultPadding,),
-            SingleChildScrollView(
+            const SizedBox(height: largePadding,),
+
+            const SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              child: Padding(padding: const EdgeInsets.all(defaultPadding),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    width: 300,
-                    height: 200,
-                    padding: const EdgeInsets.all(defaultPadding),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          spreadRadius: 1,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 25),
+                    GaugeContainer(
+                      child: GaugeWidget(
+                        label: 'Credit',
+                        currentAmount: 250.18,
+                        totalAmount: 1000.0,
+                        color: Colors.green,
+                        icon: Icons.arrow_downward_rounded,
+                      ),
                     ),
-                    child: const IndicatorWidget(
-                      label: "Deposit",
-                      amount: 1008.22,
-                      percentage: 0.75,
-                      color: Colors.teal,
-                      icon: Icons.arrow_upward,
+                    SizedBox(width: 16),
+                    GaugeContainer(
+                      child: GaugeWidget(
+                        label: 'Debit',
+                        currentAmount: 400.75,
+                        totalAmount: 1000.0,
+                        color: Colors.red,
+                        icon: Icons.arrow_upward_rounded,
+                      ),
                     ),
-                  ),
-
-                  const SizedBox(width: defaultPadding,),
-
-                  Container(
-                    width: 300,
-                    height: 200,
-                    padding: const EdgeInsets.all(defaultPadding),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          spreadRadius: 1,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                    SizedBox(width: 16),
+                    GaugeContainer(
+                      child: GaugeWidget(
+                        label: 'Investing',
+                        currentAmount: 700.0,
+                        totalAmount: 1000.0,
+                        color: Colors.purple,
+                        icon: Icons.attach_money,
+                      ),
                     ),
-                    child: const IndicatorWidget(
-                      label: "Debit",
-                      amount: 1008.552,
-                      percentage: 0.75,
-                      color: Colors.orange,
-                      icon: Icons.arrow_downward,
+                    SizedBox(width: 16),
+                    GaugeContainer(
+                      child: GaugeWidget(
+                        label: 'Earning',
+                        currentAmount: 700.0,
+                        totalAmount: 1000.0,
+                        color: Colors.lightGreen,
+                        icon: Icons.attach_money,
+                      ),
                     ),
-                  ),
-
-                  const SizedBox(width: defaultPadding,),
-
-                  Container(
-                    width: 300,
-                    height: 200,
-                    padding: const EdgeInsets.all(defaultPadding),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          spreadRadius: 1,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: const IndicatorWidget(
-                      label: "Fee Debit",
-                      amount: 1008.242,
-                      percentage: 0.45,
-                      color: Colors.purple,
-                      icon: Icons.attach_money,
-                    ),
-                  ),
-
-                  const SizedBox(width: defaultPadding,),
-
-                  Container(
-                    width: 300,
-                    height: 200,
-                    padding: const EdgeInsets.all(defaultPadding),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          spreadRadius: 1,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: const IndicatorWidget(
-                      label: "Fee Debit",
-                      amount: 1008.242,
-                      percentage: 0.45,
-                      color: Colors.purple,
-                      icon: Icons.attach_money,
-                    ),
-                  ),
-
-                ],
-              ),)
+                  ],
+                ),
+              ),
             ),
 
-            const SizedBox(height: defaultPadding,),
+            const SizedBox(height: smallPadding,),
 
             // Loading and Error Handling
             if (isLoading) const Center(child: CircularProgressIndicator()),
@@ -494,12 +431,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         FloatingActionButton.extended(
                           onPressed: () {
                             // Add your onPressed code here!
-                            Navigator.push(
+                            /*Navigator.push(
                               context,
                               MaterialPageRoute(
                                   builder: (context) =>
                                   const MyApp()),
-                            );
+                            );*/
                           },
                           label: const Text(
                             'All Account',
@@ -692,8 +629,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-
-
 // Indicator Widget for Deposit, Debit, and Fee Debit
 class IndicatorWidget extends StatelessWidget {
   final String label;
@@ -732,5 +667,140 @@ class IndicatorWidget extends StatelessWidget {
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ],
     );
+  }
+}
+
+class GaugeContainer extends StatelessWidget {
+  final Widget child;
+
+  const GaugeContainer({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 210,
+      height: 130,
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            spreadRadius: 1,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+class GaugeWidget extends StatelessWidget {
+  final String label;
+  final double currentAmount;
+  final double totalAmount;
+  final Color color; // Color for the gauge and text
+  final IconData icon;
+
+  const GaugeWidget({
+    super.key,
+    required this.label,
+    required this.currentAmount,
+    required this.totalAmount,
+    required this.color,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final double percentage = (currentAmount / totalAmount).clamp(0.0, 1.0);
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        CustomPaint(
+          size: const Size(100, 120),
+          painter: GaugePainter(percentage: percentage, color: color),
+        ),
+        // Centered Column with Icon on top and Text below
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // If you want to show the icon, uncomment the following line
+            const SizedBox(height: largePadding,),
+            Icon(
+              icon,
+              size: 20, // Icon size
+              color: color,
+            ),
+            const SizedBox(height: 0), // Space between icon and text
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: color, // Set the text color to the received color
+              ),
+            ),
+            Text(
+              '\$${currentAmount.toStringAsFixed(2)}',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: color, // Set the text color to the received color
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+
+class GaugePainter extends CustomPainter {
+  final double percentage;
+  final Color color;
+
+  GaugePainter({required this.percentage, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint backgroundPaint = Paint()
+      ..color = Colors.grey.shade300
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 40.0;
+
+    final Paint progressPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 40.0;
+
+    // Draw the background arc (representing the full gauge)
+    canvas.drawArc(
+      Rect.fromCircle(center: Offset(size.width / 2, size.height / 2), radius: size.width / 2),
+      pi, // Start angle (180 degrees)
+      pi, // Sweep angle (180 degrees)
+      false,
+      backgroundPaint,
+    );
+
+    // Draw the progress arc (representing the percentage filled)
+    canvas.drawArc(
+      Rect.fromCircle(center: Offset(size.width / 2, size.height / 2), radius: size.width / 2),
+      pi, // Start angle
+      pi * percentage, // Sweep angle based on percentage
+      false,
+      progressPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return true;
   }
 }
