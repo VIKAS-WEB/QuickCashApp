@@ -20,9 +20,9 @@ class _UserInformationScreenState extends State<UserInformationScreen> {
   final TextEditingController _mobileController = TextEditingController();
   final TextEditingController _countryController = TextEditingController();
   final TextEditingController _totalAccountsController =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController _defaultCurrencyController =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController _addressController = TextEditingController();
 
   bool isLoading = false;
@@ -50,7 +50,7 @@ class _UserInformationScreenState extends State<UserInformationScreen> {
       if (response.ownerProfile != null) {
         // Assuming response.ownerProfile contains the image filename
         profileImageUrl =
-            '${ApiConstants.baseImageUrl}${AuthManager.getUserId()}/${response.ownerProfile}';
+        '${ApiConstants.baseImageUrl}${AuthManager.getUserId()}/${response.ownerProfile}';
       }
 
       if (response.name != null) {
@@ -88,7 +88,13 @@ class _UserInformationScreenState extends State<UserInformationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
+      body: isLoading
+          ? Center(
+        child: CircularProgressIndicator(
+          color: kPrimaryColor,
+        ),
+      )
+          : SingleChildScrollView(
         child: Column(
           children: [
             Padding(
@@ -105,25 +111,20 @@ class _UserInformationScreenState extends State<UserInformationScreen> {
                         children: [
                           CircleAvatar(
                             radius: 50,
-                            backgroundImage: NetworkImage(profileImageUrl!),
+                            backgroundImage:
+                            NetworkImage(profileImageUrl!),
                           ),
                         ],
                       ),
                     )
-                  else if (isLoading)
+                  else
                     const Center(
-                      child: Stack(
-                        alignment: Alignment.bottomRight,
-                        children: [
-                          CircleAvatar(
-                            radius: 50,
-                            backgroundImage: AssetImage(
-                                'assets/images/profile_pic.png'), // Replace with actual image asset
-                          ),
-                        ],
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundImage: AssetImage(
+                            'assets/images/profile_pic.png'), // Default Image
                       ),
                     ),
-                  // Show loading indicator
 
                   const SizedBox(height: defaultPadding),
 
@@ -137,15 +138,10 @@ class _UserInformationScreenState extends State<UserInformationScreen> {
 
                   const SizedBox(height: defaultPadding),
 
-                  if (isLoading)
-                    const CircularProgressIndicator(
-                      color: kPrimaryColor,
-                    ),
-                  // Show loading indicator
-                  if (errorMessage !=
-                      null) // Show error message if there's an error
+                  if (errorMessage != null)
                     Text(errorMessage!,
                         style: const TextStyle(color: Colors.red)),
+
                   const SizedBox(
                     height: defaultPadding,
                   ),
@@ -153,7 +149,6 @@ class _UserInformationScreenState extends State<UserInformationScreen> {
                   // Update the text fields with TextEditingController
                   TextFormField(
                     controller: _fullNameController,
-                    // Bind the controller
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
@@ -172,7 +167,6 @@ class _UserInformationScreenState extends State<UserInformationScreen> {
                   const SizedBox(height: defaultPadding),
                   TextFormField(
                     controller: _emailController,
-                    // Bind the controller
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
@@ -191,7 +185,6 @@ class _UserInformationScreenState extends State<UserInformationScreen> {
                   const SizedBox(height: defaultPadding),
                   TextFormField(
                     controller: _mobileController,
-                    // Bind the controller
                     keyboardType: TextInputType.phone,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
@@ -210,7 +203,6 @@ class _UserInformationScreenState extends State<UserInformationScreen> {
                   const SizedBox(height: defaultPadding),
                   TextFormField(
                     controller: _countryController,
-                    // Bind the controller
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
@@ -229,7 +221,6 @@ class _UserInformationScreenState extends State<UserInformationScreen> {
                   const SizedBox(height: defaultPadding),
                   TextFormField(
                     controller: _totalAccountsController,
-                    // Bind the controller
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
@@ -248,7 +239,6 @@ class _UserInformationScreenState extends State<UserInformationScreen> {
                   const SizedBox(height: defaultPadding),
                   TextFormField(
                     controller: _defaultCurrencyController,
-                    // Bind the controller
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
@@ -267,7 +257,6 @@ class _UserInformationScreenState extends State<UserInformationScreen> {
                   const SizedBox(height: defaultPadding),
                   TextFormField(
                     controller: _addressController,
-                    // Bind the controller
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,

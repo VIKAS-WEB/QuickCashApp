@@ -11,11 +11,11 @@ import 'package:quickcash/Screens/DashboardScreen/ExchangeScreen/exchange_money_
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/send_money_screen.dart';
 import 'package:quickcash/Screens/TransactionScreen/transaction_details_screen.dart';
 import 'package:quickcash/components/background.dart';
-import 'package:percent_indicator/percent_indicator.dart';
 import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:quickcash/util/auth_manager.dart';
 
+import '../../../test_code.dart';
 import 'RevenueList/revenueListApi.dart';
 import 'TransactionList/transactionListModel.dart';
 
@@ -50,7 +50,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     mAccounts();
     mRevenueList();
     mTransactionList();
-
   }
 
   // Accounts List Api ---------------
@@ -115,27 +114,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> mRevenueList() async {
     setState(() {
       errorMessage = null;
+      isLoading = true;
     });
 
     try{
       final response = await _revenueListApi.revenueListApi();
 
-      creditAmount = response.creditAmount!;
-      debitAmount = response.debitAmount!;
-      investingAmount = response.investingAmount!;
-      earningAmount = response.earningAmount!;
-
+      creditAmount = response.creditAmount ?? 0.0;
+      debitAmount = response.debitAmount ?? 0.0;
+      investingAmount = response.investingAmount ?? 0.0;
+      earningAmount = response.earningAmount ?? 0.0;
 
 
     }catch (error) {
       setState(() {
-        isTransactionLoading = false;
+        isLoading = false;
         errorTransactionMessage = error.toString();
       });
     }
-
   }
-
 
   // Transaction List Api   ------
   Future<void> mTransactionList() async {
@@ -168,18 +165,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // Transaction Status Color
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'Success':
+  Color _getStatusColor(String? status) {
+    if (status == null) return kPrimaryColor;
+    switch (status.toLowerCase()) {  // Convert status to lowercase for consistency
+      case 'success':
+      case 'succeeded':
         return Colors.green;
-      case 'Failed':
+      case 'failed':
+      case 'cancelled':
         return Colors.red;
-      case 'Pending':
+      case 'pending':
         return Colors.orange;
       default:
-        return kPrimaryColor;
+        return kPrimaryColor; // Fallback for unexpected status values
     }
   }
+
+
+
 
 // Function to format the date
   String formatDate(String? dateTime) {
@@ -194,12 +197,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Background(
       child: SingleChildScrollView(
-        child: Column(
+        child: isLoading
+            ? const Center(
+          child: CircularProgressIndicator(), // Show loading indicator
+        )
+            : Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(
               height: 25.0,
             ),
+
+            if (isLoading) const Center(child: CircularProgressIndicator()),
 
             const SizedBox(height: largePadding,),
 
@@ -214,8 +223,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     GaugeContainer(
                       child: GaugeWidget(
                         label: 'Credit',
-                        currentAmount: creditAmount!,
-                        totalAmount: creditAmount!,
+                        currentAmount: creditAmount ?? 0.0,
+                        totalAmount: creditAmount ?? 0.0,
                         color: Colors.green,
                         icon: Icons.arrow_downward_rounded,
                       ),
@@ -224,8 +233,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     GaugeContainer(
                       child: GaugeWidget(
                         label: 'Debit',
-                        currentAmount: debitAmount!,
-                        totalAmount: creditAmount!,
+                        currentAmount: debitAmount ?? 0.0,
+                        totalAmount: creditAmount ?? 0.0,
                         color: Colors.red,
                         icon: Icons.arrow_upward_rounded,
                       ),
@@ -234,8 +243,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     GaugeContainer(
                       child: GaugeWidget(
                         label: 'Investing',
-                        currentAmount: investingAmount!,
-                        totalAmount: creditAmount!,
+                        currentAmount: investingAmount ?? 0.0,
+                        totalAmount: creditAmount ?? 0.0,
                         color: Colors.purple,
                         icon: Icons.attach_money,
                       ),
@@ -244,8 +253,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     GaugeContainer(
                       child: GaugeWidget(
                         label: 'Earning',
-                        currentAmount: earningAmount!,
-                        totalAmount: creditAmount!,
+                        currentAmount: earningAmount ?? 0.0,
+                        totalAmount: creditAmount ?? 0.0,
                         color: Colors.lightGreen,
                         icon: Icons.attach_money,
                       ),
@@ -266,7 +275,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: const TextStyle(color: Colors.red),
               )),
 
-
             // Account list (only when not loading and no error)
             if (!isLoading &&
                 errorMessage == null &&
@@ -280,7 +288,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 itemBuilder: (context, index) {
                   final accountsData = accountsListData[index];
                   final isSelected = index == _selectedIndex;
-
 
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: smallPadding),
@@ -463,12 +470,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         FloatingActionButton.extended(
                           onPressed: () {
                             // Add your onPressed code here!
-                            /*Navigator.push(
+                            Navigator.push(
                               context,
                               MaterialPageRoute(
                                   builder: (context) =>
-                                  const MyApp()),
-                            );*/
+                                   MyApp()),
+                            );
                           },
                           label: const Text(
                             'All Account',
@@ -526,18 +533,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),)
               ),
 
-
-
-
-
             // Account list (only when not loading and no error)
             if (!isTransactionLoading &&
                 errorTransactionMessage == null &&
                 transactionList.isNotEmpty)
 
-
             Column(
               children: transactionList.map((transaction) {
+                print("Transaction Status: ${transaction.transactionStatus ?? 'Unknown'}");
                 return Card(
                   margin:
                       const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -628,24 +631,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                           const SizedBox(height: 8),
                           const Divider(),
+                          // Status Row with null handling
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text("Status:",
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 16)),
+                              const Text(
+                                "Status:",
+                                style: TextStyle(color: Colors.white, fontSize: 16),
+                              ),
                               OutlinedButton(
                                 onPressed: () {},
                                 style: ButtonStyle(
-                                    backgroundColor: WidgetStateProperty.all(
-                                        _getStatusColor(
-                                            transaction.transactionStatus!))),
-                                child: Text("${transaction.transactionStatus}",
-                                    style:
-                                        const TextStyle(color: Colors.white)),
+                                  backgroundColor: WidgetStateProperty.all(
+                                    _getStatusColor(transaction.transactionStatus ?? 'Unknown'), // Ensure non-null status
+                                  ),
+                                ),
+                                child: Text(
+                                  transaction.transactionStatus ?? 'Unknown', // Fallback to 'Unknown' if null
+                                  style: const TextStyle(color: Colors.white),
+                                ),
                               ),
                             ],
                           ),
+
+
                           const SizedBox(height: 8),
                         ],
                       ),
@@ -661,47 +670,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-// Indicator Widget for Deposit, Debit, and Fee Debit
-class IndicatorWidget extends StatelessWidget {
-  final String label;
-  final double amount;
-  final double percentage;
-  final Color color;
-  final IconData icon;
-
-  const IndicatorWidget({
-    super.key,
-    required this.label,
-    required this.amount,
-    required this.percentage,
-    required this.color,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-
-        CircularPercentIndicator(
-          radius: 50.0,
-          lineWidth: defaultPadding,
-          percent: percentage,
-          center: Icon(icon, size: 30, color: color),
-          progressColor: color,
-          backgroundColor: Colors.grey.shade300,
-          circularStrokeCap: CircularStrokeCap.round,
-        ),
-        const SizedBox(height: 8),
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-        Text('\$${amount.toStringAsFixed(2)}',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-      ],
-    );
-  }
-}
-
 class GaugeContainer extends StatelessWidget {
   final Widget child;
 
@@ -711,7 +679,7 @@ class GaugeContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 210,
-      height: 130,
+      height: 112,
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Colors.white,
