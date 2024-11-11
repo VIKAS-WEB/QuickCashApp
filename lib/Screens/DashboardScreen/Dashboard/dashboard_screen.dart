@@ -16,7 +16,6 @@ import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:quickcash/util/auth_manager.dart';
 
-import '../../../test_code.dart';
 import 'RevenueList/revenueListApi.dart';
 import 'TransactionList/transactionListModel.dart';
 
@@ -165,7 +164,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  // Transaction Status Color
+/*  // Transaction Status Color
   Color _getStatusColor(String? status) {
     if (status == null) return kPrimaryColor;
     switch (status.toLowerCase()) {  // Convert status to lowercase for consistency
@@ -180,7 +179,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       default:
         return kPrimaryColor; // Fallback for unexpected status values
     }
-  }
+  }*/
 
 
 
@@ -539,130 +538,72 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 errorTransactionMessage == null &&
                 transactionList.isNotEmpty)
 
-            Column(
-              children: transactionList.map((transaction) {
-                return Card(
-                  margin:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                  color: kPrimaryColor, // Custom background color
-                  child: InkWell(
-                    onTap: () => {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TransactionDetailPage(
-                            transactionId: transaction
-                                .transactionId, // Passing transactionId here
+              Column(
+                children: transactionList.take(5).map((transaction) { // Limiting to 5 items
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    color: kPrimaryColor, // Custom background color
+                    child: InkWell(
+                      onTap: () => {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TransactionDetailPage(
+                              transactionId: transaction.transactionId, // Passing transactionId here
+                            ),
                           ),
-                        ),
-                      )
-                    }, // Navigate on tap
-                    child: ListTile(
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: defaultPadding),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text("Date:",
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 16)),
-                              Text(formatDate(transaction.transactionDate),
-                                  style: const TextStyle(
-                                      color: Colors.white, fontSize: 16)),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          const Divider(),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text("Transaction ID:",
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 16)),
-                              Text("${transaction.transactionId}",
-                                  style: const TextStyle(
-                                      color: Colors.white, fontSize: 16)),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          const Divider(),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text("Type:",
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 16)),
-                              Text("${transaction.transactionType}",
-                                  style: const TextStyle(
-                                      color: Colors.white, fontSize: 16)),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          const Divider(),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text("Amount:",
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 16)),
-                              Text("${transaction.transactionAmount}",
-                                  style: const TextStyle(
-                                      color: Colors.white, fontSize: 16)),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          const Divider(),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text("Balance:",
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 16)),
-                              Text("${transaction.balance}",
-                                  style: const TextStyle(
-                                      color: Colors.white, fontSize: 16)),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          const Divider(),
-                          // Status Row with null handling
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                "Status:",
-                                style: TextStyle(color: Colors.white, fontSize: 16),
-                              ),
-                              OutlinedButton(
-                                onPressed: () {},
-                                style: ButtonStyle(
-                                  backgroundColor: WidgetStateProperty.all(
-                                    _getStatusColor(transaction.transactionStatus ?? 'Unknown'), // Ensure non-null status
-                                  ),
-                                ),
-                                child: Text(
+                        )
+                      }, // Navigate on tap
+                      child: ListTile(
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: defaultPadding),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("${transaction.transactionId}",
+                                    style: const TextStyle(
+                                        color: Colors.white, fontSize: 16)),
+                                Text(formatDate(transaction.transactionDate),
+                                    style: const TextStyle(
+                                        color: Colors.white, fontSize: 16)),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("${transaction.transactionType}",
+                                    style: const TextStyle(
+                                        color: Colors.white, fontSize: 16)),
+                                Text("${transaction.transactionAmount}",
+                                    style: const TextStyle(
+                                        color: Colors.white, fontSize: 16)),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("${transaction.balance}",
+                                    style: const TextStyle(
+                                        color: Colors.white, fontSize: 16)),
+                                Text(
                                   transaction.transactionStatus ?? 'Unknown', // Fallback to 'Unknown' if null
                                   style: const TextStyle(color: Colors.white),
                                 ),
-                              ),
-                            ],
-                          ),
-
-
-                          const SizedBox(height: 8),
-                        ],
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                );
-              }).toList(),
-            ),
+                  );
+                }).toList(),
+              ),
+
           ],
         ),
       ),
