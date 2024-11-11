@@ -539,7 +539,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 transactionList.isNotEmpty)
 
               Column(
-                children: transactionList.take(5).map((transaction) { // Limiting to 5 items
+                children: transactionList.take(2).map((transaction) { // Limiting to 5 items
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     color: kPrimaryColor, // Custom background color
