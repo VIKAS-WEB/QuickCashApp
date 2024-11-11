@@ -1,50 +1,51 @@
 import 'package:flutter/material.dart';
-import 'package:quickcash/Screens/DashboardScreen/Dashboard/TransactionList/transactionListApi.dart';
-import 'package:quickcash/Screens/TransactionScreen/TransactionDetailsScreen/transaction_details_screen.dart';
-import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart';
+import 'package:quickcash/Screens/StatemetScreen/StatementDetailsScreen/statement_details_screen.dart';
+import 'package:quickcash/Screens/StatemetScreen/StatementScreen/model/statementApi.dart';
+import 'package:quickcash/constants.dart';
 
 import '../../DashboardScreen/Dashboard/TransactionList/transactionListModel.dart';
 
-class TransactionScreen extends StatefulWidget {
-  const TransactionScreen({super.key});
+class StatementScreen extends StatefulWidget {
+  const StatementScreen({super.key});
 
   @override
-  State<TransactionScreen> createState() => _TransactionScreenState();
+  State<StatementScreen> createState() => _StatementScreenState();
 }
 
-class _TransactionScreenState extends State<TransactionScreen> {
-  final TransactionListApi _transactionListApi = TransactionListApi();
+class _StatementScreenState extends State<StatementScreen> {
+  final StatementListApi _statementListApi = StatementListApi();
 
-  List<TransactionListDetails> transactionList = [];
+  List<TransactionListDetails> statementList = [];
   bool isLoading = false;
   String? errorMessage;
 
   @override
   void initState() {
     super.initState();
-    mTransactionList();
+    mStatementList();
   }
 
-  Future<void> mTransactionList() async {
+  Future<void> mStatementList() async {
+
     setState(() {
       isLoading = true;
       errorMessage = null;
     });
 
-    try {
-      final response = await _transactionListApi.transactionListApi();
 
+    try {
+      final response = await _statementListApi.statementListApi();
       if (response.transactionList != null &&
           response.transactionList!.isNotEmpty) {
         setState(() {
-          transactionList = response.transactionList!;
+          statementList = response.transactionList!;
           isLoading = false;
         });
       } else {
         setState(() {
           isLoading = false;
-          errorMessage = 'No Transaction List';
+          errorMessage = 'No Statement List';
         });
       }
     } catch (error) {
@@ -58,6 +59,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
   Color _getStatusColor(String status) {
     switch (status) {
       case 'Success':
+      case 'succeeded':
         return Colors.green;
       case 'Failed':
         return Colors.red;
@@ -83,7 +85,6 @@ class _TransactionScreenState extends State<TransactionScreen> {
       body: Column(
         children: [
           const SizedBox(height: 75),
-
           const SizedBox(height: defaultPadding),
           Expanded(
             child: isLoading ? const Center(
@@ -92,17 +93,17 @@ class _TransactionScreenState extends State<TransactionScreen> {
               ),
             ) :  SingleChildScrollView(
               child: Column(
-                children: transactionList.map((transaction) {
+                children: statementList.map((transaction) {
                   return Card(
                     margin:
-                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     color: kPrimaryColor, // Custom background color
                     child: InkWell(
                       onTap: () => {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => TransactionDetailPage(
+                            builder: (context) => StatementDetailsScreen(
                               transactionId: transaction.trxId, // Passing transactionId here
                             ),
                           ),
@@ -198,7 +199,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                                   child: Text(
                                       "${transaction.transactionStatus}",
                                       style:
-                                          const TextStyle(color: Colors.white)),
+                                      const TextStyle(color: Colors.white)),
                                 ),
                               ],
                             ),

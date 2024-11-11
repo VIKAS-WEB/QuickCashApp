@@ -549,7 +549,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => TransactionDetailPage(
-                              transactionId: transaction.transactionId, // Passing transactionId here
+                              transactionId: transaction.trxId, // Passing transactionId here
                             ),
                           ),
                         )

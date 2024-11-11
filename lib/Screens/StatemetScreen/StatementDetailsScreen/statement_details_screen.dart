@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:quickcash/constants.dart';
 
 class StatementDetailsScreen extends StatelessWidget {
-  final Map<String, String> statements;
+  final String? transactionId;
 
-  const StatementDetailsScreen({super.key, required this.statements});
+  const StatementDetailsScreen({super.key,this.transactionId});
 
   @override
   Widget build(BuildContext context) {

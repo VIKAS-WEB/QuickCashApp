@@ -17,7 +17,7 @@ import 'package:quickcash/Screens/InvoicesScreen/Settings/settings_screen.dart';
 import 'package:quickcash/Screens/LoginScreen/login_screen.dart';
 import 'package:quickcash/Screens/ReferAndEarnScreen/refer_and_earn_screen.dart';
 import 'package:quickcash/Screens/SpotTradeScreen/spot_trade_screen.dart';
-import 'package:quickcash/Screens/StatemetScreen/statement_screen.dart';
+import 'package:quickcash/Screens/StatemetScreen/StatementScreen/statement_screen.dart';
 import 'package:quickcash/Screens/TicketsScreen/tickets_screen.dart';
 import 'package:quickcash/Screens/TransactionScreen/TransactionScreen/transaction_screen.dart';
 import 'package:quickcash/Screens/UserProfileScreen/profile_main_screen.dart';
