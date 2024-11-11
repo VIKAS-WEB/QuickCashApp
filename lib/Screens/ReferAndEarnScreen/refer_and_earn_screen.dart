@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:quickcash/Screens/ReferAndEarnScreen/model/referAndEarnApi.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/customSnackBar.dart';
+
+import '../../util/apiConstants.dart';
 
 class ReferAndEarnScreen extends StatefulWidget {
   const ReferAndEarnScreen({super.key});
@@ -11,17 +14,68 @@ class ReferAndEarnScreen extends StatefulWidget {
 }
 
 class _ReferAndEarnScreenState extends State<ReferAndEarnScreen> {
+
+  final ReferAndEarnApi _referAndEarnApi = ReferAndEarnApi();
   // Store the referral link
-  final String referralLink = "https://quickcash.oyefin.com/register?code=8AQsHE2O9j"; // Replace with your actual referral link
+  String? referralLink;
   bool isLoading = false;
   String? errorMessage;
 
   void _copyReferralLink() {
-    Clipboard.setData(ClipboardData(text: referralLink)).then((_) {
-      CustomSnackBar.showSnackBar(context: context, message: 'Referral link copied to clipboard!', color: kPrimaryColor);
-
-    });
+    if (referralLink != null) {
+      Clipboard.setData(ClipboardData(text: referralLink!)).then((_) {
+        CustomSnackBar.showSnackBar(
+          context: context,
+          message: 'Referral link copied to clipboard!',
+          color: kPrimaryColor,
+        );
+      });
+    } else {
+      // Show an error or handle the case when referralLink is null
+      CustomSnackBar.showSnackBar(
+        context: context,
+        message: 'Referral link is not available!',
+        color: Colors.red,
+      );
+    }
   }
+
+
+  @override
+  void initState() {
+    super.initState();
+    mReferralAndEarn();
+  }
+
+  Future<void> mReferralAndEarn() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final response = await _referAndEarnApi.referralAndEarnApi();
+
+      if (response.referralCode != null) {
+        setState(() {
+          referralLink = '${ApiConstants.baseReferralCodeUrl}${response.referralCode}';
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          errorMessage = 'Referral code is unavailable';
+          isLoading = false;
+        });
+      }
+
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +141,7 @@ class _ReferAndEarnScreenState extends State<ReferAndEarnScreen> {
                             child: Padding(
                               padding: const EdgeInsets.all(8),
                               child: Text(
-                                referralLink,
+                                referralLink ?? 'Loading referral link...', // Fallback message
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 2,
                                 softWrap: false,
@@ -95,6 +149,8 @@ class _ReferAndEarnScreenState extends State<ReferAndEarnScreen> {
                             ),
                           ),
                         ),
+
+
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: <Widget>[
