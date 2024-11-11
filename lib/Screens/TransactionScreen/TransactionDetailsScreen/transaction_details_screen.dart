@@ -266,7 +266,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text("Receiver Name:", style: TextStyle(color: Colors.white)),
-                          Text(receiverName!, style: const TextStyle(color: Colors.white)),
+                          Text(receiverName  ?? '', style: const TextStyle(color: Colors.white)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -276,7 +276,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text("Account Number:", style: TextStyle(color: Colors.white)),
-                          Text(receiverAccountNo!, style: const TextStyle(color: Colors.white)),
+                          Text(receiverAccountNo ?? '', style: const TextStyle(color: Colors.white)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -286,7 +286,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text("Receiver Address:", style: TextStyle(color: Colors.white)),
-                          Text(receiverAddress!, style: const TextStyle(color: Colors.white)),
+                          Text(receiverAddress ?? '', style: const TextStyle(color: Colors.white)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -301,7 +301,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                             style: ButtonStyle(
                               backgroundColor: WidgetStateProperty.all(Colors.white),
                             ),
-                            child:  Text(status!, style: const TextStyle(color: Colors.green)),
+                            child:  Text(status ?? '', style: const TextStyle(color: Colors.green)),
                           ),
                         ],
                       ),
@@ -368,7 +368,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                             style: ButtonStyle(
                               backgroundColor: WidgetStateProperty.all(Colors.white),
                             ),
-                            child: Text(status!, style: const TextStyle(color: Colors.green)),
+                            child: Text(status ?? '', style: const TextStyle(color: Colors.green)),
                           ),
                         ],
                       ),
