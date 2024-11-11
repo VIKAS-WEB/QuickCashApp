@@ -21,7 +21,7 @@ class TransactionDetailsListApi {
   Future<TransactionDetailsListResponse> transactionDetailsListApi(String trxID) async {
     try {
       final response = await _dio.get(
-        '/transaction/$trxID',
+        '/transaction/tapi/$trxID',
         options: Options(headers: {
           'Authorization': 'Bearer ${AuthManager.getToken()}',
           'Accept': 'application/json',

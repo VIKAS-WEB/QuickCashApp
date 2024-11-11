@@ -28,6 +28,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
   String? receiverName;
   String? receiverAccountNo;
   String? receiverAddress;
+  String? status;
 
   String? transactionAmount;
 
@@ -63,6 +64,12 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
         senderName = response.senderDetail?.first.senderName;
         senderAccountNo = response.senderDetail?.first.senderAccountNumber;
         senderAddress = response.senderDetail?.first.senderAddress;
+
+        receiverName = response.receiverDetail?.first.receiverName;
+        receiverAccountNo = response.receiverDetail?.first.receiverAccountNumber;
+        receiverAddress = response.receiverDetail?.first.receiverAddress;
+
+        status = response.status;
 
 
         // Convert the input date string to a DateTime object
@@ -189,9 +196,9 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
 
               Card(
                 color: kPrimaryColor,
-                margin: EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+                margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
                 child: Padding(
-                  padding: EdgeInsets.all(defaultPadding),
+                  padding: const EdgeInsets.all(defaultPadding),
                   child: Column(
                     children: <Widget>[
                       const Center(
@@ -255,31 +262,31 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
 
                       const SizedBox(height: 20),
 
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Receiver Name:", style: TextStyle(color: Colors.white)),
-                          Text("User Name", style: TextStyle(color: Colors.white)),
+                          const Text("Receiver Name:", style: TextStyle(color: Colors.white)),
+                          Text(receiverName!, style: const TextStyle(color: Colors.white)),
                         ],
                       ),
                       const SizedBox(height: 8),
                       const Divider(),
                       const SizedBox(height: 8),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Account Number:", style: TextStyle(color: Colors.white)),
-                          Text("receivermail@gmail.com", style: TextStyle(color: Colors.white)),
+                          const Text("Account Number:", style: TextStyle(color: Colors.white)),
+                          Text(receiverAccountNo!, style: const TextStyle(color: Colors.white)),
                         ],
                       ),
                       const SizedBox(height: 8),
                       const Divider(),
                       const SizedBox(height: 8),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Receiver Address:", style: TextStyle(color: Colors.white)),
-                          Text("Address", style: TextStyle(color: Colors.white)),
+                          const Text("Receiver Address:", style: TextStyle(color: Colors.white)),
+                          Text(receiverAddress!, style: const TextStyle(color: Colors.white)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -294,7 +301,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                             style: ButtonStyle(
                               backgroundColor: WidgetStateProperty.all(Colors.white),
                             ),
-                            child: const Text('Success', style: TextStyle(color: Colors.green)),
+                            child:  Text(status!, style: const TextStyle(color: Colors.green)),
                           ),
                         ],
                       ),
@@ -322,11 +329,11 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
 
                       const SizedBox(height: 20),
 
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Bank TransID:", style: TextStyle(color: Colors.white)),
-                          Text("242464216390", style: TextStyle(color: Colors.white)),
+                          const Text("Bank TransID:", style: TextStyle(color: Colors.white)),
+                          Text(transactionId ?? " ", style: const TextStyle(color: Colors.white)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -342,11 +349,11 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                       const SizedBox(height: 8),
                       const Divider(),
                       const SizedBox(height: 8),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Settel. Date:", style: TextStyle(color: Colors.white)),
-                          Text("2024-10-16 01:05:03 PM", style: TextStyle(color: Colors.white)),
+                          const Text("Settlement Date:", style: TextStyle(color: Colors.white)),
+                          Text(requestDate ?? "", style: const TextStyle(color: Colors.white)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -361,7 +368,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                             style: ButtonStyle(
                               backgroundColor: WidgetStateProperty.all(Colors.white),
                             ),
-                            child: const Text('Success', style: TextStyle(color: Colors.green)),
+                            child: Text(status!, style: const TextStyle(color: Colors.green)),
                           ),
                         ],
                       ),

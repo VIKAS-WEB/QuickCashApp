@@ -1,3 +1,4 @@
+
 class UserProfileRequest {
   UserProfileRequest();
 }
@@ -50,6 +51,7 @@ class TransactionDetailsListResponse {
   final int? billAmount;
   final String? transactionType;
   final String? extraType;
+  final String? status;
   final List<SenderDetail>? senderDetail;
   final List<ReceiverDetail>? receiverDetail;
 
@@ -61,6 +63,7 @@ class TransactionDetailsListResponse {
     this.billAmount,
     this.transactionType,
     this.extraType,
+    this.status,
     this.senderDetail,
     this.receiverDetail,
   });
@@ -77,6 +80,7 @@ class TransactionDetailsListResponse {
       amountText: data[0]['amountText'] as String?, // Capture as String
       transactionType: data[0]['trans_type'] as String?,
       extraType: data[0]['extraType'] as String?,
+      status: data[0]['status'] as String?,
 
       senderDetail: (data[0]['senderAccountDetails'] as List<dynamic>?)
           ?.map((item) => SenderDetail.fromJson(item as Map<String, dynamic>))
