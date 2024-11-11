@@ -505,7 +505,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: defaultPadding),
               child: Text(
-                "Transaction List",
+                "Recent Transaction ",
                 style: TextStyle(
                     color: kPrimaryColor,
                     fontSize: 18,

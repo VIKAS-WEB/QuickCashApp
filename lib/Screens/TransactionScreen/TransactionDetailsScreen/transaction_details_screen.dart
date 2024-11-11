@@ -1,19 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/TransactionScreen/TransactionDetailsScreen/model/transactionDetailsApi.dart';
 import 'package:quickcash/constants.dart';
 
 class TransactionDetailPage extends StatefulWidget {
   final String? transactionId;
-  const TransactionDetailPage({super.key,this.transactionId});
+  const TransactionDetailPage({super.key, this.transactionId});
 
   @override
   State<TransactionDetailPage> createState() => _TransactionDetailPageState();
-
 }
 
-class _TransactionDetailPageState extends State<TransactionDetailPage>{
-
+class _TransactionDetailPageState extends State<TransactionDetailPage> {
   final TransactionDetailsListApi _transactionDetailsListApi = TransactionDetailsListApi();
+
+  String? transactionId;
+  String? requestDate;
+  int? fee;
+  int? billAmount;
+  String? transactionType;
+  String? extraType;
+
+  String? senderName;
+  String? senderAccountNo;
+  String? senderAddress;
+
+  String? receiverName;
+  String? receiverAccountNo;
+  String? receiverAddress;
+
+  String? transactionAmount;
 
   bool isLoading = false;
   String? errorMessage;
@@ -24,21 +40,38 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>{
     mTransactionDetails();
   }
 
-  Future<void> mTransactionDetails() async{
+  Future<void> mTransactionDetails() async {
     setState(() {
       isLoading = true;
       errorMessage = null;
     });
 
-    try{
-
+    try {
       final response = await _transactionDetailsListApi.transactionDetailsListApi(widget.transactionId!);
 
       setState(() {
         isLoading = false;
-      });
 
-    }catch (error) {
+
+        transactionId = response.trx;
+        fee = response.fee;
+        billAmount = (response.billAmount! + fee!);
+        transactionType = response.transactionType;
+        extraType = response.extraType;
+
+
+        senderName = response.senderDetail?.first.senderName;
+        senderAccountNo = response.senderDetail?.first.senderAccountNumber;
+        senderAddress = response.senderDetail?.first.senderAddress;
+
+
+        // Convert the input date string to a DateTime object
+        DateTime dateTime = DateTime.parse(response.requestedDate!);
+
+        // Format the DateTime object into the desired string format
+        requestDate = DateFormat('yyyy-MM-dd hh:mm:ss:a').format(dateTime);
+      });
+    } catch (error) {
       setState(() {
         isLoading = false;
         errorMessage = error.toString();
@@ -58,18 +91,19 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>{
           style: TextStyle(color: Colors.white),
         ),
       ),
-      body: isLoading ? const Center(
+      body: isLoading
+          ? const Center(
         child: CircularProgressIndicator(
           color: kPrimaryColor,
         ),
-      ) : SingleChildScrollView(
+      )
+          : SingleChildScrollView(
         // Added ScrollView here
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               const SizedBox(height: defaultPadding),
 
               if (errorMessage != null)
@@ -80,15 +114,14 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>{
                 height: defaultPadding,
               ),
 
-              const Card(
+              Card(
                 color: kPrimaryColor,
-                margin: EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+                margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
                 child: Padding(
-                  padding: EdgeInsets.all(defaultPadding),
+                  padding: const EdgeInsets.all(defaultPadding),
                   child: Column(
                     children: [
-
-                      Center(
+                      const Center(
                         child: Text(
                           "Transaction Details",
                           style: TextStyle(color: Colors.white, fontSize: 20),
@@ -96,73 +129,57 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>{
                         ),
                       ),
 
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Trans ID:",
-                              style: TextStyle(color: Colors.white)),
-                          Text("242464216390",
-                              style: TextStyle(color: Colors.white)),
+                          const Text("Trans ID:", style: TextStyle(color: Colors.white)),
+                          Text(transactionId ?? " ", style: const TextStyle(color: Colors.white)),
                         ],
                       ),
-                      SizedBox(height: 8),
-                      Divider(),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
+                      const Divider(),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Requested Date:",
-                              style: TextStyle(color: Colors.white)),
-                          Text("2024-10-16 01:05:03 PM",
-                              style: TextStyle(color: Colors.white)),
+                          const Text("Requested Date:", style: TextStyle(color: Colors.white)),
+                          Text(requestDate ?? " ", style: const TextStyle(color: Colors.white)),
                         ],
                       ),
-                      SizedBox(height: 8),
-                      Divider(),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
+                      const Divider(),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Fee:", style: TextStyle(color: Colors.white)),
-                          Text("₹0.00", style: TextStyle(color: Colors.white)),
+                          const Text("Fee:", style: TextStyle(color: Colors.white)),
+                          Text((fee ?? 0).toString(), style: const TextStyle(color: Colors.white)),
                         ],
                       ),
-                      SizedBox(height: 8),
-                      Divider(),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
+                      const Divider(),
+                      const SizedBox(height: 8),
+                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text("Bill Amount:", style: TextStyle(color: Colors.white)),
+                          Text((billAmount ?? 0).toString(), style: const TextStyle(color: Colors.white)),
+
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      const Divider(),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Bill Amount:",
-                              style: TextStyle(color: Colors.white)),
-                          Text("₹800.00",
-                              style: TextStyle(color: Colors.white)),
+                          const Text("Transaction Type:", style: TextStyle(color: Colors.white)),
+                          Text('${extraType!} - ${transactionType!}', style: const TextStyle(color: Colors.white)),
                         ],
                       ),
-                      SizedBox(height: 8),
-                      Divider(),
-                      SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text("Transaction Type:",
-                              style: TextStyle(color: Colors.white)),
-                          Text("₹0.00", style: TextStyle(color: Colors.white)),
-                        ],
-                      ),
-                      SizedBox(height: 8),
-                      Divider(),
-                      SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text("credit - Invoice:",
-                              style: TextStyle(color: Colors.white)),
-                          Text("₹0.00", style: TextStyle(color: Colors.white)),
-                        ],
-                      ),
+                      const SizedBox(height: 8),
                     ],
                   ),
                 ),
@@ -170,15 +187,14 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>{
 
               const SizedBox(height: 20),
 
-              const Card(
+              Card(
                 color: kPrimaryColor,
                 margin: EdgeInsets.symmetric(vertical: 0, horizontal: 0),
                 child: Padding(
                   padding: EdgeInsets.all(defaultPadding),
                   child: Column(
-                    children: [
-
-                      Center(
+                    children: <Widget>[
+                      const Center(
                         child: Text(
                           "Sender Information",
                           style: TextStyle(color: Colors.white, fontSize: 20),
@@ -186,38 +202,33 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>{
                         ),
                       ),
 
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Sender Name:",
-                              style: TextStyle(color: Colors.white)),
-                          Text("User Name",
-                              style: TextStyle(color: Colors.white)),
+                          const Text("Sender Name:", style: TextStyle(color: Colors.white)),
+                          Text(senderName ?? "", style: const TextStyle(color: Colors.white)),
                         ],
                       ),
-                      SizedBox(height: 8),
-                      Divider(),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
+                      const Divider(),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Email:", style: TextStyle(color: Colors.white)),
-                          Text("useremail@gmail.com",
-                              style: TextStyle(color: Colors.white)),
+                          const Text("Account No:", style: TextStyle(color: Colors.white)),
+                          Text(senderAccountNo ?? "", style: const TextStyle(color: Colors.white)),
                         ],
                       ),
-                      SizedBox(height: 8),
-                      Divider(),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
+                      const Divider(),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Sender Address:",
-                              style: TextStyle(color: Colors.white)),
-                          Text("Address",
-                              style: TextStyle(color: Colors.white)),
+                          const Text("Sender Address:", style: TextStyle(color: Colors.white)),
+                          Text(senderAddress ?? "", style: const TextStyle(color: Colors.white)),
                         ],
                       ),
                     ],
@@ -234,7 +245,6 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>{
                   padding: const EdgeInsets.all(defaultPadding),
                   child: Column(
                     children: [
-
                       const Center(
                         child: Text(
                           "Receiver Information",
@@ -248,10 +258,8 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>{
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Receiver Name:",
-                              style: TextStyle(color: Colors.white)),
-                          Text("User Name",
-                              style: TextStyle(color: Colors.white)),
+                          Text("Receiver Name:", style: TextStyle(color: Colors.white)),
+                          Text("User Name", style: TextStyle(color: Colors.white)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -260,10 +268,8 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>{
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Account Number:",
-                              style: TextStyle(color: Colors.white)),
-                          Text("receivermail@gmail.com",
-                              style: TextStyle(color: Colors.white)),
+                          Text("Account Number:", style: TextStyle(color: Colors.white)),
+                          Text("receivermail@gmail.com", style: TextStyle(color: Colors.white)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -272,10 +278,8 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>{
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Receiver Address:",
-                              style: TextStyle(color: Colors.white)),
-                          Text("Address",
-                              style: TextStyle(color: Colors.white)),
+                          Text("Receiver Address:", style: TextStyle(color: Colors.white)),
+                          Text("Address", style: TextStyle(color: Colors.white)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -290,7 +294,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>{
                             style: ButtonStyle(
                               backgroundColor: WidgetStateProperty.all(Colors.white),
                             ),
-                            child: const Text('Success',style: TextStyle(color: Colors.green),),
+                            child: const Text('Success', style: TextStyle(color: Colors.green)),
                           ),
                         ],
                       ),
@@ -308,7 +312,6 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>{
                   padding: const EdgeInsets.all(defaultPadding),
                   child: Column(
                     children: [
-
                       const Center(
                         child: Text(
                           "Bank Status",
@@ -319,14 +322,11 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>{
 
                       const SizedBox(height: 20),
 
-
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Bank TransID:",
-                              style: TextStyle(color: Colors.white)),
-                          Text("242464216390",
-                              style: TextStyle(color: Colors.white)),
+                          Text("Bank TransID:", style: TextStyle(color: Colors.white)),
+                          Text("242464216390", style: TextStyle(color: Colors.white)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -335,10 +335,8 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>{
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Trans Amt:",
-                              style: TextStyle(color: Colors.white)),
-                          Text("₹800",
-                              style: TextStyle(color: Colors.white)),
+                          Text("Trans Amt:", style: TextStyle(color: Colors.white)),
+                          Text("₹800", style: TextStyle(color: Colors.white)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -347,10 +345,8 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>{
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Settel. Date:",
-                              style: TextStyle(color: Colors.white)),
-                          Text("2024-10-16 01:05:03 PM",
-                              style: TextStyle(color: Colors.white)),
+                          Text("Settel. Date:", style: TextStyle(color: Colors.white)),
+                          Text("2024-10-16 01:05:03 PM", style: TextStyle(color: Colors.white)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -365,7 +361,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>{
                             style: ButtonStyle(
                               backgroundColor: WidgetStateProperty.all(Colors.white),
                             ),
-                            child: const Text('Success',style: TextStyle(color: Colors.green),),
+                            child: const Text('Success', style: TextStyle(color: Colors.green)),
                           ),
                         ],
                       ),
@@ -373,13 +369,10 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>{
                   ),
                 ),
               ),
-
-
             ],
           ),
         ),
       ),
     );
   }
-
 }
