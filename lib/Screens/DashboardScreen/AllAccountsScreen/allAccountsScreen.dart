@@ -1,5 +1,6 @@
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
+import 'package:quickcash/Screens/DashboardScreen/AllAccountsScreen/AccountDetailsScreen/accountDetailsScreen.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListApi.dart';
 import 'package:quickcash/constants.dart';
 
@@ -89,7 +90,14 @@ class _AllAccountsScreenState extends State<AllAccountsScreen>{
                       onTap: () {
                         setState(() {
                           _selectedIndex = index;
-                          // mAccountListTransaction(accountsData.accountId, accountsData.currency);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AccountDetailsScreen(
+                                accountId: accountsData.accountId,
+                              ),
+                            ),
+                          );
                         });
                       },
                       child: Card(
