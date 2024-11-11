@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quickcash/Screens/TransactionScreen/TransactionDetailsScreen/model/transactionDetailsApi.dart';
 import 'package:quickcash/constants.dart';
 
 class TransactionDetailPage extends StatefulWidget {
@@ -12,6 +13,39 @@ class TransactionDetailPage extends StatefulWidget {
 
 class _TransactionDetailPageState extends State<TransactionDetailPage>{
 
+  final TransactionDetailsListApi _transactionDetailsListApi = TransactionDetailsListApi();
+
+  bool isLoading = false;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    mTransactionDetails();
+  }
+
+  Future<void> mTransactionDetails() async{
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try{
+
+      final response = await _transactionDetailsListApi.transactionDetailsListApi(widget.transactionId!);
+
+      setState(() {
+        isLoading = false;
+      });
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,13 +58,28 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>{
           style: TextStyle(color: Colors.white),
         ),
       ),
-      body: SingleChildScrollView(
+      body: isLoading ? const Center(
+        child: CircularProgressIndicator(
+          color: kPrimaryColor,
+        ),
+      ) : SingleChildScrollView(
         // Added ScrollView here
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+
+              const SizedBox(height: defaultPadding),
+
+              if (errorMessage != null)
+                Text(errorMessage!,
+                    style: const TextStyle(color: Colors.red)),
+
+              const SizedBox(
+                height: defaultPadding,
+              ),
+
               const Card(
                 color: kPrimaryColor,
                 margin: EdgeInsets.symmetric(vertical: 0, horizontal: 0),

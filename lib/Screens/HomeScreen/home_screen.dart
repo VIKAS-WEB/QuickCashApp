@@ -19,7 +19,7 @@ import 'package:quickcash/Screens/ReferAndEarnScreen/refer_and_earn_screen.dart'
 import 'package:quickcash/Screens/SpotTradeScreen/spot_trade_screen.dart';
 import 'package:quickcash/Screens/StatemetScreen/statement_screen.dart';
 import 'package:quickcash/Screens/TicketsScreen/tickets_screen.dart';
-import 'package:quickcash/Screens/TransactionScreen/transaction_screen.dart';
+import 'package:quickcash/Screens/TransactionScreen/TransactionScreen/transaction_screen.dart';
 import 'package:quickcash/Screens/UserProfileScreen/profile_main_screen.dart';
 import 'package:quickcash/constants.dart';
 

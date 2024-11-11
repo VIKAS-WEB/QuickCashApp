@@ -10,7 +10,7 @@ import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/account
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/TransactionList/transactionListApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/ExchangeScreen/exchange_money_screen.dart';
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/send_money_screen.dart';
-import 'package:quickcash/Screens/TransactionScreen/transaction_details_screen.dart';
+import 'package:quickcash/Screens/TransactionScreen/TransactionDetailsScreen/transaction_details_screen.dart';
 import 'package:quickcash/components/background.dart';
 import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart';

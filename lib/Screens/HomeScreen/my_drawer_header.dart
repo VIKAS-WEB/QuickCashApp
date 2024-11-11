@@ -29,7 +29,7 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer>{
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               image: DecorationImage(
-                image: NetworkImage('https://quickcash.oyefin.com/storage/profile/66d6f4868f27287f8f7f2546/ownerProfile-173079761956539.jpg'),
+                image: NetworkImage('https://quickcash.oyefin.com/storage/66d6f4868f27287f8f7f2546/ownerProfile-173079761956539.jpg'),
                 fit: BoxFit.cover, // Ensures the image covers the container fully
               ),
             ),

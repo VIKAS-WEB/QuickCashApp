@@ -3,6 +3,7 @@ class TransactionListDetails {
   final String? transactionId;
   final String? transactionType;
   final String? transactionAmount;
+  final String? trxId;
   final double? balance;  // Change from int? to double?
   final String? transactionStatus;
 
@@ -11,6 +12,7 @@ class TransactionListDetails {
     this.transactionId,
     this.transactionType,
     this.transactionAmount,
+    this.trxId,
     this.balance,
     this.transactionStatus,
   });
@@ -21,6 +23,7 @@ class TransactionListDetails {
       transactionId: json['trx'] as String?,
       transactionType: json['trans_type'] as String?,
       transactionAmount: json['amountText'] as String?,
+      trxId: json['_id'] as String?,
       // Safely cast to double
       balance: (json['postBalance'] is int
           ? (json['postBalance'] as int).toDouble()

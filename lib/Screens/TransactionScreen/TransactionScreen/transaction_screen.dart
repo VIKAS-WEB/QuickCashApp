@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/TransactionList/transactionListApi.dart';
-import 'package:quickcash/Screens/TransactionScreen/transaction_details_screen.dart';
+import 'package:quickcash/Screens/TransactionScreen/TransactionDetailsScreen/transaction_details_screen.dart';
 import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart';
 
-import '../DashboardScreen/Dashboard/TransactionList/transactionListModel.dart';
+import '../../DashboardScreen/Dashboard/TransactionList/transactionListModel.dart';
 
 class TransactionScreen extends StatefulWidget {
   const TransactionScreen({super.key});
@@ -91,7 +91,11 @@ class _TransactionScreenState extends State<TransactionScreen> {
           ),
           const SizedBox(height: defaultPadding),
           Expanded(
-            child: SingleChildScrollView(
+            child: isLoading ? const Center(
+              child: CircularProgressIndicator(
+                color: kPrimaryColor,
+              ),
+            ) :  SingleChildScrollView(
               child: Column(
                 children: transactionList.map((transaction) {
                   return Card(
@@ -104,10 +108,11 @@ class _TransactionScreenState extends State<TransactionScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => TransactionDetailPage(
-                              transactionId: transaction.transactionId, // Passing transactionId here
+                              transactionId: transaction.trxId, // Passing transactionId here
                             ),
                           ),
-                        )
+                        ),
+
                       }, // Navigate on tap
                       child: ListTile(
                         subtitle: Column(

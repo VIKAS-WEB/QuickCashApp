@@ -89,7 +89,7 @@ class _UserInformationScreenState extends State<UserInformationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: isLoading
-          ? Center(
+          ? const Center(
         child: CircularProgressIndicator(
           color: kPrimaryColor,
         ),
