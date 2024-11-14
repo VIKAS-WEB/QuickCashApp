@@ -1,5 +1,6 @@
 
 class CardListsData {
+  final String? cardId;
   final String? cardNumber;
   final String? cardHolderName;
   final String? cardValidity;
@@ -10,6 +11,7 @@ class CardListsData {
   final String? currency;
 
   CardListsData({
+    this.cardId,
     this.cardNumber,
     this.cardHolderName,
     this.cardValidity,
@@ -22,6 +24,7 @@ class CardListsData {
 
   factory CardListsData.fromJson(Map<String, dynamic> json) {
     return CardListsData(
+      cardId: json['_id'] as String?,
       cardNumber: json['cardNumber'] as String?,
       cardHolderName: json['name'] as String?,
       cardValidity: json['expiry'] as String?,

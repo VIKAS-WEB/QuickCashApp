@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListApi.dart';
+import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListModel.dart';
 import 'package:quickcash/constants.dart';
 
 class CardsListScreen extends StatefulWidget {
@@ -9,26 +12,48 @@ class CardsListScreen extends StatefulWidget {
 }
 
 class _CardsListScreenState extends State<CardsListScreen> {
-  // Sample data for the cards
-  final List<Map<String, String>> cards = [
-    {
-      'date': 'September 17th 2024, 10:27:26 AM',
-      'name': 'Ganesh',
-      'cardNumber': '9410479369273918',
-      'cvc': '125',
-      'expiry': '12/30',
-      'status': 'Active',
-    },
-    {
-      'date': 'September 17th 2024, 10:27:26 AM',
-      'name': 'Ganesh',
-      'cardNumber': '9410479369273918',
-      'cvc': '125',
-      'expiry': '12/30',
-      'status': 'Active',
-    },
-    // You can add more card entries here
-  ];
+  final CardListApi _cardListApi = CardListApi();
+  List<CardListsData> cardListData = [];
+
+  bool isLoading = false;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    mCardList();
+  }
+
+  Future<void> mCardList() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+
+      final response = await _cardListApi.cardListApi();
+
+      if(response.cardList !=null && response.cardList!.isNotEmpty){
+        setState(() {
+          cardListData = response.cardList!;
+          isLoading = false;
+        });
+      }else{
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Card Found';
+        });
+      }
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +66,10 @@ class _CardsListScreenState extends State<CardsListScreen> {
           style: TextStyle(color: Colors.white),
         ),
       ),
-      body: SingleChildScrollView(
+      body: isLoading
+          ? const Center(
+        child: CircularProgressIndicator(), // Show loading indicator
+      ) : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(defaultPadding),
           child: Column(
@@ -50,9 +78,14 @@ class _CardsListScreenState extends State<CardsListScreen> {
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: cards.length,
+                itemCount: cardListData.length,
                 itemBuilder: (context, index) {
-                  final card = cards[index];
+                  final card = cardListData[index];
+
+
+                  DateTime parsedDate = DateTime.parse(card.date!);
+                  String formattedDate = DateFormat('yyyy-MM-dd').format(parsedDate);
+
                   return Padding(
                     padding: const EdgeInsets.only(bottom: defaultPadding), // Add spacing
                     child: Container(
@@ -73,29 +106,33 @@ class _CardsListScreenState extends State<CardsListScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Date: ${card['date']}', style: const TextStyle(color: kPrimaryColor, fontSize: 16),),
+
+                          Text('Date: $formattedDate', style: const TextStyle(color: kPrimaryColor, fontSize: 16),),
                           const Divider(color: kPrimaryLightColor,),
-                          Text('Name: ${card['name']}',style: const TextStyle(color: kPrimaryColor, fontSize: 16),),
+                          Text('Name: ${card.cardHolderName}',style: const TextStyle(color: kPrimaryColor, fontSize: 16),),
                           const Divider(color: kPrimaryLightColor,),
-                          Text('Card Number: ${card['cardNumber']}',style: const TextStyle(color: kPrimaryColor, fontSize: 16),),
+                          Text('Card Number: ${card.cardNumber}',style: const TextStyle(color: kPrimaryColor, fontSize: 16),),
                           const Divider(color: kPrimaryLightColor,),
-                          Text('CVC: ${card['cvc']}',style: const TextStyle(color: kPrimaryColor, fontSize: 16),),
+                          Text('CVC: ${card.cardCVV}',style: const TextStyle(color: kPrimaryColor, fontSize: 16),),
                           const Divider(color: kPrimaryLightColor,),
-                          Text('Expiry: ${card['expiry']}',style: const TextStyle(color: kPrimaryColor, fontSize: 16),),
+                          Text('Expiry: ${card.cardValidity}',style: const TextStyle(color: kPrimaryColor, fontSize: 16),),
                           const Divider(color: kPrimaryLightColor,),
-                          Text('Status: ${card['status']}',style: const TextStyle(color: kPrimaryColor, fontSize: 16),),
+                          Text(
+                            'Status: ${card.status! ? 'Active' : 'Deactivate'}',
+                            style: const TextStyle(color: kPrimaryColor, fontSize: 16),
+                          ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.edit),
+                                icon: const Icon(Icons.edit,color: kPrimaryColor,),
                                 onPressed: () {
                                   // Edit action
                                   mEditCardCardBottomSheet(context);
                                 },
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete),
+                                icon: const Icon(Icons.delete,color: kPrimaryColor,),
                                 onPressed: () {
                                   _showDeleteCardDialog();
                                 },
