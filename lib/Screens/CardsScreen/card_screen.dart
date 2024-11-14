@@ -1,4 +1,7 @@
+import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
+import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListApi.dart';
+import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListModel.dart';
 import 'package:quickcash/Screens/CardsScreen/cards_list_screen.dart';
 import 'package:quickcash/constants.dart';
 
@@ -10,11 +13,49 @@ class CardsScreen extends StatefulWidget {
 }
 
 class _CardsScreenState extends State<CardsScreen> {
-  final List<CardData> cards = [
-    CardData('9410 4793 6927 3918', 'Ganesh', '12/30', 'assets/icons/menu_crypto.png', '3214'),
-    CardData('1234 5678 9012 3456', 'John Doe', '11/25', 'assets/icons/menu_crypto.png', '4567'),
-    CardData('9876 5432 1098 7654', 'Jane Doe', '01/26', 'assets/icons/menu_crypto.png', '1556'),
-  ];
+  final CardListApi _cardListApi = CardListApi();
+  List<CardListsData> cardsListData = [];
+
+  bool isLoading = false;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    mCardList();
+  }
+
+  Future<void> mCardList() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try{
+      final response = await _cardListApi.cardListApi();
+
+      if(response.cardList !=null && response.cardList!.isNotEmpty){
+        setState(() {
+          cardsListData = response.cardList!;
+          isLoading = false;
+        });
+      }else{
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Card Found';
+        });
+      }
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+
+
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +68,10 @@ class _CardsScreenState extends State<CardsScreen> {
           style: TextStyle(color: Colors.white),
         ),
       ),
-      body: SingleChildScrollView(
+      body: isLoading
+          ? const Center(
+        child: CircularProgressIndicator(), // Show loading indicator
+      ) : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(defaultPadding),
           child: Column(
@@ -76,11 +120,11 @@ class _CardsScreenState extends State<CardsScreen> {
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: cards.length,
+                itemCount: cardsListData.length,
                 itemBuilder: (context, index) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 20.0),
-                    child: CardItem(card: cards[index]),
+                    child: CardItem(card: cardsListData[index]),
                   );
                 },
               ),
@@ -309,7 +353,7 @@ class _AddCardBottomSheetState extends State<AddCardBottomSheet> {
 
 
 class CardItem extends StatefulWidget {
-  final CardData card;
+  final CardListsData card;
 
   const CardItem({super.key, required this.card});
 
@@ -361,7 +405,7 @@ class _CardItemState extends State<CardItem> {
             top: 125,
             left: defaultPadding,
             child: Text(
-              _formatCardNumber(widget.card.cardNumber),
+              _formatCardNumber(widget.card.cardNumber!),
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 25,
@@ -373,7 +417,7 @@ class _CardItemState extends State<CardItem> {
             bottom: defaultPadding,
             left: defaultPadding,
             child: Text(
-              widget.card.cardHolder,
+              widget.card.cardHolderName!,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
@@ -385,7 +429,7 @@ class _CardItemState extends State<CardItem> {
             bottom: defaultPadding,
             right: defaultPadding,
             child: Text(
-              'valid thru ${widget.card.expiryDate}',
+              'valid thru ${widget.card.cardValidity!}',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
@@ -396,9 +440,11 @@ class _CardItemState extends State<CardItem> {
           Positioned(
             top: 50,
             right: 25,
-            child: CircleAvatar(
-              radius: 25,
-              backgroundImage: AssetImage(widget.card.iconPath),
+            child: CountryFlag.fromCountryCode(
+              width: 35,
+              height: 35,
+              widget.card.currency?.substring(0, 2) ?? "USD",
+              shape: const Circle(),
             ),
           ),
           Positioned(
@@ -459,14 +505,14 @@ class _CardItemState extends State<CardItem> {
                 borderRadius: BorderRadius.circular(4),
                 border: Border.all(color: Colors.yellow, width: 1),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Padding(
-                    padding: EdgeInsets.only(right: 16.0),
+                    padding: const EdgeInsets.only(right: 16.0),
                     child: Text(
-                      '123', // CVC code
-                      style: TextStyle(
+                      widget.card.cardCVV!, // CVC code
+                      style: const TextStyle(
                         color: Colors.black,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -485,7 +531,7 @@ class _CardItemState extends State<CardItem> {
               height: 45,
               child: FloatingActionButton.extended(
                 onPressed: () {
-                  _mSetPinBottomSheet(context, widget.card.cardHolder, widget.card.cardNumber, widget.card.oldPassword);
+                  _mSetPinBottomSheet(context, widget.card.cardHolderName!, widget.card.cardNumber!, widget.card.cardPin!);
                 },
                 label: const Text(
                   'Set Pin',
@@ -508,7 +554,7 @@ class _CardItemState extends State<CardItem> {
     }
   }
 
-  void _mSetPinBottomSheet(BuildContext context, String cardName, String cardNumber, String oldPassword) {
+  void _mSetPinBottomSheet(BuildContext context, String cardName, String cardNumber, int oldPassword) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
