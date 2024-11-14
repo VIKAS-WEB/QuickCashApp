@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:quickcash/Screens/DashboardScreen/AllAccountsScreen/AccountDetailsScreen/model/accountDetailsApi.dart';  // Import your API model
+import 'package:quickcash/Screens/DashboardScreen/AllAccountsScreen/AccountDetailsScreen/model/accountDetailsApi.dart';  // Import your API cardModel
 
 import '../../../../constants.dart';
 import '../../../../util/customSnackBar.dart';

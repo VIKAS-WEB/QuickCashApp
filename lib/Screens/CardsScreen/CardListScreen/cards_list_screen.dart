@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:quickcash/Screens/CardsScreen/CurrencyListScreen/model/cardApi.dart';
+import 'package:quickcash/Screens/CardsScreen/CardListScreen/cardUpdateModel/cardUpdateApi.dart';
+import 'package:quickcash/Screens/CardsScreen/CardListScreen/cardUpdateModel/cardUpdateModel.dart';
 import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListApi.dart';
 import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListModel.dart';
 import 'package:quickcash/constants.dart';
+
+import 'cardModel/cardApi.dart';
 
 class CardsListScreen extends StatefulWidget {
   const CardsListScreen({super.key});
@@ -119,7 +122,7 @@ class _CardsListScreenState extends State<CardsListScreen> {
                           Text('Expiry: ${card.cardValidity}',style: const TextStyle(color: kPrimaryColor, fontSize: 16),),
                           const Divider(color: kPrimaryLightColor,),
                           Text(
-                            'Status: ${card.status! ? 'Active' : 'Deactivate'}',
+                            'Status: ${card.status! ? 'Active' : 'In Active'}',
                             style: const TextStyle(color: kPrimaryColor, fontSize: 16),
                           ),
                           Row(
@@ -206,8 +209,9 @@ class EditCardCardBottomSheet extends StatefulWidget {
 
 class _EditCardBottomSheetState extends State<EditCardCardBottomSheet> {
   final CardApi _cardApi = CardApi();
+  final CardUpdateApi _cardUpdateApi = CardUpdateApi();
   String selectedStatus = 'Card Status';
-  List<String> status = ['Active', 'Deactivate'];
+  List<String> status = ['Active', 'In Active'];
   TextEditingController cardHolderName = TextEditingController();
   TextEditingController cardNo = TextEditingController();
   TextEditingController cardCVV = TextEditingController();
@@ -222,6 +226,7 @@ class _EditCardBottomSheetState extends State<EditCardCardBottomSheet> {
     mCard();
   }
 
+  // Show Card Details Api ----
   Future<void> mCard() async {
     setState(() {
       isLoading = true;
@@ -241,9 +246,9 @@ class _EditCardBottomSheetState extends State<EditCardCardBottomSheet> {
 
           // Set selectedStatus based on the API response, handle both null and non-null values
           if (response.card!.status != null) {
-            selectedStatus = response.card!.status == true ? 'Active' : 'Deactivate';
+            selectedStatus = response.card!.status == true ? 'Active' : 'In Active';
           } else {
-            selectedStatus = 'Card Status'; // Default value if status is null
+            selectedStatus = 'Card Status';
           }
         });
       } else {
@@ -252,6 +257,46 @@ class _EditCardBottomSheetState extends State<EditCardCardBottomSheet> {
           errorMessage = 'No Card Found';
         });
       }
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
+  Future<bool> resolveCardStatus() async {
+    // Simulate a delay if necessary (for real-world async calls, e.g., API or database)
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    return selectedStatus == 'Active'; // Convert status string to bool
+  }
+
+
+  // Update Card Api
+  Future<void> mUpdateCard() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      bool resolvedStatus = await resolveCardStatus();
+
+      final request = CardUpdateRequest(
+        cardStatus: resolvedStatus,
+        cardName: cardHolderName.text,
+        cardCVV: cardCVV.text,
+      );
+
+      final response = await _cardUpdateApi.cardUpdate(request, widget.getCardId);
+
+      setState(() {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response.message ?? 'Card updated successfully')),
+        );
+        Navigator.pop(context);
+      });
     } catch (error) {
       setState(() {
         isLoading = false;
@@ -424,7 +469,7 @@ class _EditCardBottomSheetState extends State<EditCardCardBottomSheet> {
                       filled: true,
                       fillColor: Colors.transparent,
                     ),
-                    items: ['Card Status','Active', 'Deactivate'].map((String role) {
+                    items: ['Card Status','Active', 'In Active'].map((String role) {
                       return DropdownMenuItem(
                         value: role,
                         child: Text(role),
@@ -437,14 +482,18 @@ class _EditCardBottomSheetState extends State<EditCardCardBottomSheet> {
                     },
                   ),
 
+                  const SizedBox(height: defaultPadding),
+                  if (isLoading) const CircularProgressIndicator(color: kPrimaryColor,), // Show loading indicator
+                  if (errorMessage != null) // Show error message if there's an error
+                    Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+
+
                   const SizedBox(height: 45),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 55),
                     child: ElevatedButton(
+                      onPressed: isLoading ? null : mUpdateCard,
                       child: const Text('Save', style: TextStyle(color: Colors.white, fontSize: 16)),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
                     ),
                   ),
                   const SizedBox(height: 45),

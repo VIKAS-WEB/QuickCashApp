@@ -1,9 +1,9 @@
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
+import 'package:quickcash/Screens/CardsScreen/CardListScreen/cards_list_screen.dart';
 import 'package:quickcash/Screens/CardsScreen/addCardModel/addCardApi.dart';
 import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListApi.dart';
 import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListModel.dart';
-import 'package:quickcash/Screens/CardsScreen/CurrencyListScreen/cards_list_screen.dart';
 import 'package:quickcash/Screens/CardsScreen/currencyApiModel/currencyApi.dart';
 import 'package:quickcash/Screens/CardsScreen/currencyApiModel/currencyModel.dart';
 import 'package:quickcash/constants.dart';
