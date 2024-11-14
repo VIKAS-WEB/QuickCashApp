@@ -5,6 +5,7 @@ import 'package:quickcash/constants.dart';
 
 class TransactionDetailPage extends StatefulWidget {
   final String? transactionId;
+
   const TransactionDetailPage({super.key, this.transactionId});
 
   @override
@@ -16,10 +17,12 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
 
   String? transactionId;
   String? requestDate;
-  int? fee;
-  int? billAmount;
+  double? fee;
+  double? billAmount;
+  double? amount;
   String? transactionType;
   String? extraType;
+  String? fromCurrency;
 
   String? senderName;
   String? senderAccountNo;
@@ -42,41 +45,48 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
   }
 
   Future<void> mTransactionDetails() async {
+    // Check if the transaction ID is null
+    if (widget.transactionId == null) {
+      setState(() {
+        errorMessage = "Transaction ID is missing!";
+      });
+      return;
+    }
+
     setState(() {
       isLoading = true;
       errorMessage = null;
     });
 
     try {
+      // Fetch transaction details using the provided transaction ID
       final response = await _transactionDetailsListApi.transactionDetailsListApi(widget.transactionId!);
 
       setState(() {
         isLoading = false;
 
-
         transactionId = response.trx;
-        fee = response.fee;
-        billAmount = (response.billAmount! + fee!);
-        transactionType = response.transactionType;
-        extraType = response.extraType;
+        fromCurrency = response.fromCurrency;
+        fee = response.fee ?? 0.0;
+        billAmount = (response.billAmount ?? 0.0) + (response.fee ?? 0.0);
+        amount = (response.billAmount ?? 0.0);
+        transactionType = response.transactionType ?? 'N/A';
+        extraType = response.extraType ?? 'N/A';
 
+        senderName = response.senderDetail?.isNotEmpty == true ? response.senderDetail?.first.senderName : 'N/A';
+        senderAccountNo = response.senderDetail?.isNotEmpty == true ? response.senderDetail?.first.senderAccountNumber : 'N/A';
+        senderAddress = response.senderDetail?.isNotEmpty == true ? response.senderDetail?.first.senderAddress : 'N/A';
 
-        senderName = response.senderDetail?.first.senderName;
-        senderAccountNo = response.senderDetail?.first.senderAccountNumber;
-        senderAddress = response.senderDetail?.first.senderAddress;
+        receiverName = response.receiverDetail?.isNotEmpty == true ? response.receiverDetail?.first.receiverName : 'N/A';
+        receiverAccountNo = response.receiverDetail?.isNotEmpty == true ? response.receiverDetail?.first.receiverAccountNumber : 'N/A';
+        receiverAddress = response.receiverDetail?.isNotEmpty == true ? response.receiverDetail?.first.receiverAddress : 'N/A';
 
-        receiverName = response.receiverDetail?.first.receiverName;
-        receiverAccountNo = response.receiverDetail?.first.receiverAccountNumber;
-        receiverAddress = response.receiverDetail?.first.receiverAddress;
-
-        status = response.status;
-
+        status = response.status ?? 'N/A';
 
         // Convert the input date string to a DateTime object
-        DateTime dateTime = DateTime.parse(response.requestedDate!);
-
-        // Format the DateTime object into the desired string format
-        requestDate = DateFormat('yyyy-MM-dd hh:mm:ss:a').format(dateTime);
+        requestDate = response.requestedDate != null
+            ? DateFormat('yyyy-MM-dd hh:mm:ss:a').format(DateTime.parse(response.requestedDate!))
+            : 'N/A';
       });
     } catch (error) {
       setState(() {
@@ -92,7 +102,6 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
       appBar: AppBar(
         backgroundColor: kPrimaryColor,
         iconTheme: const IconThemeData(color: Colors.white),
-        // Change back button color here
         title: const Text(
           "Transaction Details",
           style: TextStyle(color: Colors.white),
@@ -105,7 +114,6 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
         ),
       )
           : SingleChildScrollView(
-        // Added ScrollView here
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -114,13 +122,11 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
               const SizedBox(height: defaultPadding),
 
               if (errorMessage != null)
-                Text(errorMessage!,
-                    style: const TextStyle(color: Colors.red)),
+                Text(errorMessage!, style: const TextStyle(color: Colors.red)),
 
-              const SizedBox(
-                height: defaultPadding,
-              ),
+              const SizedBox(height: defaultPadding),
 
+              // Transaction Details Card
               Card(
                 color: kPrimaryColor,
                 margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
@@ -135,9 +141,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                           textAlign: TextAlign.center,
                         ),
                       ),
-
                       const SizedBox(height: 20),
-
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -168,12 +172,11 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                       const SizedBox(height: 8),
                       const Divider(),
                       const SizedBox(height: 8),
-                       Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text("Bill Amount:", style: TextStyle(color: Colors.white)),
                           Text((billAmount ?? 0).toString(), style: const TextStyle(color: Colors.white)),
-
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -183,7 +186,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text("Transaction Type:", style: TextStyle(color: Colors.white)),
-                          Text('${extraType!} - ${transactionType!}', style: const TextStyle(color: Colors.white)),
+                          Text('${extraType ?? 'N/A'} - ${transactionType ?? 'N/A'}', style: const TextStyle(color: Colors.white)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -194,6 +197,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
 
               const SizedBox(height: 20),
 
+              // Sender Information Card
               Card(
                 color: kPrimaryColor,
                 margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
@@ -208,9 +212,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                           textAlign: TextAlign.center,
                         ),
                       ),
-
                       const SizedBox(height: 20),
-
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -245,6 +247,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
 
               const SizedBox(height: 20),
 
+              // Receiver Information Card
               Card(
                 color: kPrimaryColor,
                 margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
@@ -259,14 +262,12 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                           textAlign: TextAlign.center,
                         ),
                       ),
-
                       const SizedBox(height: 20),
-
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text("Receiver Name:", style: TextStyle(color: Colors.white)),
-                          Text(receiverName  ?? '', style: const TextStyle(color: Colors.white)),
+                          Text(receiverName ?? '', style: const TextStyle(color: Colors.white)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -301,7 +302,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                             style: ButtonStyle(
                               backgroundColor: WidgetStateProperty.all(Colors.white),
                             ),
-                            child:  Text(status ?? '', style: const TextStyle(color: Colors.green)),
+                            child: Text(status ?? '', style: const TextStyle(color: Colors.green)),
                           ),
                         ],
                       ),
@@ -312,6 +313,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
 
               const SizedBox(height: 20),
 
+              // Bank Status Card
               Card(
                 color: kPrimaryColor,
                 margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
@@ -326,9 +328,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                           textAlign: TextAlign.center,
                         ),
                       ),
-
                       const SizedBox(height: 20),
-
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -339,11 +339,11 @@ class _TransactionDetailPageState extends State<TransactionDetailPage> {
                       const SizedBox(height: 8),
                       const Divider(),
                       const SizedBox(height: 8),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Trans Amt:", style: TextStyle(color: Colors.white)),
-                          Text("₹800", style: TextStyle(color: Colors.white)),
+                          const Text("Trans Amt:", style: TextStyle(color: Colors.white)),
+                          Text("$fromCurrency $amount", style: const TextStyle(color: Colors.white)),
                         ],
                       ),
                       const SizedBox(height: 8),

@@ -45,10 +45,11 @@ class ReceiverDetail {
 
 class TransactionDetailsListResponse {
   final String? trx;
+  final String? fromCurrency;
   final String? requestedDate;
-  final String? amountText; // Change to String to handle "$10.00"
-  final int? fee;
-  final int? billAmount;
+  final String? amountText;
+  final double? fee;
+  final double? billAmount;
   final String? transactionType;
   final String? extraType;
   final String? status;
@@ -57,6 +58,7 @@ class TransactionDetailsListResponse {
 
   TransactionDetailsListResponse({
     this.trx,
+    this.fromCurrency,
     this.requestedDate,
     this.amountText,
     this.fee,
@@ -73,11 +75,19 @@ class TransactionDetailsListResponse {
     var data = json['data'] as List<dynamic>;
 
     return TransactionDetailsListResponse(
-      trx: data[0]['trx'] as String?, // Extract trx from the first object in the list
+      trx: data[0]['trx'] as String?,
+      fromCurrency: data[0]['from_currency'] as String,
       requestedDate: data[0]['createdAt'] as String?,
-      fee: data[0]['fee'] as int?,
-      billAmount: data[0]['amount'] as int?,
-      amountText: data[0]['amountText'] as String?, // Capture as String
+      fee: (data[0]['fee'] is int)
+          ? (data[0]['fee'] as int).toDouble()
+          : data[0]['fee'] as double?,
+
+      billAmount: (data[0]['amount'] is int)
+          ? (data[0]['amount'] as int).toDouble()
+          : data[0]['amount'] as double?,
+
+      amountText: data[0]['amountText'] as String?,
+
       transactionType: data[0]['trans_type'] as String?,
       extraType: data[0]['extraType'] as String?,
       status: data[0]['status'] as String?,
