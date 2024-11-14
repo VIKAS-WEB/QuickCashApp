@@ -1,9 +1,13 @@
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
+import 'package:quickcash/Screens/CardsScreen/addCardModel/addCardApi.dart';
 import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListApi.dart';
 import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListModel.dart';
 import 'package:quickcash/Screens/CardsScreen/cards_list_screen.dart';
+import 'package:quickcash/Screens/CardsScreen/currencyApiModel/currencyApi.dart';
+import 'package:quickcash/Screens/CardsScreen/currencyApiModel/currencyModel.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/util/auth_manager.dart';
 
 class CardsScreen extends StatefulWidget {
   const CardsScreen({super.key});
@@ -140,23 +144,87 @@ class _CardsScreenState extends State<CardsScreen> {
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return const AddCardBottomSheet(); // Use the new StatefulWidget
+        return AddCardBottomSheet(
+          onCardAdded: mCardList, // Pass mCardList as a callback to the bottom sheet
+        );
       },
     );
   }
+
 }
 
 class AddCardBottomSheet extends StatefulWidget {
-  const AddCardBottomSheet({super.key});
+  final VoidCallback onCardAdded;
+  const AddCardBottomSheet({super.key, required this.onCardAdded});
 
   @override
   State<AddCardBottomSheet>  createState() => _AddCardBottomSheetState();
 }
 
 class _AddCardBottomSheetState extends State<AddCardBottomSheet> {
-  String? selectedCoin; // Variable to hold selected coin
-  List<String> coins = ['USD', 'EUR', 'INR']; // List of coins
-  TextEditingController nameController = TextEditingController(); // Controller for the name input
+  final AddCardApi _addCardApi = AddCardApi();
+  final CurrencyApi _currencyApi = CurrencyApi();
+
+  String? selectedCurrency; // Variable to hold selected coin
+  List<CurrencyListsData> currency = [];
+  // List of coins
+  TextEditingController name = TextEditingController();
+
+
+  bool isLoading = false;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    mGetCurrency();
+  }
+
+  Future<void> mGetCurrency() async {
+    final response = await _currencyApi.currencyApi();
+
+    if(response.currencyList !=null && response.currencyList!.isNotEmpty) {
+      currency = response.currencyList!;
+    }
+
+  }
+
+  Future<void> mAddCard() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try{
+      final response = await _addCardApi.addCardApi(AuthManager.getUserId(), name.text, selectedCurrency.toString());
+
+      if(response.message == "Card is added Successfully!!!"){
+        setState(() {
+          isLoading = false;
+          name.clear();
+          Navigator.pop(context);
+          errorMessage = null;
+        });
+        widget.onCardAdded();
+      } else if(response.message == "Same Currency Account is already added in our record"){
+        setState(() {
+          isLoading = false;
+          errorMessage = 'Same Currency Account is already added in our record';
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'We are facing some issue!';
+        });
+      }
+
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -231,7 +299,7 @@ class _AddCardBottomSheetState extends State<AddCardBottomSheet> {
                       bottom: defaultPadding,
                       left: defaultPadding,
                       child: Text(
-                        nameController.text.isEmpty ? "Your Name Here" : nameController.text,
+                        name.text.isEmpty ? "Your Name Here" : name.text,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -269,7 +337,7 @@ class _AddCardBottomSheetState extends State<AddCardBottomSheet> {
             ),
             const SizedBox(height: 45),
             TextFormField(
-              controller: nameController, // Set the controller
+              controller: name, // Set the controller
               keyboardType: TextInputType.text,
               textInputAction: TextInputAction.next,
               cursorColor: kPrimaryColor,
@@ -292,55 +360,69 @@ class _AddCardBottomSheetState extends State<AddCardBottomSheet> {
             ),
             const SizedBox(height: defaultPadding),
             GestureDetector(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 15.0),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: kPrimaryColor),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(selectedCoin ?? "Select Currency", style: const TextStyle(color: kPrimaryColor, fontSize: 16)),
-                    const Icon(Icons.arrow_drop_down, color: kPrimaryColor),
-                  ],
+              onTap: () {
+                // Check if currency list is not empty before showing the menu
+                if (currency.isNotEmpty) {
+                  RenderBox renderBox = context.findRenderObject() as RenderBox;
+                  Offset offset = renderBox.localToGlobal(Offset.zero);
+
+                  showMenu<String>(
+                    context: context,
+                    position: RelativeRect.fromLTRB(
+                      offset.dx,
+                      offset.dy + renderBox.size.height,
+                      offset.dx + renderBox.size.width,
+                      0.0,
+                    ),
+                    items: currency.map((CurrencyListsData currencyItem) {
+                      return PopupMenuItem<String>(
+                        value: currencyItem.currencyCode, // Use the appropriate property
+                        child: Text(currencyItem.currencyCode!), // Display the name or code of the currency
+                      );
+                    }).toList(),
+                  ).then((String? newValue) {
+                    if (newValue != null) {
+                      setState(() {
+                        selectedCurrency = newValue; // Update the selected coin
+                      });
+                    }
+                  });
+                } else {
+                }
+              },
+              child: Material(
+                color: Colors.transparent, // Make the Material widget invisible
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 15.0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: kPrimaryColor),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(selectedCurrency ?? "Select Currency", style: const TextStyle(color: kPrimaryColor, fontSize: 16)),
+                      const Icon(Icons.arrow_drop_down, color: kPrimaryColor),
+                    ],
+                  ),
                 ),
               ),
-              onTap: () {
-                RenderBox renderBox = context.findRenderObject() as RenderBox;
-                Offset offset = renderBox.localToGlobal(Offset.zero);
-
-                showMenu<String>(
-                  context: context,
-                  position: RelativeRect.fromLTRB(
-                    offset.dx,
-                    offset.dy + renderBox.size.height,
-                    offset.dx + renderBox.size.width,
-                    0.0,
-                  ),
-                  items: coins.map((String value) {
-                    return PopupMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                ).then((String? newValue) {
-                  if (newValue != null) {
-                    setState(() {
-                      selectedCoin = newValue; // Update the selected coin
-                    });
-                  }
-                });
-              },
             ),
+
+
+
             const SizedBox(height: 45),
+
+            const SizedBox(height: defaultPadding),
+            if (isLoading) const CircularProgressIndicator(color: kPrimaryColor,), // Show loading indicator
+            if (errorMessage != null) // Show error message if there's an error
+            Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 55),
               child: ElevatedButton(
+                onPressed: isLoading ? null : mAddCard,
                 child: const Text('Submit', style: TextStyle(color: Colors.white, fontSize: 16)),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
               ),
             ),
             const SizedBox(height: 45),
