@@ -4,8 +4,10 @@ class TransactionListDetails {
   final String? transactionType;
   final String? transactionAmount;
   final String? trxId;
-  final double? balance;  // Change from int? to double?
+  final double? balance;
   final String? transactionStatus;
+  final double? amount;
+  final String? fromCurrency;
 
   TransactionListDetails({
     this.transactionDate,
@@ -15,6 +17,8 @@ class TransactionListDetails {
     this.trxId,
     this.balance,
     this.transactionStatus,
+    this.amount,
+    this.fromCurrency,
   });
 
   factory TransactionListDetails.fromJson(Map<String, dynamic> json) {
@@ -24,11 +28,14 @@ class TransactionListDetails {
       transactionType: json['trans_type'] as String?,
       transactionAmount: json['amountText'] as String?,
       trxId: json['_id'] as String?,
-      // Safely cast to double
       balance: (json['postBalance'] is int
           ? (json['postBalance'] as int).toDouble()
           : json['postBalance']) as double?,
       transactionStatus: json['status'] as String?,
+      amount: (json['amount'] is int
+          ? (json['amount'] as int).toDouble()
+          : json['amount']) as double?,
+      fromCurrency: json['from_currency'] as String?,
     );
   }
 }
@@ -42,7 +49,7 @@ class TransactionListResponse {
 
   factory TransactionListResponse.fromJson(Map<String, dynamic> json) {
     return TransactionListResponse(
-      transactionList: (json['data'] as List<dynamic>? )
+      transactionList: (json['data'] as List<dynamic>?)
           ?.map((item) => TransactionListDetails.fromJson(item as Map<String, dynamic>))
           .toList(),
     );

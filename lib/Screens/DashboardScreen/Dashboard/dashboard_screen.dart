@@ -577,7 +577,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 Text("${transaction.transactionType}",
                                     style: const TextStyle(
                                         color: Colors.white, fontSize: 16)),
-                                Text("${transaction.transactionAmount}",
+                                Text("${transaction.fromCurrency} ${transaction.amount}",
                                     style: const TextStyle(
                                         color: Colors.white, fontSize: 16)),
                               ],

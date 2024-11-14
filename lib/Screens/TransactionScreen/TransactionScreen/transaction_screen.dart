@@ -162,7 +162,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                                 const Text("Amount:",
                                     style: TextStyle(
                                         color: Colors.white, fontSize: 16)),
-                                Text("${transaction.transactionAmount}",
+                                Text("${transaction.fromCurrency} ${transaction.amount}",
                                     style: const TextStyle(
                                         color: Colors.white, fontSize: 16)),
                               ],
