@@ -119,8 +119,6 @@ class _UpdateDetailsScreenState extends State<UpdateDetailsScreen> {
         title: selectedRole,
       );
 
-      print(selectedRole);
-
       final response = await _profileUpdateApi.userProfileUpdate(request);
 
 

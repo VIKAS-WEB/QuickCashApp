@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:quickcash/Screens/CardsScreen/CurrencyListScreen/model/cardApi.dart';
 import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListApi.dart';
 import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListModel.dart';
 import 'package:quickcash/constants.dart';
@@ -128,7 +129,7 @@ class _CardsListScreenState extends State<CardsListScreen> {
                                 icon: const Icon(Icons.edit,color: kPrimaryColor,),
                                 onPressed: () {
                                   // Edit action
-                                  mEditCardCardBottomSheet(context);
+                                  mEditCardCardBottomSheet(context,card.cardId!);
                                 },
                               ),
                               IconButton(
@@ -152,15 +153,17 @@ class _CardsListScreenState extends State<CardsListScreen> {
     );
   }
 
-  void mEditCardCardBottomSheet(BuildContext context) {
+  void mEditCardCardBottomSheet(BuildContext context, String cardId) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return const EditCardCardBottomSheet(); // Use the new StatefulWidget
+        return EditCardCardBottomSheet(getCardId: cardId);
       },
     );
   }
+
+
 
 
   Future<bool> _showDeleteCardDialog() async {
@@ -194,22 +197,79 @@ class _CardsListScreenState extends State<CardsListScreen> {
 
 
 class EditCardCardBottomSheet extends StatefulWidget {
-  const EditCardCardBottomSheet({super.key});
+  final String getCardId;
+  const EditCardCardBottomSheet({super.key, required this.getCardId});
 
   @override
   State<EditCardCardBottomSheet>  createState() => _EditCardBottomSheetState();
 }
 
 class _EditCardBottomSheetState extends State<EditCardCardBottomSheet> {
-  String? selectedCoin; // Variable to hold selected coin
-  List<String> coins = ['Active', 'Deactivate']; // List of coins
-  TextEditingController nameController = TextEditingController(); // Controller for the name input
+  final CardApi _cardApi = CardApi();
+  String selectedStatus = 'Card Status';
+  List<String> status = ['Active', 'Deactivate'];
+  TextEditingController cardHolderName = TextEditingController();
+  TextEditingController cardNo = TextEditingController();
+  TextEditingController cardCVV = TextEditingController();
+  TextEditingController cardExpireDate = TextEditingController();
+
+  bool isLoading = false;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    mCard();
+  }
+
+  Future<void> mCard() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final response = await _cardApi.cardApi(widget.getCardId);
+
+      if (response.card != null) {
+        setState(() {
+          isLoading = false;
+          cardHolderName.text = response.card!.cardHolderName ?? '';
+          cardNo.text = response.card!.cardNumber ?? '';
+          cardCVV.text = response.card!.cardCVV ?? '';
+          cardExpireDate.text = response.card!.cardValidity ?? '';
+
+          // Set selectedStatus based on the API response, handle both null and non-null values
+          if (response.card!.status != null) {
+            selectedStatus = response.card!.status == true ? 'Active' : 'Deactivate';
+          } else {
+            selectedStatus = 'Card Status'; // Default value if status is null
+          }
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Card Found';
+        });
+      }
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(defaultPadding),
-      child: SingleChildScrollView(
+      child: isLoading
+        ? const Center(
+        child: CircularProgressIndicator(), // Show loading indicator
+    ) : SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -255,6 +315,7 @@ class _EditCardBottomSheetState extends State<EditCardCardBottomSheet> {
                 children: [
                   const SizedBox(height: smallPadding),
                   TextFormField(
+                    controller: cardHolderName,
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
@@ -279,11 +340,12 @@ class _EditCardBottomSheetState extends State<EditCardCardBottomSheet> {
 
                   const SizedBox(height: defaultPadding),
                   TextFormField(
+                    controller: cardNo,
                     keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
                     onSaved: (value) {},
-                    readOnly: false,
+                    readOnly: true,
                     style: const TextStyle(color: kPrimaryColor),
                     decoration: InputDecoration(
                       labelText: "Card Number",
@@ -302,6 +364,7 @@ class _EditCardBottomSheetState extends State<EditCardCardBottomSheet> {
 
                   const SizedBox(height: defaultPadding),
                   TextFormField(
+                    controller: cardCVV,
                     keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
@@ -325,11 +388,12 @@ class _EditCardBottomSheetState extends State<EditCardCardBottomSheet> {
 
                   const SizedBox(height: defaultPadding),
                   TextFormField(
+                    controller: cardExpireDate,
                     keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.next,
                     cursorColor: kPrimaryColor,
                     onSaved: (value) {},
-                    readOnly: false,
+                    readOnly: true,
                     style: const TextStyle(color: kPrimaryColor),
                     decoration: InputDecoration(
                       labelText: "Expiry Date",
@@ -346,50 +410,33 @@ class _EditCardBottomSheetState extends State<EditCardCardBottomSheet> {
                     },
                   ),
 
-
                   const SizedBox(height: defaultPadding,),
-                  GestureDetector(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 15.0),
-                      decoration: BoxDecoration(
+                  DropdownButtonFormField<String>(
+                    value: selectedStatus,
+                    style: const TextStyle(color: kPrimaryColor),
+                    decoration: InputDecoration(
+                      labelText: 'Card Status',
+                      labelStyle: const TextStyle(color: kPrimaryColor),
+                      border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: kPrimaryColor),
+                        borderSide: const BorderSide(),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(selectedCoin ?? "Card Status", style: const TextStyle(color: kPrimaryColor, fontSize: 16)),
-                          const Icon(Icons.arrow_drop_down, color: kPrimaryColor),
-                        ],
-                      ),
+                      filled: true,
+                      fillColor: Colors.transparent,
                     ),
-                    onTap: () {
-                      RenderBox renderBox = context.findRenderObject() as RenderBox;
-                      Offset offset = renderBox.localToGlobal(Offset.zero);
-
-                      showMenu<String>(
-                        context: context,
-                        position: RelativeRect.fromLTRB(
-                          offset.dx,
-                          offset.dy + renderBox.size.height,
-                          offset.dx + renderBox.size.width,
-                          0.0,
-                        ),
-                        items: coins.map((String value) {
-                          return PopupMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                      ).then((String? newValue) {
-                        if (newValue != null) {
-                          setState(() {
-                            selectedCoin = newValue; // Update the selected coin
-                          });
-                        }
+                    items: ['Card Status','Active', 'Deactivate'].map((String role) {
+                      return DropdownMenuItem(
+                        value: role,
+                        child: Text(role),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      setState(() {
+                        selectedStatus = newValue!;
                       });
                     },
                   ),
+
                   const SizedBox(height: 45),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 55),
