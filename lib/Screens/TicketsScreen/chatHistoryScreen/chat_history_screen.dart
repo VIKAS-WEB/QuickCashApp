@@ -52,14 +52,11 @@ class _ChatHistoryScreen extends State<ChatHistoryScreen> {
     try{
 
       final response = await _chatHistoryApi.chatHistoryApi(widget.mID);
-      print(response.status);
-      print(widget.mID);
 
       if(response.chatDetails !=null && response.chatDetails!.isNotEmpty){
         setState(() {
           chatMessages = response.chatDetails!;
           isLoading = false;
-          print(response.chatDetails!.first.message);
         });
       }else {
         setState(() {

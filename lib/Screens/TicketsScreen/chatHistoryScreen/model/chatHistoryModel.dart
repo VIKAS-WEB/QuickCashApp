@@ -1,46 +1,49 @@
 class ChatDetail {
-  final String? fromSide;
-  final String? toSide;
+  final String? id;
+  final String? user;
+  final String? from;
+  final String? to;
   final String? message;
-  final String? attachment;
-  final String? date;
+  final String? createdAt;
 
   ChatDetail({
-    this.fromSide,
-    this.toSide,
+    this.id,
+    this.user,
+    this.from,
+    this.to,
     this.message,
-    this.attachment,
-    this.date,
+    this.createdAt,
   });
 
   factory ChatDetail.fromJson(Map<String, dynamic> json) {
     return ChatDetail(
-      fromSide: json['from'] as String?,
-      toSide: json['to'] as String?,
-      message: json['message'] as String?,
-      attachment: json['attachment'] as String?,
-      date: json['createdAt'] as String?,
+      id: json['_id']?.toString(),
+      user: json['user']?.toString(),
+      from: json['from']?.toString(),
+      to: json['to']?.toString(),
+      message: json['message']?.toString(),
+      createdAt: json['createdAt']?.toString(),
     );
   }
 }
 
+
 class ChatHistoryResponse {
   final String? status;
-  final List<ChatDetail>? chatDetails; // List of AccountDetail
+  final List<ChatDetail>? chatDetails;
 
   ChatHistoryResponse({
     this.status,
-
     this.chatDetails,
   });
 
   factory ChatHistoryResponse.fromJson(Map<String, dynamic> json) {
     return ChatHistoryResponse(
-      status: json['data']?['status'] as String?,
-
-      chatDetails: (json['data']?['chat'] as List<dynamic>?)
+      status: json['status']?.toString(),
+      chatDetails: (json['data'] as List<dynamic>?)
           ?.map((item) => ChatDetail.fromJson(item as Map<String, dynamic>))
           .toList(),
     );
   }
 }
+

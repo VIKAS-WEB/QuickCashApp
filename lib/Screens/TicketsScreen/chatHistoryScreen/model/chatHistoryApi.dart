@@ -10,15 +10,15 @@ class ChatHistoryApi {
     _dio.options.baseUrl = ApiConstants.baseUrl;
 
 
-    _dio.interceptors.add(LogInterceptor(
+    /*_dio.interceptors.add(LogInterceptor(
       request: true,
       requestBody: true,
       responseBody: true,
       responseHeader: true,
-    ));
+    ));*/
   }
 
-  Future<ChatHistoryResponse> chatHistoryApi(id) async {
+  Future<ChatHistoryResponse> chatHistoryApi(String? id) async {
     try {
       final response = await _dio.get(
         '/support/listbyid/$id',
@@ -29,7 +29,7 @@ class ChatHistoryApi {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return ChatHistoryResponse.fromJson(response.data);
+        return ChatHistoryResponse.fromJson(response.data as Map<String, dynamic>);
       } else {
         throw Exception('Failed to fetch data: ${response.statusMessage}');
       }
@@ -39,4 +39,6 @@ class ChatHistoryApi {
       throw Exception('Unexpected error: $e');
     }
   }
+
+
 }
