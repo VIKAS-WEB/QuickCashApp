@@ -174,7 +174,6 @@ class _TicketsScreenState extends State<TicketsScreen> {
                             ],
                           ),
 
-
                           // View Button
                           const SizedBox(height: 35),
                           Center(

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:quickcash/Screens/TicketsScreen/chatHistoryScreen/model/chatHistoryApi.dart';
-import 'package:quickcash/Screens/TicketsScreen/chatHistoryScreen/model/chatHistoryModel.dart';
 import 'package:quickcash/constants.dart';
+
+import 'Screens/TicketsScreen/chatHistoryScreen/model/chatHistoryApi.dart';
+import 'Screens/TicketsScreen/chatHistoryScreen/model/chatHistoryModel.dart';
+
 
 class ChatMessage {
   final String user;
@@ -20,27 +22,26 @@ class ChatHistoryScreen extends StatefulWidget {
 }
 
 class _ChatHistoryScreen extends State<ChatHistoryScreen> {
+  final List<ChatMessage> messages = [
+    ChatMessage(user: "User1", message: "Hello!", timestamp: DateTime.now().subtract(const Duration(minutes: 10))),
+    ChatMessage(user: "User2", message: "Hi there!", timestamp: DateTime.now().subtract(const Duration(minutes: 5))),
+    ChatMessage(user: "User1", message: "How are you?", timestamp: DateTime.now().subtract(const Duration(minutes: 2))),
+  ];
+
+  final Map<String, String> userImages = {
+    "User1": "assets/images/profile_pic.png",
+    "User2": "assets/images/profile_pic.png",
+  };
+
   final ChatHistoryApi _chatHistoryApi = ChatHistoryApi();
   List<ChatDetail> chatMessages =[];
   bool isLoading = false;
   String? errorMessage;
 
-
-  final List<ChatMessage> messages = [
-    ChatMessage(user: "User1", message: "Hello!", timestamp: DateTime.now().subtract(const Duration(minutes: 10))),
-    ChatMessage(user: "User2", message: "Hi there!", timestamp: DateTime.now().subtract(const Duration(minutes: 5))),
-  ];
-
-  final Map<String, String> userImages = {
-    "Admin": "assets/images/profile_pic.png",
-    "User": "assets/images/profile_pic.png",
-  };
-
   @override
   void initState() {
     super.initState();
     mChatHistory();
-    print(widget.mID);
   }
 
   Future<void> mChatHistory() async{
@@ -52,14 +53,11 @@ class _ChatHistoryScreen extends State<ChatHistoryScreen> {
     try{
 
       final response = await _chatHistoryApi.chatHistoryApi(widget.mID);
-      print(response.status);
-      print(widget.mID);
 
       if(response.chatDetails !=null && response.chatDetails!.isNotEmpty){
         setState(() {
           chatMessages = response.chatDetails!;
           isLoading = false;
-          print(response.chatDetails!.first.message);
         });
       }else {
         setState(() {
@@ -85,11 +83,7 @@ class _ChatHistoryScreen extends State<ChatHistoryScreen> {
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text('Chat History', style: TextStyle(color: Colors.white)),
       ),
-      body:  isLoading ? const Center(
-        child: CircularProgressIndicator(
-          color: kPrimaryColor,
-        ),
-      ) : ListView.builder(
+      body: ListView.builder(
         itemCount: messages.length,
         itemBuilder: (context, index) {
           final message = messages[index];
@@ -121,10 +115,10 @@ class _ChatHistoryScreen extends State<ChatHistoryScreen> {
                           message.message,
                           style: const TextStyle(fontSize: 16),
                         ),
-                        /*Text(
-                          '${message.date}:${message.date ?? ''}',
+                        Text(
+                          '${message.timestamp.hour}:${message.timestamp.minute < 10 ? '0' : ''}${message.timestamp.minute}',
                           style: const TextStyle(fontSize: 10, color: Colors.grey),
-                        ),*/
+                        ),
                       ],
                     ),
                   ),
