@@ -99,9 +99,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
           ),
         ),
 
-
           const SizedBox(height: defaultPadding),
-
           Expanded(
             child:  isLoading ? const Center(
               child: CircularProgressIndicator(
@@ -210,7 +208,6 @@ class _TicketsScreenState extends State<TicketsScreen> {
   }
 }
 
-
 // Function to show the dialog with barrierDismissible set to false
 Future<void> showCreateTicketDialog(BuildContext context, VoidCallback onTicketCreated) async {
   showDialog(
@@ -224,8 +221,6 @@ Future<void> showCreateTicketDialog(BuildContext context, VoidCallback onTicketC
   );
 }
 
-
-
 class CreateTicketScreen extends StatefulWidget {
   final VoidCallback onTicketCreated;
   const CreateTicketScreen({super.key, required this.onTicketCreated});
@@ -236,7 +231,6 @@ class CreateTicketScreen extends StatefulWidget {
 }
 
 class _CreateTicketScreenState extends State<CreateTicketScreen> {
-
   final CreateTicketApi _createTicketApi = CreateTicketApi();
 
   final TextEditingController subjectController = TextEditingController();
@@ -283,15 +277,12 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
            isLoading = false;
          });
        }
-
-
      }catch (error) {
        setState(() {
          isLoading = false;
          errorMessage = error.toString();
        });
      }
-
    }
   }
 
@@ -319,6 +310,8 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(),
                     ),
+                    fillColor: Colors.transparent,
+                    filled: true,
                     floatingLabelBehavior: FloatingLabelBehavior.always,
                   ),
                   validator: (value) {
@@ -341,6 +334,8 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(),
                     ),
+                    fillColor: Colors.transparent,
+                    filled: true,
                     floatingLabelBehavior: FloatingLabelBehavior.always,
                   ),
                   maxLines: 10,
