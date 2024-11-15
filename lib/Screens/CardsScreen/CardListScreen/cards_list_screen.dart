@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/CardsScreen/CardListScreen/cardUpdateModel/cardUpdateApi.dart';
 import 'package:quickcash/Screens/CardsScreen/CardListScreen/cardUpdateModel/cardUpdateModel.dart';
+import 'package:quickcash/Screens/CardsScreen/CardListScreen/deleteCardModel/deleteCardApi.dart';
 import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListApi.dart';
 import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListModel.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/util/customSnackBar.dart';
 
 import 'cardModel/cardApi.dart';
 
@@ -17,6 +19,7 @@ class CardsListScreen extends StatefulWidget {
 
 class _CardsListScreenState extends State<CardsListScreen> {
   final CardListApi _cardListApi = CardListApi();
+  final DeleteCardApi _deleteCardApi = DeleteCardApi();
   List<CardListsData> cardListData = [];
 
   bool isLoading = false;
@@ -49,6 +52,44 @@ class _CardsListScreenState extends State<CardsListScreen> {
           errorMessage = 'No Card Found';
         });
       }
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
+  Future<void> mDeleteCard(String? cardId) async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try{
+      final response = await _deleteCardApi.deleteCardApi(cardId!);
+      if(response.message == "User Card Data has been deleted successfully"){
+
+        setState(() {
+          mCardList();
+
+          Navigator.of(context).pop(true); // Yes
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Card deleted successfully!"),
+            ),
+          );
+          isLoading = false;
+        });
+
+      }else{
+        setState(() {
+          isLoading = false;
+          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue", color: kRedColor);
+        });
+      }
+
 
     }catch (error) {
       setState(() {
@@ -138,7 +179,7 @@ class _CardsListScreenState extends State<CardsListScreen> {
                               IconButton(
                                 icon: const Icon(Icons.delete,color: kPrimaryColor,),
                                 onPressed: () {
-                                  _showDeleteCardDialog();
+                                  _showDeleteCardDialog(card.cardId);
                                 },
                               ),
                             ],
@@ -165,11 +206,8 @@ class _CardsListScreenState extends State<CardsListScreen> {
       },
     );
   }
-
-
-
-
-  Future<bool> _showDeleteCardDialog() async {
+  
+  Future<bool> _showDeleteCardDialog(String? cardId) async {
     return (await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -182,12 +220,7 @@ class _CardsListScreenState extends State<CardsListScreen> {
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(true); // Yes
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Card deleted successfully!"),
-                ),
-              );
+              mDeleteCard(cardId);
             },
             child: const Text("Yes"),
           ),
@@ -244,7 +277,6 @@ class _EditCardBottomSheetState extends State<EditCardCardBottomSheet> {
           cardCVV.text = response.card!.cardCVV ?? '';
           cardExpireDate.text = response.card!.cardValidity ?? '';
 
-          // Set selectedStatus based on the API response, handle both null and non-null values
           if (response.card!.status != null) {
             selectedStatus = response.card!.status == true ? 'Active' : 'In Active';
           } else {
@@ -266,10 +298,8 @@ class _EditCardBottomSheetState extends State<EditCardCardBottomSheet> {
   }
 
   Future<bool> resolveCardStatus() async {
-    // Simulate a delay if necessary (for real-world async calls, e.g., API or database)
     await Future.delayed(const Duration(milliseconds: 300));
-
-    return selectedStatus == 'Active'; // Convert status string to bool
+    return selectedStatus == 'Active';
   }
 
 
@@ -304,9 +334,7 @@ class _EditCardBottomSheetState extends State<EditCardCardBottomSheet> {
       });
     }
   }
-
-
-
+  
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -502,8 +530,7 @@ class _EditCardBottomSheetState extends State<EditCardCardBottomSheet> {
             ),
 
             const SizedBox(height: 25,),
-
-
+            
           ],
         ),
       ),
