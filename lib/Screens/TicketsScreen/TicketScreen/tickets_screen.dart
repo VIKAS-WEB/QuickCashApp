@@ -164,10 +164,16 @@ class _TicketsScreenState extends State<TicketsScreen> {
                                 style: OutlinedButton.styleFrom(
                                   side: const BorderSide(color: Colors.white, width: 1),
                                 ),
-                                child: Text("${ticketsData.status}", style: const TextStyle(color: Colors.green)),
+                                child: Text(
+                                  "${ticketsData.status}".isNotEmpty
+                                      ? "${ticketsData.status?[0].toUpperCase()}${ticketsData.status?.substring(1)}"
+                                      : "",  // Capitalize first letter and keep the rest as is
+                                  style: const TextStyle(color: Colors.green),
+                                ),
                               ),
                             ],
                           ),
+
 
                           // View Button
                           const SizedBox(height: 35),
