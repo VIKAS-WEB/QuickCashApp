@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:quickcash/Screens/TicketsScreen/chat_history_screen.dart';
-import 'package:quickcash/Screens/TicketsScreen/create_ticket_screen.dart';
+import 'package:intl/intl.dart';
+import 'package:quickcash/Screens/TicketsScreen/TicketScreen/model/ticketScreenApi.dart';
+import 'package:quickcash/Screens/TicketsScreen/TicketScreen/model/ticketScreenModel.dart';
+import 'package:quickcash/Screens/TicketsScreen/chatHistoryScreen/chat_history_screen.dart';
+import 'package:quickcash/Screens/TicketsScreen/CreateTicketScreen/create_ticket_screen.dart';
 import 'package:quickcash/constants.dart';
 
 class TicketsScreen extends StatefulWidget {
@@ -11,37 +14,56 @@ class TicketsScreen extends StatefulWidget {
 }
 
 class _TicketsScreenState extends State<TicketsScreen> {
-  // Sample Ticket History
-  final List<Map<String, String>> ticketHistory = [
-    {
-      'ticketId': '1725879084380350001112',
-      'createdAt': '2024-09-09',
-      'subject': 'Account related Query',
-      'message': 'Lorem Ipsum Dollar',
-      'status': 'Close',
-    },
-    {
-      'ticketId': '1725879084380350001113',
-      'createdAt': '2024-09-10',
-      'subject': 'Payment Issue',
-      'message': 'Payment not processed',
-      'status': 'Open',
-    },
-    {
-      'ticketId': '1725879084380350001114',
-      'createdAt': '2024-09-11',
-      'subject': 'App Bug',
-      'message': 'App crashes on launch',
-      'status': 'Open',
-    },
-    {
-      'ticketId': '1725879084380350001115',
-      'createdAt': '2024-09-12',
-      'subject': 'Feedback',
-      'message': 'Great app overall!',
-      'status': 'Close',
-    },
-  ];
+
+  final TicketListApi _ticketListApi = TicketListApi();
+  List<TicketListsData> ticketHistory = [];
+
+  bool isLoading = false;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    mTicketHistory();
+  }
+
+  Future<void> mTicketHistory() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try{
+      final response = await _ticketListApi.ticketListApi();
+
+      if(response.ticketList !=null && response.ticketList!.isNotEmpty){
+        setState(() {
+          ticketHistory = response.ticketList!;
+          isLoading = false;
+        });
+      }else {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Statement List';
+        });
+      }
+
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
+  // Function to format the date
+  String formatDate(String? dateTime) {
+    if (dateTime == null) {
+      return 'Date not available';
+    }
+    DateTime date = DateTime.parse(dateTime);
+    return DateFormat('yyyy-MM-dd').format(date);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +99,11 @@ class _TicketsScreenState extends State<TicketsScreen> {
           const SizedBox(height: defaultPadding),
 
           Expanded(
-            child: SingleChildScrollView(
+            child:  isLoading ? const Center(
+              child: CircularProgressIndicator(
+                color: kPrimaryColor,
+              ),
+            ) : SingleChildScrollView(
               child: Column(
                 children: ticketHistory.map((ticketsData) {
                   return Card(
@@ -92,7 +118,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text("Ticket ID:", style: TextStyle(color: Colors.white, fontSize: 16)),
-                              Text("${ticketsData['ticketId']}", style: const TextStyle(color: Colors.white, fontSize: 16)),
+                              Text("${ticketsData.ticketId}", style: const TextStyle(color: Colors.white, fontSize: 16)),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -102,7 +128,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text("Created At:", style: TextStyle(color: Colors.white, fontSize: 16)),
-                              Text("${ticketsData['createdAt']}", style: const TextStyle(color: Colors.white, fontSize: 16)),
+                              Text(formatDate(ticketsData.date), style: const TextStyle(color: Colors.white, fontSize: 16)),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -112,7 +138,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text("Subject:", style: TextStyle(color: Colors.white, fontSize: 16)),
-                              Text("${ticketsData['subject']}", style: const TextStyle(color: Colors.white, fontSize: 16)),
+                              Text("${ticketsData.subject}", style: const TextStyle(color: Colors.white, fontSize: 16)),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -122,7 +148,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text("Message:", style: TextStyle(color: Colors.white, fontSize: 16)),
-                              Text("${ticketsData['message']}", style: const TextStyle(color: Colors.white, fontSize: 16)),
+                              Text("${ticketsData.message}", style: const TextStyle(color: Colors.white, fontSize: 16)),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -136,7 +162,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
                                 style: OutlinedButton.styleFrom(
                                   side: const BorderSide(color: Colors.white, width: 1),
                                 ),
-                                child: Text("${ticketsData['status']}", style: const TextStyle(color: Colors.green)),
+                                child: Text("${ticketsData.status}", style: const TextStyle(color: Colors.green)),
                               ),
                             ],
                           ),
@@ -158,7 +184,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
                                 onPressed: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (context) => const ChatHistoryScreen()),
+                                    MaterialPageRoute(builder: (context) => ChatHistoryScreen(mID: ticketsData.id,)),
                                   );
                                 },
                                 child: const Text('View', style: TextStyle(color: kPrimaryColor, fontSize: 16)),

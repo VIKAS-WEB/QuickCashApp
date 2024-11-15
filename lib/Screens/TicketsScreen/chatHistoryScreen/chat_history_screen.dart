@@ -10,7 +10,8 @@ class ChatMessage {
 }
 
 class ChatHistoryScreen extends StatefulWidget {
-  const ChatHistoryScreen({super.key});
+  final String? mID;
+  const ChatHistoryScreen({super.key,required this.mID});
 
   @override
   State<ChatHistoryScreen> createState() => _ChatHistoryScreen();

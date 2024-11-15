@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../constants.dart';
+import '../../../constants.dart';
 
 class CreateTicketScreen extends StatelessWidget {
   final TextEditingController subjectController = TextEditingController();
