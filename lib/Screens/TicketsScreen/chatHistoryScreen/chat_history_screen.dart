@@ -88,6 +88,20 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
     }
   }
 
+  void _sendMessage() {
+    if (_controller.text.isNotEmpty) {
+      setState(() {
+        messages.add(
+          ChatMessage(
+            from: "User", // Assuming message is from User1
+            message: _controller.text,
+          ),
+        );
+        _controller.clear(); // Clear the input field after sending
+      });
+    }
+  }
+
   String formatDate(String dateString) {
     try {
       DateTime dateTime = DateTime.parse(dateString);
@@ -218,7 +232,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
                 FloatingActionButton(
                   onPressed: () {
                     // Add message sending logic here
-                    // _sendMessage()
+                     _sendMessage();
                   },
                   backgroundColor: kPrimaryColor,
                   child: const Icon(Icons.send, color: kWhiteColor),
