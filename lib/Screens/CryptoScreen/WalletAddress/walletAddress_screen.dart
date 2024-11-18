@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:quickcash/Screens/CryptoScreen/WalletAddress/model/walletAddressApi.dart';
 import 'package:quickcash/Screens/CryptoScreen/WalletAddress/model/walletAddressModel.dart';
 import 'package:quickcash/constants.dart';
@@ -14,11 +15,6 @@ class _WalletAddressScreenState extends State<WalletAddressScreen> {
   final WalletAddressApi _walletAddressApi = WalletAddressApi();
   List<WalletAddressListsData> walletAddressList = [];
 
-/*
-  final List<String> walletTypes = ["ADA", "BTC", "ETH", "LTC"];
-  final List<String> walletBalances = ["0", "0.99988454", "1.154665", "0.999880000"]; // Example balances
-*/
-
   bool isLoading = false;
   String? errorMessage;
 
@@ -28,36 +24,33 @@ class _WalletAddressScreenState extends State<WalletAddressScreen> {
     mWalletAddress();
   }
 
-  Future<void> mWalletAddress() async{
+  Future<void> mWalletAddress() async {
     setState(() {
       isLoading = true;
       errorMessage = null;
     });
 
-    try{
+    try {
       final response = await _walletAddressApi.walletAddressApi();
 
-      if(response.walletAddressList !=null && response.walletAddressList!.isNotEmpty){
+      if (response.walletAddressList != null && response.walletAddressList!.isNotEmpty) {
         setState(() {
           walletAddressList = response.walletAddressList!;
           isLoading = false;
         });
-      }else{
+      } else {
         setState(() {
           isLoading = false;
           errorMessage = 'No Wallet Address';
         });
       }
-
-    }catch (error) {
+    } catch (error) {
       setState(() {
         isLoading = false;
         errorMessage = error.toString();
       });
     }
-
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -70,10 +63,9 @@ class _WalletAddressScreenState extends State<WalletAddressScreen> {
           style: TextStyle(color: Colors.white),
         ),
       ),
-      body:isLoading
-          ? const Center(
-        child: CircularProgressIndicator(), // Show loading indicator
-      ) : Padding(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator()) // Show loading indicator
+          : Padding(
         padding: const EdgeInsets.all(defaultPadding),
         child: ListView.builder(
           shrinkWrap: true,
@@ -92,14 +84,13 @@ class _WalletAddressScreenState extends State<WalletAddressScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          walletData.coin!.split('_')[0],  // Split by underscore and show the first part
+                          walletData.coin!.split('_')[0], // Split by underscore and show the first part
                           style: const TextStyle(
                             color: kPrimaryColor,
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
                           ),
                         ),
-
                         // Show image corresponding to the coin
                         ClipOval(
                           child: Image.network(
@@ -109,7 +100,6 @@ class _WalletAddressScreenState extends State<WalletAddressScreen> {
                             fit: BoxFit.cover, // Ensure the image fills the circle
                           ),
                         )
-
                       ],
                     ),
                     const SizedBox(height: 10),
@@ -121,37 +111,156 @@ class _WalletAddressScreenState extends State<WalletAddressScreen> {
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
-                            color: kPurpleColor
+                            color: kPurpleColor,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: smallPadding,),
-                    SizedBox(height: 40,width: 150,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: kPrimaryColor, // Change this to any color you prefer
+                    const SizedBox(height: smallPadding),
+                    SizedBox(
+                      height: 40,
+                      width: 150,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          mAddCardBottomSheet(
+                              context, walletData.walletAddress!, walletData.coin!.split('_')[0]);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kPrimaryColor, // Change this to any color you prefer
+                        ),
+                        child: const Text(
+                          'View Address',
+                          style: TextStyle(fontSize: 15),
+                        ),
                       ),
-                      child: const Text('View Address',style: TextStyle(fontSize: 15),),
                     ),
-                    ),
-                    /*OutlinedButton(
-                      onPressed: () {},
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: kPurpleColor, width: 1),
-                      ),
-                      child: const Text("View Address",
-                        style: TextStyle(color: kPurpleColor),
-                      ),
-                    ),*/
                   ],
                 ),
               ),
             );
           },
-        )
-        ,
+        ),
+      ),
+    );
+  }
+
+  void mAddCardBottomSheet(BuildContext context, String walletAddress, String coinName) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return WalletAddressBottomSheet(
+          mWalletAddress: walletAddress,
+          coinName: coinName,
+          onWalletAddressAdded: mWalletAddress,
+        );
+      },
+    );
+  }
+}
+
+class WalletAddressBottomSheet extends StatefulWidget {
+  final VoidCallback onWalletAddressAdded;
+  final String mWalletAddress;
+  final String coinName;
+
+  const WalletAddressBottomSheet({
+    super.key,
+    required this.onWalletAddressAdded,
+    required this.mWalletAddress,
+    required this.coinName,
+  });
+
+  @override
+  State<WalletAddressBottomSheet> createState() => _WalletAddressBottomSheetState();
+}
+
+class _WalletAddressBottomSheetState extends State<WalletAddressBottomSheet> {
+  final TextEditingController walledAddress = TextEditingController();
+  String? mCoinName;
+
+  @override
+  void initState() {
+    super.initState();
+    // Set the wallet address passed from the parent widget
+    walledAddress.text = widget.mWalletAddress;
+    mCoinName = widget.coinName;
+  }
+
+  void _copyWalletAddress() {
+    Clipboard.setData(ClipboardData(text: walledAddress.text)).then((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Wallet Address link copied to clipboard!')),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(defaultPadding),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Wallet Address',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: kPrimaryColor,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: kPrimaryColor),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Wallet Address for $mCoinName',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPurpleColor),
+            ),
+            const SizedBox(height: 20),
+            // Referral Link
+            const SizedBox(height: 20),
+            TextFormField(
+              controller: walledAddress,
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.none,
+              cursorColor: kPrimaryColor,
+              onSaved: (value) {},
+              readOnly: true,
+              maxLines: 12,
+              minLines: 1,
+              style: const TextStyle(color: kPrimaryColor),
+              decoration: InputDecoration(
+                labelText: "Wallet Address",
+                labelStyle: const TextStyle(color: kPrimaryColor),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(),
+                ),
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                IconButton(
+                  icon: const Icon(Icons.copy, color: kPrimaryColor),
+                  onPressed: _copyWalletAddress, // Call the copy function
+                ),
+              ],
+            ),
+            const SizedBox(height: 45),
+          ],
+        ),
       ),
     );
   }
