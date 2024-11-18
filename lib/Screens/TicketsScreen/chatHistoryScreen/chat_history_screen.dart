@@ -76,7 +76,6 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
       final response = await _chatHistoryApi.chatHistoryApi(widget.mID);
 
       if (response.chatDetails != null && response.chatDetails!.isNotEmpty) {
-        // Flattening the chat history from the response
         List<ChatMessage> tempMessages = [];
         for (var chatDetail in response.chatDetails!) {
           if (chatDetail.chat != null && chatDetail.chat!.isNotEmpty) {
@@ -141,7 +140,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
         sendTicketReply();
         /*messages.add(
           ChatMessage(
-            from: "User", // Assuming message is from User1
+            from: "User", // Assuming message is from User
             message: _controller.text,
           ),
         );*/
@@ -154,7 +153,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
       DateTime dateTime = DateTime.parse(dateString);
       return DateFormat('h:mm a - dd/MM/yyyy').format(dateTime);
     } catch (e) {
-      return dateString; // Return the raw string if formatting fails
+      return dateString;
     }
   }
 
@@ -197,12 +196,12 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
                       children: [
                         if (isAdminMessage) ...[
                           CircleAvatar(
-                            radius: 20, // Size of the circle
-                            backgroundColor: kPurpleColor, // Background color of the circle
+                            radius: 20,
+                            backgroundColor: kPurpleColor,
                             child: Text(
-                              (message.from?.isNotEmpty ?? false) ? message.from![0] : 'N/A', // Display the currency code
+                              (message.from?.isNotEmpty ?? false) ? message.from![0] : 'N/A',
                               style: const TextStyle(
-                                fontSize: 14, // Font size of the currency code
+                                fontSize: 14,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white, // Text color
                               ),
@@ -231,7 +230,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
                           const SizedBox(width: 10),
                           CircleAvatar(
                             radius: 20, // Size of the circle
-                            backgroundColor: kGreeneColor, // Background color of the circle
+                            backgroundColor: kGreeneColor,
                             child: Text(
                               (message.from?.isNotEmpty ?? false) ? message.from![0] : 'N/A', // Display the first letter
                               style: const TextStyle(
@@ -278,7 +277,6 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
                 const SizedBox(width: 10),
                 FloatingActionButton(
                   onPressed: () {
-                    // Add message sending logic here
                      _sendMessage();
                   },
                   backgroundColor: kPrimaryColor,
