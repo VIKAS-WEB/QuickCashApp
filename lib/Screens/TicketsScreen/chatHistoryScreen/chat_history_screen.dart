@@ -1,15 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:quickcash/constants.dart';
+import 'package:intl/intl.dart'; // For date formatting
+import 'package:quickcash/constants.dart'; // Replace with your constants import
 
 import 'model/chatHistoryApi.dart';
-import 'model/chatHistoryModel.dart';
 
 class ChatMessage {
-  final String user;
-  final String message;
-  final DateTime timestamp;
+  final String? from;
+  final String? to;
+  final String? message;
+  final String? createdAt;
+  final String? user;
 
-  ChatMessage({required this.user, required this.message, required this.timestamp});
+  ChatMessage({
+    this.from,
+    this.to,
+    this.message,
+    this.createdAt,
+    this.user,
+  });
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    return ChatMessage(
+      from: json['from']?.toString(),
+      to: json['to']?.toString(),
+      message: json['message']?.toString(),
+      createdAt: json['createdAt']?.toString(),
+      user: json['user']?.toString(),
+    );
+  }
 }
 
 class ChatHistoryScreen extends StatefulWidget {
@@ -17,22 +35,12 @@ class ChatHistoryScreen extends StatefulWidget {
   const ChatHistoryScreen({super.key, required this.mID});
 
   @override
-  State<ChatHistoryScreen> createState() => _ChatHistoryScreen();
+  State<ChatHistoryScreen> createState() => _ChatHistoryScreenState();
 }
 
-class _ChatHistoryScreen extends State<ChatHistoryScreen> {
-  final List<ChatMessage> messages = [
-    ChatMessage(user: "User1", message: "Hello!", timestamp: DateTime.now().subtract(const Duration(minutes: 10))),
-    ChatMessage(user: "User2", message: "Hi there!", timestamp: DateTime.now().subtract(const Duration(minutes: 5))),
-  ];
-
-  final Map<String, String> userImages = {
-    "User1": "assets/images/profile_pic.png",
-    "User2": "assets/images/profile_pic.png",
-  };
-
+class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
   final ChatHistoryApi _chatHistoryApi = ChatHistoryApi();
-  List<ChatDetail> chatMessages = [];
+  List<ChatMessage> messages = [];
   bool isLoading = false;
   String? errorMessage;
 
@@ -54,8 +62,16 @@ class _ChatHistoryScreen extends State<ChatHistoryScreen> {
       final response = await _chatHistoryApi.chatHistoryApi(widget.mID);
 
       if (response.chatDetails != null && response.chatDetails!.isNotEmpty) {
+        // Flattening the chat history from the response
+        List<ChatMessage> tempMessages = [];
+        for (var chatDetail in response.chatDetails!) {
+          if (chatDetail.chat != null && chatDetail.chat!.isNotEmpty) {
+            tempMessages.addAll(chatDetail.chat!);
+          }
+        }
+
         setState(() {
-          chatMessages = response.chatDetails!;
+          messages = tempMessages;
           isLoading = false;
         });
       } else {
@@ -72,18 +88,12 @@ class _ChatHistoryScreen extends State<ChatHistoryScreen> {
     }
   }
 
-  void _sendMessage() {
-    if (_controller.text.isNotEmpty) {
-      setState(() {
-        messages.add(
-          ChatMessage(
-            user: "User1", // Assuming message is from User1
-            message: _controller.text,
-            timestamp: DateTime.now(),
-          ),
-        );
-        _controller.clear(); // Clear the input field after sending
-      });
+  String formatDate(String dateString) {
+    try {
+      DateTime dateTime = DateTime.parse(dateString);
+      return DateFormat('h:mm a - dd/MM/yyyy').format(dateTime);
+    } catch (e) {
+      return dateString; // Return the raw string if formatting fails
     }
   }
 
@@ -98,50 +108,78 @@ class _ChatHistoryScreen extends State<ChatHistoryScreen> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : errorMessage != null
+                ? Center(child: Text(errorMessage!))
+                : ListView.builder(
               itemCount: messages.length,
               itemBuilder: (context, index) {
                 final message = messages[index];
+                bool isAdminMessage = message.from == "Admin";
                 return Align(
-                  alignment: message.user == "User1" ? Alignment.centerLeft : Alignment.centerRight,
+                  alignment: isAdminMessage
+                      ? Alignment.centerLeft
+                      : Alignment.centerRight,
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: message.user == "User1" ? Colors.blue[100] : Colors.green[100],
+                      color: isAdminMessage
+                          ? Colors.blue[100]
+                          : Colors.green[100],
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (message.user == "User1") ...[
+                        if (isAdminMessage) ...[
                           CircleAvatar(
-                            backgroundImage: AssetImage(userImages[message.user]!),
-                            radius: 20,
+                            radius: 20, // Size of the circle
+                            backgroundColor: kPurpleColor, // Background color of the circle
+                            child: Text(
+                              (message.from?.isNotEmpty ?? false) ? message.from![0] : 'N/A', // Display the currency code
+                              style: const TextStyle(
+                                fontSize: 14, // Font size of the currency code
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white, // Text color
+                              ),
+                            ),
                           ),
                           const SizedBox(width: 10),
                         ],
                         Expanded(
                           child: Column(
-                            crossAxisAlignment: message.user == "User1" ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+                            crossAxisAlignment: isAdminMessage
+                                ? CrossAxisAlignment.start
+                                : CrossAxisAlignment.end,
                             children: [
                               Text(
-                                message.message,
+                                message.message ?? "",
                                 style: const TextStyle(fontSize: 16),
                               ),
                               Text(
-                                '${message.timestamp.hour}:${message.timestamp.minute < 10 ? '0' : ''}${message.timestamp.minute}',
+                                formatDate(message.createdAt ?? ""),
                                 style: const TextStyle(fontSize: 10, color: Colors.grey),
                               ),
                             ],
                           ),
                         ),
-                        if (message.user == "User2") ...[
+                        if (!isAdminMessage) ...[
                           const SizedBox(width: 10),
                           CircleAvatar(
-                            backgroundImage: AssetImage(userImages[message.user]!),
-                            radius: 20,
+                            radius: 20, // Size of the circle
+                            backgroundColor: kGreeneColor, // Background color of the circle
+                            child: Text(
+                              (message.from?.isNotEmpty ?? false) ? message.from![0] : 'N/A', // Display the first letter
+                              style: const TextStyle(
+                                fontSize: 14, // Font size of the currency code
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white, // Text color
+                              ),
+                            )
+
                           ),
                         ],
                       ],
@@ -161,8 +199,6 @@ class _ChatHistoryScreen extends State<ChatHistoryScreen> {
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.none,
                     cursorColor: kPrimaryColor,
-                    onSaved: (value){
-                    },
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(defaultPadding),
@@ -179,18 +215,21 @@ class _ChatHistoryScreen extends State<ChatHistoryScreen> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                // Right side: Send button
                 FloatingActionButton(
-                  onPressed: _sendMessage,
+                  onPressed: () {
+                    // Add message sending logic here
+                    // _sendMessage()
+                  },
                   backgroundColor: kPrimaryColor,
-                  child: const Icon(Icons.send,color: kWhiteColor,),
+                  child: const Icon(Icons.send, color: kWhiteColor),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: defaultPadding,),
         ],
       ),
     );
   }
 }
+
+
