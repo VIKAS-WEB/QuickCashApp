@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:quickcash/Screens/CryptoScreen/WalletAddress/addNewCoinModel/addNewCoinApi.dart';
+import 'package:quickcash/Screens/CryptoScreen/WalletAddress/addNewCoinModel/addNewCoinModel.dart';
 import 'package:quickcash/Screens/CryptoScreen/WalletAddress/model/walletAddressApi.dart';
 import 'package:quickcash/Screens/CryptoScreen/WalletAddress/model/walletAddressModel.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/util/auth_manager.dart';
+import 'package:quickcash/util/customSnackBar.dart';
 
 class WalletAddressScreen extends StatefulWidget {
   const WalletAddressScreen({super.key});
@@ -139,7 +143,7 @@ class _WalletAddressScreenState extends State<WalletAddressScreen> {
                                ),
                              ],
                            ),
-                           const SizedBox(height: smallPadding),
+                           const SizedBox(height: defaultPadding),
                            SizedBox(
                              height: 40,
                              width: 150,
@@ -204,10 +208,57 @@ class AddNewCoinBottomSheet extends StatefulWidget {
 }
 
 class _AddNewCoinBottomSheet extends State<AddNewCoinBottomSheet>{
+  final AddNewCoinApi _addNewCoinApi = AddNewCoinApi();
+
   String? selectedTransferType;
 
   bool isLoading = false;
   String? errorMessage;
+  String? coinName;
+
+
+  Future<void> mAddNewCoin() async{
+    if (selectedTransferType !=null){
+      setState(() {
+        isLoading = true;
+        errorMessage = null;
+      });
+    }
+
+    try{
+      coinName = '${selectedTransferType}_TEST';
+
+      final request = AddNewCoinRequest(coinName: coinName!, userEmail: AuthManager.getUserEmail(), status: "pending", userId: AuthManager.getUserId());
+
+      final response = await _addNewCoinApi.addNewCoin(request);
+
+      if(response.message == "Wallet Address data is added !!!"){
+        setState(() {
+          CustomSnackBar.showSnackBar(context: context, message: 'Wallet Address Added Successfully!', color: kGreeneColor);
+
+          Navigator.pop(context);
+          isLoading = false;
+        });
+      }else{
+        setState(() {
+          CustomSnackBar.showSnackBar(context: context, message: 'We are facing some issue', color: kRedColor);
+
+          //Navigator.pop(context);
+          isLoading = false;
+        });
+      }
+
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+
+  }
+
+
 
   void _showTransferTypeDropDown(BuildContext context) {
     showModalBottomSheet(
@@ -337,7 +388,7 @@ class _AddNewCoinBottomSheet extends State<AddNewCoinBottomSheet>{
          Padding(
            padding: const EdgeInsets.symmetric(horizontal: 55),
            child: ElevatedButton(
-             onPressed: (){},
+             onPressed: isLoading ? null : mAddNewCoin,
              child: const Text('Submit', style: TextStyle(color: Colors.white, fontSize: 16)),
            ),
          ),
