@@ -55,19 +55,25 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
   @override
   void initState() {
     super.initState();
-    mChatHistory();
+    mChatHistory("No");
   }
 
-  Future<void> mChatHistory() async {
+  Future<void> mChatHistory(String s) async {
     setState(() {
-      isLoading = true;
-      errorMessage = null;
+
+      if(s == "No"){
+        isLoading = true;
+        errorMessage = null;
+      }else{
+        isLoading = false;
+        errorMessage = null;
+      }
+
+
     });
 
     try {
       final response = await _chatHistoryApi.chatHistoryApi(widget.mID);
-
-      print(widget.mID);
 
       if (response.chatDetails != null && response.chatDetails!.isNotEmpty) {
         // Flattening the chat history from the response
@@ -97,7 +103,6 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
   }
 
   Future<void> sendTicketReply() async {
-
     File? attachmentFile;
 
     try{
@@ -112,7 +117,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
 
       if(response.message == "Success"){
         setState(() {
-          mChatHistory();
+          mChatHistory("Yes");
           _controller.clear();
         });
       }else{
@@ -122,24 +127,18 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
           );
         });
       }
-
-
     }catch (error) {
       setState(() {
         isLoading = false;
         errorMessage = error.toString();
       });
     }
-
-
   }
 
   void _sendMessage() {
     if (_controller.text.isNotEmpty) {
       setState(() {
-
         sendTicketReply();
-
         /*messages.add(
           ChatMessage(
             from: "User", // Assuming message is from User1
