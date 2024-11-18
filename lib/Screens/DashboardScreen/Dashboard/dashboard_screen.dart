@@ -16,6 +16,7 @@ import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:quickcash/util/auth_manager.dart';
 
+import '../../LoginScreen/login_screen.dart';
 import 'RevenueList/revenueListApi.dart';
 import 'TransactionList/transactionListModel.dart';
 
@@ -77,6 +78,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       setState(() {
         isLoading = false;
         errorMessage = error.toString();
+
+        mTokenExpireDialog();
       });
     }
   }
@@ -192,6 +195,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
     DateTime date = DateTime.parse(dateTime);
     return DateFormat('yyyy-MM-dd').format(date);
   }
+
+
+  Future<bool> mTokenExpireDialog() async {
+    return (await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: kPrimaryColor,
+      builder: (context) => AlertDialog(
+        title: const Text("Login Again"),
+        content: const Text("Token has been expired, Please Login Again!"),
+        actions: <Widget>[
+          /*TextButton(
+            onPressed: () => Navigator.of(context).pop(false), // No, return false
+            child: const Text("No"),
+          ),*/
+          TextButton(
+            onPressed: () async {
+              // Log the user out
+              AuthManager.logout();  // Make sure to call logout function here
+              // Pop the dialog and return true (indicating a successful logout)
+              Navigator.of(context).pop(true);
+              // Navigate to the login screen
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()), // replace HomeScreen with your actual home screen
+              );
+            },
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    )) ?? false; // In case of dialog dismiss, return false
+  }
+
+
 
   @override
   Widget build(BuildContext context) {

@@ -178,33 +178,13 @@ class _ChatHistoryScreen extends State<ChatHistoryScreen> {
                     minLines: 1,
                   ),
                 ),
-                /*Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: InputDecoration(
-                      hintText: 'Type a message...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(defaultPadding),
-                        borderSide: const BorderSide(color: kPrimaryColor),
-                      ),
-                      filled: true,
-                      fillColor: Colors.transparent,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    ),
-                    maxLines: 4,
-                    minLines: 1,
-                  ),
-                ),*/
                 const SizedBox(width: 10),
                 // Right side: Send button
                 FloatingActionButton(
                   onPressed: _sendMessage,
-                  child: const Icon(Icons.send,color: kPrimaryColor,),
+                  backgroundColor: kPrimaryColor,
+                  child: const Icon(Icons.send,color: kWhiteColor,),
                 ),
-               /* IconButton(
-                  icon: const Icon(Icons.send,color: kPrimaryColor,),
-                  onPressed: _sendMessage,
-                ),*/
               ],
             ),
           ),
