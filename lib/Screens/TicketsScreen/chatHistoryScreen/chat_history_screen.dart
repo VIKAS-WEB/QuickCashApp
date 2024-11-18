@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // For date formatting
+import 'package:quickcash/Screens/TicketsScreen/chatHistoryScreen/replyModel/chatReplyApi.dart';
 import 'package:quickcash/constants.dart'; // Replace with your constants import
+import 'package:quickcash/util/auth_manager.dart';
 
 import 'model/chatHistoryApi.dart';
 
@@ -39,6 +43,8 @@ class ChatHistoryScreen extends StatefulWidget {
 }
 
 class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
+  final ChatReplyApi _chatReplyApi = ChatReplyApi();
+
   final ChatHistoryApi _chatHistoryApi = ChatHistoryApi();
   List<ChatMessage> messages = [];
   bool isLoading = false;
@@ -60,6 +66,8 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
 
     try {
       final response = await _chatHistoryApi.chatHistoryApi(widget.mID);
+
+      print(widget.mID);
 
       if (response.chatDetails != null && response.chatDetails!.isNotEmpty) {
         // Flattening the chat history from the response
@@ -88,16 +96,56 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
     }
   }
 
+  Future<void> sendTicketReply() async {
+
+    File? attachmentFile;
+
+    try{
+      final response = await _chatReplyApi.replyTicket(
+        support: widget.mID!,
+        user: AuthManager.getUserId(),
+        message: _controller.text,
+        from: 'User',
+        to: 'Admin',
+        // attachment: attachmentFile,
+      );
+
+      if(response.message == "Success"){
+        setState(() {
+          mChatHistory();
+          _controller.clear();
+        });
+      }else{
+        setState(() {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(response.message ?? 'We are facing some issue!')),
+          );
+        });
+      }
+
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+
+
+  }
+
   void _sendMessage() {
     if (_controller.text.isNotEmpty) {
       setState(() {
-        messages.add(
+
+        sendTicketReply();
+
+        /*messages.add(
           ChatMessage(
             from: "User", // Assuming message is from User1
             message: _controller.text,
           ),
-        );
-        _controller.clear(); // Clear the input field after sending
+        );*/
       });
     }
   }
