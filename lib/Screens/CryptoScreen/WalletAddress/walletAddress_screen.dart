@@ -65,86 +65,113 @@ class _WalletAddressScreenState extends State<WalletAddressScreen> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator()) // Show loading indicator
-          : Padding(
-        padding: const EdgeInsets.all(defaultPadding),
-        child: ListView.builder(
-          shrinkWrap: true,
-          itemCount: walletAddressList.length,
-          itemBuilder: (context, index) {
-            final walletData = walletAddressList[index];
-            return Card(
-              elevation: 4.0,
-              color: Colors.white,
-              margin: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Padding(
-                padding: const EdgeInsets.all(defaultPadding),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          walletData.coin!.split('_')[0], // Split by underscore and show the first part
-                          style: const TextStyle(
-                            color: kPrimaryColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        // Show image corresponding to the coin
-                        ClipOval(
-                          child: Image.network(
-                            _getImageForCoin(walletData.coin!.split('_')[0]),
-                            width: 40,
-                            height: 40,
-                            fit: BoxFit.cover, // Ensure the image fills the circle
-                          ),
-                        )
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text(
-                          walletData.noOfCoins!,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                            color: kPurpleColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: smallPadding),
-                    SizedBox(
-                      height: 40,
-                      width: 150,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          mAddCardBottomSheet(
-                              context, walletData.walletAddress!, walletData.coin!.split('_')[0]);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: kPrimaryColor, // Change this to any color you prefer
-                        ),
-                        child: const Text(
-                          'View Address',
-                          style: TextStyle(fontSize: 15),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
+          : SingleChildScrollView(
+         child: Padding(padding: const EdgeInsets.all(defaultPadding),
+         child:
+           Column(
+             crossAxisAlignment: CrossAxisAlignment.end,
+             mainAxisAlignment: MainAxisAlignment.end,
+             children: <Widget>[
+               SizedBox(
+                 width: 180,
+                 height: 45,
+                 child: FloatingActionButton.extended(
+                   onPressed: () {
+                     mAddNewCoinBottomSheet(context);
+                   },
+                   label: const Text(
+                     'Add New Coin',
+                     style: TextStyle(color: Colors.white, fontSize: 15),
+                   ),
+                   icon: const Icon(Icons.add, color: Colors.white),
+                   backgroundColor: kPrimaryColor,
+                 ),
+               ),
+
+               const SizedBox(height: largePadding,),
+               ListView.builder(
+                 shrinkWrap: true,
+                 itemCount: walletAddressList.length,
+                 physics: const NeverScrollableScrollPhysics(),
+                 itemBuilder: (context, index) {
+                   final walletData = walletAddressList[index];
+                   return Card(
+                     elevation: 4.0,
+                     color: Colors.white,
+                     margin: const EdgeInsets.symmetric(vertical: 8.0),
+                     child: Padding(
+                       padding: const EdgeInsets.all(defaultPadding),
+                       child: Column(
+                         children: [
+                           Row(
+                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                             children: [
+                               Text(
+                                 walletData.coin!.split('_')[0], // Split by underscore and show the first part
+                                 style: const TextStyle(
+                                   color: kPrimaryColor,
+                                   fontWeight: FontWeight.bold,
+                                   fontSize: 18,
+                                 ),
+                               ),
+                               // Show image corresponding to the coin
+                               ClipOval(
+                                 child: Image.network(
+                                   _getImageForCoin(walletData.coin!.split('_')[0]),
+                                   width: 40,
+                                   height: 40,
+                                   fit: BoxFit.cover, // Ensure the image fills the circle
+                                 ),
+                               )
+                             ],
+                           ),
+                           const SizedBox(height: 10),
+                           Row(
+                             mainAxisAlignment: MainAxisAlignment.start,
+                             children: [
+                               Text(
+                                 walletData.noOfCoins!,
+                                 style: const TextStyle(
+                                   fontWeight: FontWeight.bold,
+                                   fontSize: 18,
+                                   color: kPurpleColor,
+                                 ),
+                               ),
+                             ],
+                           ),
+                           const SizedBox(height: smallPadding),
+                           SizedBox(
+                             height: 40,
+                             width: 150,
+                             child: ElevatedButton(
+                               onPressed: () {
+                                 mWalletAddressBottomSheet(
+                                     context, walletData.walletAddress!, walletData.coin!.split('_')[0]);
+                               },
+                               style: ElevatedButton.styleFrom(
+                                 backgroundColor: kPrimaryColor, // Change this to any color you prefer
+                               ),
+                               child: const Text(
+                                 'View Address',
+                                 style: TextStyle(fontSize: 15),
+                               ),
+                             ),
+                           ),
+                         ],
+                       ),
+                     ),
+                   );
+                 },
+               ),
+
+             ],
+           ),
+         ),
       ),
     );
   }
 
-  void mAddCardBottomSheet(BuildContext context, String walletAddress, String coinName) {
+  void mWalletAddressBottomSheet(BuildContext context, String walletAddress, String coinName) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -156,6 +183,168 @@ class _WalletAddressScreenState extends State<WalletAddressScreen> {
         );
       },
     );
+  }
+
+  void mAddNewCoinBottomSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+        context: context,
+        builder: (BuildContext context) {
+          return AddNewCoinBottomSheet(onAddNewCoin: mWalletAddress);
+        });
+  }
+}
+
+
+class AddNewCoinBottomSheet extends StatefulWidget {
+  final VoidCallback onAddNewCoin;
+  const AddNewCoinBottomSheet({super.key, required this.onAddNewCoin});
+
+  @override
+  State<AddNewCoinBottomSheet> createState() => _AddNewCoinBottomSheet();
+}
+
+class _AddNewCoinBottomSheet extends State<AddNewCoinBottomSheet>{
+  String? selectedTransferType;
+
+  bool isLoading = false;
+  String? errorMessage;
+
+  void _showTransferTypeDropDown(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return ListView(
+          children: [
+            const SizedBox(height: 25),
+            _buildTransferOptions('BCH', 'https://assets.coincap.io/assets/icons/bch@2x.png'),
+            _buildTransferOptions('BTC', 'https://assets.coincap.io/assets/icons/btc@2x.png'),
+            _buildTransferOptions('BNB', 'https://assets.coincap.io/assets/icons/bnb@2x.png'),
+            _buildTransferOptions('ADA', 'https://assets.coincap.io/assets/icons/ada@2x.png'),
+            _buildTransferOptions('SOL', 'https://assets.coincap.io/assets/icons/sol@2x.png'),
+            _buildTransferOptions('DOGE', 'https://assets.coincap.io/assets/icons/doge@2x.png'),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildTransferOptions(String type, String logoPath) {
+    return ListTile(
+      title: Row(
+        children: [
+          ClipOval(child: Image.network(logoPath, height: 30),),
+
+          const SizedBox(width: defaultPadding),
+          Text(type,style: const TextStyle(color: kPrimaryColor, fontSize: 15, fontWeight: FontWeight.bold),),
+        ],
+      ),
+      onTap: () {
+        setState(() {
+          selectedTransferType = type;
+        });
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context){
+     return Padding(padding: const EdgeInsets.all(defaultPadding),
+     child: Column(
+       children: [
+         const SizedBox(height: 0),
+         Row(
+           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+           children: [
+             const Text(
+               'Request Wallet Address',
+               style: TextStyle(
+                 fontSize: 18,
+                 fontWeight: FontWeight.bold,
+                 color: kPrimaryColor,
+               ),
+             ),
+             IconButton(
+               icon: const Icon(Icons.close, color: kPrimaryColor),
+               onPressed: () {
+                 Navigator.pop(context);
+               },
+             ),
+           ],
+         ),
+
+         const SizedBox(height: 25,),
+         GestureDetector(
+           onTap: () => _showTransferTypeDropDown(context),
+           child: Container(
+             width: double.infinity,
+             height: 60,
+             padding: const EdgeInsets.all(defaultPadding),
+             decoration: BoxDecoration(
+               color: Colors.white,
+               borderRadius: BorderRadius.circular(12),
+               boxShadow: [
+                 BoxShadow(
+                   color: Colors.black.withOpacity(0.1),
+                   blurRadius: 8,
+                   spreadRadius: 1,
+                   offset: const Offset(0, 4),
+                 ),
+               ],
+             ),
+             child: Row(
+               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+               children: [
+                 Row(
+                   children: [
+                     if (selectedTransferType != null)
+
+                       ClipOval(
+                         child: Image.network(
+
+                           _getImageForCoin(selectedTransferType!),
+                           height: 28,
+                           width: 28,
+                           errorBuilder: (context, error, stackTrace) {
+                             return const Icon(Icons.broken_image, color: Colors.red);
+                           },
+                         ),
+                       ),
+
+
+                     const SizedBox(width: 8.0),
+                     Text(
+                       selectedTransferType != null
+                           ? '$selectedTransferType'
+                           : 'Select Coin',
+                       style: const TextStyle(color: kPrimaryColor, fontSize: 15, fontWeight: FontWeight.bold),
+                     ),
+                   ],
+                 ),
+                 const Icon(Icons.arrow_drop_down, color: kPrimaryColor),
+               ],
+             ),
+           ),
+         ),
+
+         const SizedBox(height: 45),
+
+         const SizedBox(height: defaultPadding),
+         if (isLoading) const CircularProgressIndicator(color: kPrimaryColor,), // Show loading indicator
+         if (errorMessage != null) // Show error message if there's an error
+           Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+
+         Padding(
+           padding: const EdgeInsets.symmetric(horizontal: 55),
+           child: ElevatedButton(
+             onPressed: (){},
+             child: const Text('Submit', style: TextStyle(color: Colors.white, fontSize: 16)),
+           ),
+         ),
+         const SizedBox(height: 45),
+
+       ],
+     ),);
   }
 }
 
