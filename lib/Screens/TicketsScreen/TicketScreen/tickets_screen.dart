@@ -191,7 +191,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
                                 onPressed: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (context) => ChatHistoryScreen(mID: ticketsData.id,)),
+                                    MaterialPageRoute(builder: (context) => ChatHistoryScreen(mID: ticketsData.id,mChatStatus: ticketsData.status,)),
                                   );
                                 },
                                 child: const Text('View', style: TextStyle(color: kPrimaryColor, fontSize: 16)),

@@ -36,7 +36,8 @@ class ChatMessage {
 
 class ChatHistoryScreen extends StatefulWidget {
   final String? mID;
-  const ChatHistoryScreen({super.key, required this.mID});
+  final String? mChatStatus;
+  const ChatHistoryScreen({super.key, required this.mID, required this.mChatStatus});
 
   @override
   State<ChatHistoryScreen> createState() => _ChatHistoryScreenState();
@@ -49,6 +50,8 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
   List<ChatMessage> messages = [];
   bool isLoading = false;
   String? errorMessage;
+  String? chatStatus;
+
 
   final TextEditingController _controller = TextEditingController();
 
@@ -56,20 +59,18 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
   void initState() {
     super.initState();
     mChatHistory("No");
+    chatStatus = widget.mChatStatus;
   }
 
   Future<void> mChatHistory(String s) async {
     setState(() {
-
-      if(s == "No"){
+      if (s == "No") {
         isLoading = true;
         errorMessage = null;
-      }else{
+      } else {
         isLoading = false;
         errorMessage = null;
       }
-
-
     });
 
     try {
@@ -83,6 +84,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
           }
         }
 
+        // Assuming the status is part of the response, you can set it like this:
         setState(() {
           messages = tempMessages;
           isLoading = false;
@@ -100,6 +102,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
       });
     }
   }
+
 
   Future<void> sendTicketReply() async {
     File? attachmentFile;
@@ -251,7 +254,8 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Row(
+            child: chatStatus == "open"
+                ? Row(
               children: [
                 Expanded(
                   child: TextFormField(
@@ -277,13 +281,14 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
                 const SizedBox(width: 10),
                 FloatingActionButton(
                   onPressed: () {
-                     _sendMessage();
+                    _sendMessage();
                   },
                   backgroundColor: kPrimaryColor,
                   child: const Icon(Icons.send, color: kWhiteColor),
                 ),
               ],
-            ),
+            )
+                : const SizedBox(),  // Hide the input field and send button if status is not "Open"
           ),
         ],
       ),
