@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/AddProductScreen/add_product_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/model/productApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/model/productModel.dart';
+import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/productDetailsModel/productDetailsApi.dart';
 import 'package:quickcash/constants.dart';
 
 import '../UpdateProductScreen/edit_product_Screen.dart';
@@ -232,12 +233,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                 icon: const Icon(
                                   Icons.remove_red_eye, color: Colors.white,),
                                 onPressed: () {
-                                  mViewProduct(context);
-                                  /*Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const ViewProductScreen()),
-                                  );*/
-
+                                  mViewProduct(context,products.id!,products.categoryDetails!.first.name!);
                                 },
                               ),
                               IconButton(
@@ -302,31 +298,86 @@ class _ProductsScreenState extends State<ProductsScreen> {
   }
 
 
-  void mViewProduct(BuildContext context) {
+  void mViewProduct(BuildContext context, String id, String category) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return const ViewProduct(); // Use the new StatefulWidget
+        return ViewProduct(productId: id, mCategory: category);
       },
     );
   }
 }
 
 class ViewProduct extends StatefulWidget {
-  const ViewProduct({super.key});
+  final String productId;
+  final String mCategory;
+  const ViewProduct({super.key, required this.productId, required this.mCategory});
 
   @override
   State<ViewProduct>  createState() => _ViewProductState();
 }
 
 class _ViewProductState extends State<ViewProduct> {
+  final ProductDetailsApi _productDetailsApi = ProductDetailsApi();
+
+  final TextEditingController name = TextEditingController();
+  final TextEditingController productCode = TextEditingController();
+  final TextEditingController category = TextEditingController();
+  final TextEditingController unitPrice = TextEditingController();
+  final TextEditingController description = TextEditingController();
+  final TextEditingController lastUpdate = TextEditingController();
+
+  bool isLoading = false;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    mProductDetail();
+    super.initState();
+  }
+
+  Future<void> mProductDetail() async{
+    try{
+      final response = await _productDetailsApi.productDetailsApi(widget.productId);
+
+      name.text = response.productName ?? 'N/A';
+      productCode.text = response.productCode ?? 'N/A';
+      category.text = widget.mCategory;
+      unitPrice.text = (response.unitPrice ?? 0.0).toString();
+      description.text = response.description ?? 'N/A';
+      lastUpdate.text = formatDate(response.date);
+
+      setState(() {
+        isLoading = false;
+        errorMessage = null;
+      });
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
+  // Function to format the date
+  String formatDate(String? dateTime) {
+    if (dateTime == null) {
+      return 'Date not available';
+    }
+    DateTime date = DateTime.parse(dateTime);
+    return DateFormat('dd-MM-yyyy').format(date);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(defaultPadding),
-      child: SingleChildScrollView(
+      child: isLoading ? const Center(
+        child: CircularProgressIndicator(
+          color: kPrimaryColor,
+        ),
+      ) : SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -352,6 +403,7 @@ class _ViewProductState extends State<ViewProduct> {
             const SizedBox(height: 20),
 
             TextFormField(
+              controller: name,
               keyboardType: TextInputType.text,
               textInputAction: TextInputAction.next,
               cursorColor: kPrimaryColor,
@@ -373,6 +425,7 @@ class _ViewProductState extends State<ViewProduct> {
 
             const SizedBox(height: defaultPadding),
             TextFormField(
+              controller: productCode,
               keyboardType: TextInputType.text,
               textInputAction: TextInputAction.next,
               cursorColor: kPrimaryColor,
@@ -394,6 +447,7 @@ class _ViewProductState extends State<ViewProduct> {
 
             const SizedBox(height: defaultPadding),
             TextFormField(
+              controller: category,
               keyboardType: TextInputType.text,
               textInputAction: TextInputAction.next,
               cursorColor: kPrimaryColor,
@@ -415,6 +469,7 @@ class _ViewProductState extends State<ViewProduct> {
 
             const SizedBox(height: defaultPadding),
             TextFormField(
+              controller: unitPrice,
               keyboardType: TextInputType.text,
               textInputAction: TextInputAction.next,
               cursorColor: kPrimaryColor,
@@ -436,13 +491,14 @@ class _ViewProductState extends State<ViewProduct> {
 
             const SizedBox(height: defaultPadding),
             TextFormField(
+              controller: description,
               keyboardType: TextInputType.text,
               textInputAction: TextInputAction.next,
               cursorColor: kPrimaryColor,
               onSaved: (value) {},
               readOnly: true,
-              maxLines: 12,
-              minLines: 6,
+              maxLines: 4,
+              minLines: 1,
               style: const TextStyle(color: kPrimaryColor),
               decoration: InputDecoration(
                 labelText: "Description",
@@ -452,6 +508,28 @@ class _ViewProductState extends State<ViewProduct> {
                     borderSide: const BorderSide()
                 ),
                 floatingLabelBehavior: FloatingLabelBehavior.always,
+                filled: true,
+                fillColor: Colors.transparent,
+              ),
+            ),
+
+            const SizedBox(height: defaultPadding),
+            TextFormField(
+              controller: lastUpdate,
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.next,
+              cursorColor: kPrimaryColor,
+              onSaved: (value) {},
+              readOnly: true,
+              style: const TextStyle(color: kPrimaryColor),
+
+              decoration: InputDecoration(
+                labelText: "Last Update",
+                labelStyle: const TextStyle(color: kPrimaryColor),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide()
+                ),
                 filled: true,
                 fillColor: Colors.transparent,
               ),

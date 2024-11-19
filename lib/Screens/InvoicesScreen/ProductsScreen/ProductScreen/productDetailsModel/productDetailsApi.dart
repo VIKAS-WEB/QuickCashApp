@@ -1,15 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ClientsScreen/ViewClientsScreen/model/viewClientsModel.dart';
+import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/productDetailsModel/productDetailModel.dart';
 import 'package:quickcash/util/auth_manager.dart';
 
 import '../../../../../util/apiConstants.dart';
 
-class ViewClientsApi {
+class ProductDetailsApi {
   final Dio _dio = Dio();
 
-  ViewClientsApi() {
+  ProductDetailsApi() {
     _dio.options.baseUrl = ApiConstants.baseUrl;
-
 
     /*_dio.interceptors.add(LogInterceptor(
       request: true,
@@ -19,10 +19,10 @@ class ViewClientsApi {
     ));*/
   }
 
-  Future<ViewClientsResponse> viewClientsApi(String? clientsID) async {
+  Future<ProductDetailsResponse> productDetailsApi(String? productID) async {
     try {
       final response = await _dio.get(
-        '/client/$clientsID',
+        '/product/$productID',
         options: Options(headers: {
           'Authorization': 'Bearer ${AuthManager.getToken()}',
           'Accept': 'application/json',
@@ -30,7 +30,7 @@ class ViewClientsApi {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return ViewClientsResponse.fromJson(response.data);
+        return ProductDetailsResponse.fromJson(response.data);
       } else {
         throw Exception('Failed to fetch data: ${response.statusMessage}');
       }
