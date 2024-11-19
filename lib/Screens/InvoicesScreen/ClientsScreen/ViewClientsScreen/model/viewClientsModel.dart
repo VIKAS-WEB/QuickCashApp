@@ -5,6 +5,8 @@ class ViewClientsResponse {
   final String? email;
   final int? mobile;
   final String? country;
+  final String? state;
+  final String? city;
   final String? postalCode;
   final String? address;
   final String? notes;
@@ -17,6 +19,8 @@ class ViewClientsResponse {
     this.email,
     this.mobile,
     this.country,
+    this.state,
+    this.city,
     this.postalCode,
     this.address,
     this.notes,
@@ -31,17 +35,13 @@ class ViewClientsResponse {
       email: json['data']?['email'] as String?,
       mobile: json['data']?['mobile'] as int?,
       country: json['data']?['country'] as String?,
+      state: json['data']?['state'] as String?,
+      city: json['data']?['city'] as String?,
       postalCode: json['data']?['postalCode'] as String?,
       address: json['data']?['address'] as String?,
       notes: json['data']?['notes'] as String?,
       lastUpdate: json['data']?['updatedAt'] as String?,
       profilePhoto: json['data']?['profilePhoto'] as String?,
-
-
-
-      /*viewClientList: (json['data'] as List<dynamic>? )
-          ?.map((item) => ViewClientsData.fromJson(item as Map<String, dynamic>))
-          .toList(),*/
     );
   }
 }

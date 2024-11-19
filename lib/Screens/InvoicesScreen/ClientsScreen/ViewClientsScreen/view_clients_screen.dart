@@ -54,7 +54,7 @@ class _ViewClientsScreenState extends State<ViewClientsScreen> {
       country.text = response.country ?? 'N/A';
       postalCode.text = response.postalCode ?? 'N/A';
       address.text = response.address ?? 'N/A';
-      note.text = response.address ?? 'N/A';
+      note.text = response.notes ?? 'N/A';
       lastUpdate.text = formatDate(response.lastUpdate!);
 
       // Set the profile image URL dynamically
