@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ClientsScreen/AddClientsFormScreen/add_clients_form_screen.dart';
+import 'package:quickcash/Screens/InvoicesScreen/ClientsScreen/ClientsScreen/model/clientsApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/ClientsScreen/ClientsScreen/model/clientsModel.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ClientsScreen/EditClientsFormScreen/edit_clients_form_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ClientsScreen/ViewClientsScreen/view_clients_screen.dart';
 import 'package:quickcash/constants.dart';
@@ -13,18 +16,60 @@ class ClientsScreen extends StatefulWidget {
 
 class _ClientsScreenState extends State<ClientsScreen> {
 
-  final List<Map<String, String>> clientsList = [
-    {
-      'createdDate': '2024-10-20',
-      'clientName': 'Ganesh',
-    },
-    {
-      'createdDate': '2024-10-22',
-      'clientName': 'Ganesh Kumar',
-    },
-    // You can add more card entries here
-  ];
+  final ClientsApi _clientsApi = ClientsApi();
+  List<ClientsData> clientsData = [];
 
+  bool isLoading = false;
+  String? errorMessage;
+
+
+  @override
+  @override
+  void initState() {
+    super.initState();
+    mClientsApi();
+  }
+
+
+  Future<void> mClientsApi() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+    
+    try{
+      final response = await _clientsApi.clientsApi();
+      
+      if(response.clientsList !=null && response.clientsList!.isNotEmpty){
+        setState(() {
+          clientsData = response.clientsList!;
+          isLoading = false;
+        });
+      }else {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Clients List';
+        });
+      }
+      
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+
+  }
+
+  // Function to format the date
+  String formatDate(String? dateTime) {
+    if (dateTime == null) {
+      return 'Date not available';
+    }
+    DateTime date = DateTime.parse(dateTime);
+    return DateFormat('yyyy-MM-dd').format(date);
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,7 +90,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
 
-                  Expanded(
+                  /*Expanded(
                       child: TextFormField(
                         keyboardType: TextInputType.text,
                         textInputAction: TextInputAction.next,
@@ -70,7 +115,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                           ),
                         ),
                       ),
-                  ),
+                  ),*/
 
                   const SizedBox(width: defaultPadding,),
 
@@ -88,12 +133,16 @@ class _ClientsScreenState extends State<ClientsScreen> {
 
               const SizedBox(height: largePadding,),
 
-              ListView.builder(
+              isLoading ? const Center(
+                child: CircularProgressIndicator(
+                  color: kPrimaryColor,
+                ),
+              ) : ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: clientsList.length,
+                itemCount: clientsData.length,
                 itemBuilder: (context, index) {
-                  final card = clientsList[index];
+                  final clientsList = clientsData[index];
                   return Padding(
                     padding: const EdgeInsets.only(bottom: defaultPadding), // Add spacing
                     child: Container(
@@ -118,7 +167,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text('Created Date:', style: TextStyle(color: Colors.white, fontSize: 16),),
-                              Text('${card['createdDate']}', style: const TextStyle(color: Colors.white, fontSize: 16),),
+                              Text(formatDate(clientsList.date), style: const TextStyle(color: Colors.white, fontSize: 16),),
                             ],
                           ),
 
@@ -130,7 +179,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text('Client Name:',style: TextStyle(color: Colors.white, fontSize: 16),),
-                              Text('${card['clientName']}',style: const TextStyle(color: Colors.white, fontSize: 16),),
+                              Text('${clientsList.firstName} ${clientsList.lastName}',style: const TextStyle(color: Colors.white, fontSize: 16),),
                             ],
                           ),
 
@@ -149,7 +198,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                                 onPressed: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (context) => const ViewClientsScreen()),
+                                    MaterialPageRoute(builder: (context) => ViewClientsScreen(clientsID: clientsList.id)),
                                   );
 
                                 },
@@ -159,15 +208,14 @@ class _ClientsScreenState extends State<ClientsScreen> {
                                 onPressed: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (context) => const EditClientsFormScreen()),
+                                    MaterialPageRoute(builder: (context) => EditClientsFormScreen(clientsID: clientsList.id)),
                                   );
-
                                 },
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.white,),
+                                icon:  const Icon(Icons.delete, color: Colors.white,),
                                 onPressed: () {
-                                  _showDeleteClientDialog();
+                                  _showDeleteClientDialog(clientsList.id);
                                 },
                               ),
                             ],
@@ -185,7 +233,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
     );
   }
 
-  Future<bool> _showDeleteClientDialog() async {
+  Future<bool> _showDeleteClientDialog(String? id) async {
     return (await showDialog(
       context: context,
       builder: (context) => AlertDialog(

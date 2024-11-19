@@ -7,7 +7,8 @@ import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:quickcash/constants.dart';
 
 class EditClientsFormScreen extends StatefulWidget {
-  const EditClientsFormScreen({super.key});
+  final String? clientsID;
+  const EditClientsFormScreen({super.key, required this.clientsID});
 
   @override
   State<EditClientsFormScreen> createState() => _EditClientsFormScreenState();

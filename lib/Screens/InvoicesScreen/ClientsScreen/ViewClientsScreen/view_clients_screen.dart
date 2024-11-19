@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:quickcash/constants.dart';
 
 class ViewClientsScreen extends StatefulWidget {
-  const ViewClientsScreen({super.key});
+  final String? clientsID;
+  const ViewClientsScreen({super.key,required this.clientsID});
 
   @override
   State<ViewClientsScreen> createState() => _ViewClientsScreenState();
 }
 
 class _ViewClientsScreenState extends State<ViewClientsScreen> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
