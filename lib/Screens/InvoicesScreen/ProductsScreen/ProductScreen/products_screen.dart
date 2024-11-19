@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/AddProductScreen/add_product_screen.dart';
-import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/EditProductScreen/edit_product_Screen.dart';
+import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/model/productApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/model/productModel.dart';
 import 'package:quickcash/constants.dart';
+
+import '../UpdateProductScreen/edit_product_Screen.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -11,15 +15,58 @@ class ProductsScreen extends StatefulWidget {
 }
 
 class _ProductsScreenState extends State<ProductsScreen> {
-  final List<Map<String, String>> clientsList = [
-    {
-      'createdDate': '2024-10-20',
-      'productName': 'Test Product',
-      'category': 'Business',
-      'price': '108',
-    },
-    // You can add more card entries here
-  ];
+  final ProductApi _productApi = ProductApi();
+  List<ProductData> productList =[];
+
+  bool isLoading =false;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    mProduct();
+    super.initState();
+  }
+
+  Future<void> mProduct() async{
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try{
+      final response = await _productApi.productApi();
+
+      if(response.categoriesList !=null && response.categoriesList!.isNotEmpty){
+        setState(() {
+          isLoading = false;
+          errorMessage = null;
+
+          productList = response.categoriesList!;
+
+        });
+      }else {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Product List';
+        });
+      }
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
+  // Function to format the date
+  String formatDate(String? dateTime) {
+    if (dateTime == null) {
+      return 'Date not available';
+    }
+    DateTime date = DateTime.parse(dateTime);
+    return DateFormat('dd-MM-yyyy').format(date);
+  }
 
 
   @override
@@ -42,7 +89,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
 
-                  Expanded(
+                  /*Expanded(
                     child: TextFormField(
                       keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.next,
@@ -66,7 +113,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         ),
                       ),
                     ),
-                  ),
+                  ),*/
 
                   const SizedBox(width: defaultPadding,),
 
@@ -84,12 +131,16 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
               const SizedBox(height: largePadding,),
 
-              ListView.builder(
+              isLoading ? const Center(
+                child: CircularProgressIndicator(
+                  color: kPrimaryColor,
+                ),
+              ) :ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: clientsList.length,
+                itemCount: productList.length,
                 itemBuilder: (context, index) {
-                  final card = clientsList[index];
+                  final products = productList[index];
                   return Padding(
                     padding: const EdgeInsets.only(bottom: defaultPadding),
                     // Add spacing
@@ -116,7 +167,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             children: [
                               const Text('Created Date:', style: TextStyle(
                                   color: Colors.white, fontSize: 16),),
-                              Text('${card['createdDate']}',
+                              Text(formatDate(products.date),
                                 style: const TextStyle(
                                     color: Colors.white, fontSize: 16),),
                             ],
@@ -131,7 +182,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             children: [
                               const Text('Product Name:', style: TextStyle(
                                   color: Colors.white, fontSize: 16),),
-                              Text('${card['productName']}',
+                              Text('${products.productName}',
                                 style: const TextStyle(
                                     color: Colors.white, fontSize: 16),),
                             ],
@@ -146,7 +197,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             children: [
                               const Text('Category:', style: TextStyle(
                                   color: Colors.white, fontSize: 16),),
-                              Text('${card['category']}',
+                              Text('${products.categoryDetails!.first.name}',
                                 style: const TextStyle(
                                     color: Colors.white, fontSize: 16),),
                             ],
@@ -161,7 +212,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             children: [
                               const Text('Price:', style: TextStyle(
                                   color: Colors.white, fontSize: 16),),
-                              Text('${card['price']}',
+                              Text('${products.unitPrice}',
                                 style: const TextStyle(
                                     color: Colors.white, fontSize: 16),),
                             ],
