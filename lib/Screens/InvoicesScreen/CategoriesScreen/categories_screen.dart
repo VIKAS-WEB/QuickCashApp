@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:quickcash/Screens/InvoicesScreen/CategoriesScreen/categoriesModel/categoriesApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/CategoriesScreen/categoriesModel/categoriesModel.dart';
 import 'package:quickcash/constants.dart';
 
 class CategoriesScreen extends StatefulWidget {
@@ -9,19 +12,57 @@ class CategoriesScreen extends StatefulWidget {
 }
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
-  final List<Map<String, String>> categoriesList = [
-    {
-      'createdDate': '2024-10-20',
-      'category': 'Business',
-      'product': '1',
-    },
-    {
-      'createdDate': '2024-10-22',
-      'category': 'Business',
-      'product': '2',
-    },
-    // You can add more card entries here
-  ];
+
+  final CategoriesApi _categoriesApi = CategoriesApi();
+  List<CategoriesData> categories = [];
+
+
+  bool isLoading = false;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    mCategories();
+    super.initState();
+  }
+
+  Future<void> mCategories() async{
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final response = await _categoriesApi.categoriesApi();
+
+      if(response.categoriesList !=null && response.categoriesList!.isNotEmpty){
+        setState(() {
+          categories = response.categoriesList!;
+          isLoading = false;
+        });
+      }else {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Categories';
+        });
+      }
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
+  // Function to format the date
+  String formatDate(String? dateTime) {
+    if (dateTime == null) {
+      return 'Date not available';
+    }
+    DateTime date = DateTime.parse(dateTime);
+    return DateFormat('yyyy-MM-dd').format(date);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +84,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
+                  /*Expanded(
                     child: TextFormField(
                       keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.next,
@@ -63,7 +104,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         ),
                       ),
                     ),
-                  ),
+                  ),*/
                   const SizedBox(width: defaultPadding),
                   FloatingActionButton(
                     onPressed: () {
@@ -75,12 +116,16 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 ],
               ),
               const SizedBox(height: largePadding),
-              ListView.builder(
+              isLoading ? const Center(
+                child: CircularProgressIndicator(
+                  color: kPrimaryColor,
+                ),
+              ) :ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: categoriesList.length,
+                itemCount: categories.length,
                 itemBuilder: (context, index) {
-                  final card = categoriesList[index];
+                  final category = categories[index];
                   return Padding(
                     padding: const EdgeInsets.only(bottom: defaultPadding),
                     child: Container(
@@ -105,7 +150,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text('Created Date:', style: TextStyle(color: Colors.white, fontSize: 16)),
-                              Text('${card['createdDate']}', style: const TextStyle(color: Colors.white, fontSize: 16)),
+                              Text(formatDate(category.date), style: const TextStyle(color: Colors.white, fontSize: 16)),
                             ],
                           ),
                           const SizedBox(height: smallPadding),
@@ -115,7 +160,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text('Category:', style: TextStyle(color: Colors.white, fontSize: 16)),
-                              Text('${card['category']}', style: const TextStyle(color: Colors.white, fontSize: 16)),
+                              Text('${category.categoriesName}', style: const TextStyle(color: Colors.white, fontSize: 16)),
                             ],
                           ),
                           const SizedBox(height: smallPadding),
@@ -125,7 +170,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text('Product:', style: TextStyle(color: Colors.white, fontSize: 16)),
-                              Text('${card['product']}', style: const TextStyle(color: Colors.white, fontSize: 16)),
+                              Text('${category.productDetails!.length}', style: const TextStyle(color: Colors.white, fontSize: 16)),
                             ],
                           ),
                           const SizedBox(height: smallPadding),
@@ -138,7 +183,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                               IconButton(
                                 icon: const Icon(Icons.edit, color: Colors.white),
                                 onPressed: () {
-                                  _editCategoryDialog(card);
+                                  _editCategoryDialog(category.categoriesName, category.id);
                                 },
                               ),
                               IconButton(
@@ -162,8 +207,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
   }
 
-  Future<void> _editCategoryDialog(Map<String, String> category) async {
-    final TextEditingController categoryController = TextEditingController(text: category['category']);
+  Future<void> _editCategoryDialog(String? categoriesName, String? id) async {
+    final TextEditingController categoryController = TextEditingController(text: categoriesName);
 
     // Form key for validation
     final GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -210,7 +255,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               onPressed: () {
                 if (formKey.currentState!.validate()) { // Validate the form
                   setState(() {
-                    category['category'] = categoryController.text;
+                    categoriesName = categoryController.text;
                   });
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
