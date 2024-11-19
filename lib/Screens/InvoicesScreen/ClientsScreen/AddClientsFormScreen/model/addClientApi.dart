@@ -29,8 +29,10 @@ class AddClientApi {
       // Check for a successful response
       if (response.statusCode == 200 || response.statusCode == 201) {
         return AddClientResponse.fromJson(response.data);
-      } else {
-        throw Exception('Failed to update profile: ${response.statusMessage}');
+      }else if (response.statusCode == 401){
+        return AddClientResponse.fromJson(response.data);
+      }else {
+        throw Exception('Failed to add Client: ${response.statusMessage}');
       }
     } on DioException catch (e) {
       throw Exception('Dio error: ${e.response?.data ?? e.message}');
