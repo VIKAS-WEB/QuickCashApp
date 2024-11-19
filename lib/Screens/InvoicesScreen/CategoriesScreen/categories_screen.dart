@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/InvoicesScreen/CategoriesScreen/categoriesModel/categoriesApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/CategoriesScreen/categoriesModel/categoriesModel.dart';
+import 'package:quickcash/Screens/InvoicesScreen/CategoriesScreen/updateCategoriesModel/updateCategoriesApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/CategoriesScreen/updateCategoriesModel/updateCategoriesModel.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/util/customSnackBar.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -12,7 +15,7 @@ class CategoriesScreen extends StatefulWidget {
 }
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
-
+  final UpdateCategoriesApi _updateCategoriesApi = UpdateCategoriesApi();
   final CategoriesApi _categoriesApi = CategoriesApi();
   List<CategoriesData> categories = [];
 
@@ -62,6 +65,33 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     }
     DateTime date = DateTime.parse(dateTime);
     return DateFormat('yyyy-MM-dd').format(date);
+  }
+
+  // Update Category Api -----------------
+  Future<void> mUpdateCategory(String categoryName, String? categoryID) async{
+    try{
+      final request = UpdateCategoriesRequest(categoryName: categoryName);
+      final response = await _updateCategoriesApi.updateCategory(request, categoryID);
+
+      if(response.message == "User Category details has been updated successfully"){
+        setState(() {
+          mCategories();
+          Navigator.of(context).pop();
+          CustomSnackBar.showSnackBar(context: context, message: "Category updated successfully!", color: kGreeneColor);
+        });
+      }else{
+        setState(() {
+          Navigator.of(context).pop();
+          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kRedColor);
+        });
+      }
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
   }
 
   @override
@@ -254,13 +284,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             TextButton(
               onPressed: () {
                 if (formKey.currentState!.validate()) { // Validate the form
+
                   setState(() {
                     categoriesName = categoryController.text;
+                    mUpdateCategory(categoryController.text, id);
                   });
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Category updated successfully!')),
-                  );
+
                 }
               },
               child: const Text('Save'),
