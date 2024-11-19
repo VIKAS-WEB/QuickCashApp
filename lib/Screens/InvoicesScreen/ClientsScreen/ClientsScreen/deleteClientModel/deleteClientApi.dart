@@ -1,12 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:quickcash/util/auth_manager.dart';
-import '../../../../util/apiConstants.dart';
-import 'deleteCardModel.dart';
 
-class DeleteCardApi {
+import '../../../../../util/apiConstants.dart';
+import 'deleteClientModel.dart';
+
+class DeleteClientApi {
   final Dio _dio = Dio();
 
-  DeleteCardApi() {
+  DeleteClientApi() {
     _dio.options.baseUrl = ApiConstants.baseUrl;
 
 
@@ -18,17 +19,17 @@ class DeleteCardApi {
     ));*/
   }
 
-  Future<CardDeleteResponse> deleteCardApi(String cardId) async {
+  Future<DeleteClientResponse> deleteClientApi(String clientId) async {
     try {
       final response = await _dio.delete(
-        '/card/delete/$cardId',
+        '/client/delete/$clientId',
         options: Options(headers: {
           'Authorization': 'Bearer ${AuthManager.getToken()}',
         }),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return CardDeleteResponse.fromJson(response.data);
+        return DeleteClientResponse.fromJson(response.data);
       } else {
         throw Exception('Failed to fetch data: ${response.statusMessage}');
       }

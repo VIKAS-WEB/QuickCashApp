@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ClientsScreen/AddClientsFormScreen/add_clients_form_screen.dart';
+import 'package:quickcash/Screens/InvoicesScreen/ClientsScreen/ClientsScreen/deleteClientModel/deleteClientApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ClientsScreen/ClientsScreen/model/clientsApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ClientsScreen/ClientsScreen/model/clientsModel.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ClientsScreen/EditClientsFormScreen/edit_clients_form_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ClientsScreen/ViewClientsScreen/view_clients_screen.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/util/customSnackBar.dart';
 
 class ClientsScreen extends StatefulWidget {
   const ClientsScreen({super.key});
@@ -16,6 +18,7 @@ class ClientsScreen extends StatefulWidget {
 
 class _ClientsScreenState extends State<ClientsScreen> {
 
+  final DeleteClientApi _deleteClientApi = DeleteClientApi();
   final ClientsApi _clientsApi = ClientsApi();
   List<ClientsData> clientsData = [];
 
@@ -67,6 +70,34 @@ class _ClientsScreenState extends State<ClientsScreen> {
     }
     DateTime date = DateTime.parse(dateTime);
     return DateFormat('yyyy-MM-dd').format(date);
+  }
+
+
+  // Delete Client Api ---
+  Future<void> mDeleteClient(String? clientId) async{
+    try{
+      final response = await _deleteClientApi.deleteClientApi(clientId!);
+
+      if(response.message == "Client Data has been deleted successfully"){
+        setState(() {
+          mClientsApi();
+          Navigator.of(context).pop(true);
+          CustomSnackBar.showSnackBar(context: context, message: response.message!, color: kGreeneColor);
+        });
+
+      }else{
+        setState(() {
+          Navigator.of(context).pop(true);
+          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue", color: kGreeneColor);
+        });
+      }
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
   }
   
   @override
@@ -237,7 +268,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Delete Client"),
-        content: const Text("Do you really want to delete this client?"),
+        content: const Text("Do you really want to delete this client data?"),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(context).pop(false), // No
@@ -245,12 +276,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(true); // Yes
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Client deleted successfully!"),
-                ),
-              );
+              mDeleteClient(id);
             },
             child: const Text("Yes"),
           ),
