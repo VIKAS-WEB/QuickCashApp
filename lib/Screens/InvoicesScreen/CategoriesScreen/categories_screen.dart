@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:quickcash/Screens/InvoicesScreen/CategoriesScreen/addCategoriesModel/addCategoriesApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/CategoriesScreen/addCategoriesModel/addCategoriesModel.dart';
 import 'package:quickcash/Screens/InvoicesScreen/CategoriesScreen/categoriesModel/categoriesApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/CategoriesScreen/categoriesModel/categoriesModel.dart';
+import 'package:quickcash/Screens/InvoicesScreen/CategoriesScreen/deleteCategoriesModel/deleteCategoryApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/CategoriesScreen/updateCategoriesModel/updateCategoriesApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/CategoriesScreen/updateCategoriesModel/updateCategoriesModel.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/util/auth_manager.dart';
 import 'package:quickcash/util/customSnackBar.dart';
 
 class CategoriesScreen extends StatefulWidget {
@@ -15,6 +19,8 @@ class CategoriesScreen extends StatefulWidget {
 }
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
+  final DeleteCategoryApi _deleteCategoryApi = DeleteCategoryApi();
+  final AddCategoriesApi _addCategoriesApi = AddCategoriesApi();
   final UpdateCategoriesApi _updateCategoriesApi = UpdateCategoriesApi();
   final CategoriesApi _categoriesApi = CategoriesApi();
   List<CategoriesData> categories = [];
@@ -93,6 +99,59 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       });
     }
   }
+
+  Future<void> mAddCategory(String categoryName) async{
+    try{
+      final request = AddCategoriesRequest(userId: AuthManager.getUserId(), categoryName: categoryName);
+      final response = await _addCategoriesApi.addCategories(request);
+      if(response.message == "Category has been added Successfully!!!"){
+        setState(() {
+          mCategories();
+          Navigator.of(context).pop();
+          CustomSnackBar.showSnackBar(context: context, message: "Category has been added Successfully!", color: kGreeneColor);
+        });
+      }else{
+        setState(() {
+          Navigator.of(context).pop();
+          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kRedColor);
+        });
+      }
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
+  Future<void> mDeleteCategory(String? categoryId) async {
+    try{
+      final response = await _deleteCategoryApi.deleteCategoryApi(categoryId!);
+
+      if(response.message == "Category Data has been deleted successfully"){
+        setState(() {
+          mCategories();
+          Navigator.of(context).pop();
+          CustomSnackBar.showSnackBar(context: context, message: "Category Data has been deleted successfully!", color: kGreeneColor);
+        });
+      }else{
+        setState(() {
+          Navigator.of(context).pop();
+          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kRedColor);
+        });
+      }
+
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -219,7 +278,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                               IconButton(
                                 icon: const Icon(Icons.delete, color: Colors.white),
                                 onPressed: () {
-                                  _showDeleteClientDialog();
+                                  _showDeleteClientDialog(category.id);
                                 },
                               ),
                             ],
@@ -308,6 +367,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
 
   Future<void> _addCategoryDialog() async {
+    final TextEditingController categoryName = TextEditingController();
 
     // Form key for validation
     final GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -324,6 +384,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextFormField(
+                  controller: categoryName,
                   keyboardType: TextInputType.text,
                   cursorColor: kPrimaryColor,
                   textInputAction: TextInputAction.none,
@@ -352,11 +413,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             TextButton(
               onPressed: () {
                 if (formKey.currentState!.validate()) { // Validate the form
-
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Category added successfully!')),
-                  );
+                  setState(() {
+                    mAddCategory(categoryName.text);
+                  });
                 }
               },
               child: const Text('Save'),
@@ -374,7 +433,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
 
-  Future<bool> _showDeleteClientDialog() async {
+  Future<bool> _showDeleteClientDialog(String? id) async {
     return (await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -387,12 +446,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(true); // Yes
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Category deleted successfully!"),
-                ),
-              );
+              mDeleteCategory(id);
             },
             child: const Text("Yes"),
           ),
