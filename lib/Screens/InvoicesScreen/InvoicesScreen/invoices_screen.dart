@@ -1,24 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/model/invoicesApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/model/invoicesModel.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/util/customSnackBar.dart';
 
-class Invoices {
-  late final String invoicedNumber;
-  late final String invoicedDate;
-  late final String dueDate;
-  late final String amount;
-  late final String transaction;
-  late final String status;
-
-  Invoices({
-    required this.invoicedNumber,
-    required this.invoicedDate,
-    required this.dueDate,
-    required this.amount,
-    required this.transaction,
-    required this.status,
-});
-
-}
 
 class InvoicesScreen extends StatefulWidget {
   const InvoicesScreen({super.key});
@@ -28,28 +14,11 @@ class InvoicesScreen extends StatefulWidget {
 }
 
 class _InvoicesScreenState extends State<InvoicesScreen> {
-  final List<Invoices> invoiceList = [
-
-    Invoices(
-        invoicedNumber: 'ITIO912035585789',
-        invoicedDate: '29-10-2024',
-        dueDate: '22-11-2024',
-        amount: '1008',
-        transaction: '10008',
-        status: 'Partial',
-    ),
-    Invoices(
-      invoicedNumber: 'ITIO912035585789',
-      invoicedDate: '30-10-2024',
-      dueDate: '23-11-2024',
-      amount: '100128',
-      transaction: '1044008',
-      status: 'Unpaid',
-    ),
-
-
-    // You can add more card entries here
-  ];
+  final InvoicesApi _invoicesApi = InvoicesApi();
+  List<InvoicesData> invoiceList = [];
+  
+  bool isLoading = true;
+  String? errorMessage;
 
   Color _getStatusColor(String status) {
     switch (status) {
@@ -63,6 +32,55 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
         return kPrimaryColor; // Default color if status is unknown
     }
   }
+  
+  @override
+  void initState() {
+    mInvoicesApi();
+    super.initState();
+  }
+  
+  
+  // Invoices Api -------
+  Future<void> mInvoicesApi() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+    
+    try{
+      
+      final response = await _invoicesApi.invoicesApi();
+      
+      if(response.invoicesList !=null && response.invoicesList!.isNotEmpty){
+        isLoading = false;
+        errorMessage = null;
+        invoiceList = response.invoicesList!;
+      }else{
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Invoices List';
+          CustomSnackBar.showSnackBar(context: context, message: "No Invoices List", color: kPrimaryColor);
+        });
+      }
+      
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+        print(errorMessage);
+        CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
+      });
+    }
+  }
+
+  // Function to format the date
+  String formatDate(String? dateTime) {
+    if (dateTime == null) {
+      return 'Date not available';
+    }
+    DateTime date = DateTime.parse(dateTime);
+    return DateFormat('dd-MM-yyyy').format(date);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +93,11 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
           style: TextStyle(color: Colors.white),
         ),
       ),
-      body: SingleChildScrollView(
+      body: isLoading ? const Center(
+        child: CircularProgressIndicator(
+          color: kPrimaryColor,
+        ),
+      ) : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(defaultPadding),
           child: Column(
@@ -120,7 +142,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                     color: Colors.white, fontSize: 16),
                               ),
                               Text(
-                                invoiceLists.invoicedNumber,
+                                invoiceLists.invoiceNumber!,
                                 style: const TextStyle(
                                     color: Colors.white, fontSize: 16),
                               ),
@@ -144,7 +166,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                     color: Colors.white, fontSize: 16),
                               ),
                               Text(
-                                invoiceLists.invoicedDate,
+                                formatDate(invoiceLists.createdAt),
                                 style: const TextStyle(
                                     color: Colors.white, fontSize: 16),
                               ),
@@ -168,7 +190,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                     color: Colors.white, fontSize: 16),
                               ),
                               Text(
-                                invoiceLists.dueDate,
+                                formatDate(invoiceLists.dueDate),
                                 style: const TextStyle(
                                     color: Colors.white, fontSize: 16),
                               ),
@@ -191,8 +213,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 16),
                               ),
-                              Text(
-                                invoiceLists.amount,
+                              Text("${invoiceLists.currencyText} ${invoiceLists.total}",
                                 style: const TextStyle(
                                     color: Colors.white, fontSize: 16),
                               ),
@@ -216,8 +237,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 16),
                               ),
-                              Text(
-                                invoiceLists.transaction,
+                              Text("${invoiceLists.currencyText} ${invoiceLists.paidAmount}",
                                 style: const TextStyle(
                                     color: Colors.white, fontSize: 16),
                               ),
@@ -244,9 +264,9 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                               FilledButton.tonal(
                                 onPressed: () {},
                                 style: ButtonStyle(
-                                  backgroundColor: WidgetStateProperty.all(_getStatusColor(invoiceLists.status,)),
+                                  backgroundColor: WidgetStateProperty.all(_getStatusColor(invoiceLists.status!,)),
                                 ),
-                                child: Text(invoiceLists.status, style: const TextStyle(color: Colors.white,fontSize: 15)),
+                                child: Text(invoiceLists.status!, style: const TextStyle(color: Colors.white,fontSize: 15)),
                               ),
                             ],
                           ),
