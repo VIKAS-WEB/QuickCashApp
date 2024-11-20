@@ -289,47 +289,112 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              const Expanded(
-                                  child: Text("Action:",
-                                      style: TextStyle(
-                                          color: Colors.white, fontSize: 16))),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.link,
-                                  color: Colors.white,
-                                ),
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Invoice URL Copied!')),
-                                  );
-                                  /*Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const ViewProductScreen()),
-                                  );*/
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.watch_later_outlined,
-                                  color: Colors.white,
-                                ),
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Reminder has been sent on email address')),
-                                  );
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.auto_mode,
-                                  color: Colors.white,
-                                ),
-                                onPressed: () {
-                                  _startRecurringDialog();
-                                },
+                              // IconButton with text
+                              Row(
+                                children: [
+                                  Column(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.edit_outlined,
+                                          color: Colors.white,
+                                        ),
+                                        onPressed: () {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Edited!')),
+                                          );
+                                        },
+                                      ),
+                                      const Text(
+                                        'Edit',
+                                        style: TextStyle(color: Colors.white, fontSize: 12),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(width: smallPadding,),
+                                  Column(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.link,
+                                          color: Colors.white,
+                                        ),
+                                        onPressed: () {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Invoice URL Copied!')),
+                                          );
+                                        },
+                                      ),
+                                      const Text(
+                                        'Invoice URL',
+                                        style: TextStyle(color: Colors.white, fontSize: 12),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(width: smallPadding,),
+                                  Column(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.delete_outline,
+                                          color: Colors.white,
+                                        ),
+                                        onPressed: () {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Deleted!')),
+                                          );
+                                        },
+                                      ),
+                                      const Text(
+                                        'Delete',
+                                        style: TextStyle(color: Colors.white, fontSize: 12),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(width: smallPadding,),
+                                  Column(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.watch_later_outlined,
+                                          color: Colors.white,
+                                        ),
+                                        onPressed: () {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Reminder has been sent on email address')),
+                                          );
+                                        },
+                                      ),
+                                      const Text(
+                                        'Reminder',
+                                        style: TextStyle(color: Colors.white, fontSize: 12),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(width: smallPadding,),
+                                  Column(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.auto_mode,
+                                          color: Colors.white,
+                                        ),
+                                        onPressed: () {
+                                          _startRecurringDialog();
+                                        },
+                                      ),
+                                      const Text(
+                                        'Start Recurring',
+                                        style: TextStyle(color: Colors.white, fontSize: 12),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(width: smallPadding,),
+                                ],
                               ),
                             ],
-                          ),
+                          )
+
                         ],
                       ),
                     ),
