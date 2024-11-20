@@ -6,7 +6,7 @@ import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/mo
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/productDetailsModel/productDetailsApi.dart';
 import 'package:quickcash/constants.dart';
 
-import '../UpdateProductScreen/edit_product_Screen.dart';
+import '../UpdateProductScreen/update_product_Screen.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -233,16 +233,21 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                 icon: const Icon(
                                   Icons.remove_red_eye, color: Colors.white,),
                                 onPressed: () {
-                                  mViewProduct(context,products.id!,products.categoryDetails!.first.name!);
+
+                                  String? categoryName = products.categoryDetails?.isNotEmpty == true ? products.categoryDetails!.first.name : '';
+
+                                  mViewProduct(context,products.id!,categoryName!);
                                 },
                               ),
                               IconButton(
                                 icon: const Icon(
                                   Icons.edit, color: Colors.white,),
                                 onPressed: () {
+                                  String? categoryName = products.categoryDetails?.isNotEmpty == true ? products.categoryDetails!.first.name : '';
+
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (context) => const EditProductScreen()),
+                                    MaterialPageRoute(builder: (context) => EditProductScreen(productId: products.id!, category: categoryName)),
                                   );
 
                                 },

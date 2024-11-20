@@ -2,17 +2,37 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:quickcash/constants.dart';
 
+import '../../CategoriesScreen/categoriesModel/categoriesApi.dart';
+import '../../CategoriesScreen/categoriesModel/categoriesModel.dart';
+import '../ProductScreen/productDetailsModel/productDetailsApi.dart';
+
 class EditProductScreen extends StatefulWidget {
-  const EditProductScreen({super.key});
+  final String? productId;
+  final String? category;
+  const EditProductScreen({super.key, required this.productId, required this.category});
 
   @override
   State<EditProductScreen> createState() => _EditProductScreenState();
 }
 
 class _EditProductScreenState extends State<EditProductScreen> {
-  final TextEditingController _productCodeController = TextEditingController();
+  final CategoriesApi _categoriesApi = CategoriesApi();
+  final ProductDetailsApi _productDetailsApi = ProductDetailsApi();
+
+
+  final TextEditingController name = TextEditingController();
+  final TextEditingController unitPrice = TextEditingController();
+  final TextEditingController description = TextEditingController();
+  final TextEditingController productCode = TextEditingController();
+
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String selectedCategory = 'Select Category';
+
+  bool isLoading = true;
+  String? errorMessage;
+  List<CategoriesData> categoriesList = [];
+  List<String> productDetailsIds = [];
 
   // Function to generate a random product code
   String generateRandomCode(int length) {
@@ -21,22 +41,85 @@ class _EditProductScreenState extends State<EditProductScreen> {
     return List.generate(length, (index) => characters[random.nextInt(characters.length)]).join();
   }
 
-  void _updateProductCode() {
+  void updateProductCode() {
     setState(() {
       String newCode = generateRandomCode(12); // Change 12 to any length you prefer
-      _productCodeController.text = newCode; // Update the text controller
+      productCode.text = newCode; // Update the text controller
     });
   }
 
   @override
   void initState() {
     super.initState();
-    _updateProductCode(); // Generate initial product code
+    updateProductCode();
+    mCategory();
+    mProductDetail();
   }
+
+  // Category Api ------------------------------
+  Future<void> mCategory() async {
+    setState(() {
+      isLoading = false;
+      errorMessage = null;
+    });
+
+    try {
+      final response = await _categoriesApi.categoriesApi();
+
+      if (response.categoriesList != null && response.categoriesList!.isNotEmpty) {
+        setState(() {
+          categoriesList = response.categoriesList!;
+          isLoading = false;
+         // selectedCategory = widget.category!;
+
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Categories';
+        });
+      }
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
+  //Product Details Api
+  Future<void> mProductDetail() async{
+    try{
+      final response = await _productDetailsApi.productDetailsApi(widget.productId);
+
+      name.text = response.productName ?? 'N/A';
+      productCode.text = response.productCode ?? 'N/A';
+      selectedCategory = widget.category ?? '';
+      unitPrice.text = (response.unitPrice ?? 0.0).toString();
+      description.text = response.description ?? 'N/A';
+
+      // Find the selected category's data
+      final selectedCategoryData = categoriesList.firstWhere((category) => category.categoriesName == selectedCategory);
+      // Store non-null product IDs for internal use
+      productDetailsIds = selectedCategoryData.productDetails?.map((product) => product.id).where((id) => id != null).cast<String>().toList() ?? [];
+
+      setState(() {
+        isLoading = false;
+        errorMessage = null;
+      });
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
+
 
   @override
   void dispose() {
-    _productCodeController.dispose(); // Dispose the controller when done
+    productCode.dispose();
     super.dispose();
   }
 
@@ -47,7 +130,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
         backgroundColor: kPrimaryColor,
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
-          "Add Product",
+          "Update Product",
           style: TextStyle(color: Colors.white),
         ),
       ),
@@ -61,9 +144,11 @@ class _EditProductScreenState extends State<EditProductScreen> {
               children: [
                 const SizedBox(height: largePadding),
                 TextFormField(
+                  controller: name,
                   keyboardType: TextInputType.text,
                   textInputAction: TextInputAction.next,
                   cursorColor: kPrimaryColor,
+                  style: const TextStyle(color: kPrimaryColor),
                   decoration: InputDecoration(
                     labelText: "Name",
                     labelStyle: const TextStyle(color: kPrimaryColor, fontSize: 16),
@@ -84,11 +169,12 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
                 const SizedBox(height: largePadding),
                 TextFormField(
-                  controller: _productCodeController, // Use the controller
+                  controller: productCode, // Use the controller
                   keyboardType: TextInputType.text,
                   textInputAction: TextInputAction.next,
                   cursorColor: kPrimaryColor,
                   readOnly: true,
+                  style: const TextStyle(color: kPrimaryColor),
                   decoration: InputDecoration(
                     labelText: "Product Code",
                     labelStyle: const TextStyle(color: kPrimaryColor, fontSize: 16),
@@ -99,10 +185,10 @@ class _EditProductScreenState extends State<EditProductScreen> {
                     filled: true,
                     fillColor: Colors.transparent,
                     suffixIcon: GestureDetector(
-                      onTap: _updateProductCode, // Call the function on tap
+                      onTap: updateProductCode, // Call the function on tap
                       child: const Padding(
                         padding: EdgeInsets.all(defaultPadding),
-                        child: Icon(Icons.repeat),
+                        child: Icon(Icons.repeat, color: kPrimaryColor,),
                       ),
                     ),
                   ),
@@ -124,17 +210,22 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   ),
                   items: [
                     'Select Category',
-                    'Business',
-                    'Others',
-                  ].map((String category) {
+                    ...categoriesList.map((category) => category.categoriesName!),
+                  ].map((String categoryName) {
                     return DropdownMenuItem(
-                      value: category,
-                      child: Text(category, style: const TextStyle(color: kPrimaryColor, fontSize: 16)),
+                      value: categoryName,
+                      child: Text(categoryName, style: const TextStyle(color: kPrimaryColor, fontSize: 16)),
                     );
                   }).toList(),
                   onChanged: (newValue) {
                     setState(() {
                       selectedCategory = newValue!;
+
+                      // Find the selected category's data
+                      final selectedCategoryData = categoriesList.firstWhere((category) => category.categoriesName == selectedCategory);
+
+                      // Store non-null product IDs for internal use
+                      productDetailsIds = selectedCategoryData.productDetails?.map((product) => product.id).where((id) => id != null).cast<String>().toList() ?? [];
                     });
                   },
                   validator: (value) {
@@ -145,11 +236,21 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   },
                 ),
 
+                 // Display only the first product details ID
+                if (productDetailsIds.isNotEmpty)
+                  Text(
+                    'Product ID: ${productDetailsIds.first}',  // Show only the first ID
+                    style: const TextStyle(color: kPrimaryColor, fontSize: 16),
+                  ),
+
+
                 const SizedBox(height: largePadding),
                 TextFormField(
+                  controller: unitPrice,
                   keyboardType: TextInputType.number,
                   textInputAction: TextInputAction.next,
                   cursorColor: kPrimaryColor,
+                  style: const TextStyle(color: kPrimaryColor),
                   decoration: InputDecoration(
                     labelText: "Unit Price",
                     labelStyle: const TextStyle(color: kPrimaryColor, fontSize: 16),
@@ -170,11 +271,13 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
                 const SizedBox(height: largePadding),
                 TextFormField(
+                  controller: description,
                   keyboardType: TextInputType.text,
                   textInputAction: TextInputAction.next,
                   cursorColor: kPrimaryColor,
                   minLines: 6,
                   maxLines: 12,
+                  style: const TextStyle(color: kPrimaryColor),
                   decoration: InputDecoration(
                     labelText: "Description",
                     labelStyle: const TextStyle(color: kPrimaryColor, fontSize: 16),
@@ -194,7 +297,16 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   },
                 ),
 
-                const SizedBox(height: 35),
+                const SizedBox(height: largePadding),
+                if (isLoading) const Center(
+                  child: CircularProgressIndicator(
+                    color: kPrimaryColor,
+                  ),
+                ), // Show loading indicator
+                if (errorMessage != null) // Show error message if there's an error
+                  const Text('We are facing some issue?', style: TextStyle(color: Colors.red)),
+
+                const SizedBox(height: 45),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 50),
                   child: ElevatedButton(

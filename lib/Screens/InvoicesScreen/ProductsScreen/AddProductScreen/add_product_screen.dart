@@ -224,7 +224,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   ),
                   items: [
                     'Select Category',
-                    ...categoriesList.map((category) => category.categoriesName!).toList(),
+                    ...categoriesList.map((category) => category.categoriesName!),
                   ].map((String categoryName) {
                     return DropdownMenuItem(
                       value: categoryName,
