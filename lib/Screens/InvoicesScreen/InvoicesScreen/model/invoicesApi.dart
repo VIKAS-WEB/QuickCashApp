@@ -10,7 +10,7 @@ class InvoicesApi {
     _dio.options.baseUrl = ApiConstants.baseUrl;
 
 
-    /*_dio.interceptors.add(LogInterceptor(
+   /* _dio.interceptors.add(LogInterceptor(
       request: true,
       requestBody: true,
       responseBody: true,

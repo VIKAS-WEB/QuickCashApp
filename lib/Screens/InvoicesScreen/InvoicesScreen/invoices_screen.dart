@@ -23,13 +23,16 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
   Color _getStatusColor(String status) {
     switch (status) {
       case 'Paid':
+      case 'paid':
         return Colors.green;
       case 'Unpaid':
+      case 'unpaid':
         return Colors.red;
       case 'Partial':
+      case 'partial':
         return Colors.pink;
       default:
-        return kPrimaryColor; // Default color if status is unknown
+        return kPrimaryColor;
     }
   }
   
@@ -52,9 +55,11 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
       final response = await _invoicesApi.invoicesApi();
       
       if(response.invoicesList !=null && response.invoicesList!.isNotEmpty){
-        isLoading = false;
-        errorMessage = null;
-        invoiceList = response.invoicesList!;
+        setState(() {
+          isLoading = false;
+          errorMessage = null;
+          invoiceList = response.invoicesList!;
+        });
       }else{
         setState(() {
           isLoading = false;
@@ -67,7 +72,6 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
       setState(() {
         isLoading = false;
         errorMessage = error.toString();
-        print(errorMessage);
         CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
       });
     }
@@ -261,12 +265,16 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 16),
                               ),
+
                               FilledButton.tonal(
                                 onPressed: () {},
                                 style: ButtonStyle(
                                   backgroundColor: WidgetStateProperty.all(_getStatusColor(invoiceLists.status!,)),
                                 ),
-                                child: Text(invoiceLists.status!, style: const TextStyle(color: Colors.white,fontSize: 15)),
+                                child: Text(
+                                  '${invoiceLists.status![0].toUpperCase()}${invoiceLists.status!.substring(1)}',
+                                  style: const TextStyle(color: Colors.white, fontSize: 15),
+                                ),
                               ),
                             ],
                           ),
