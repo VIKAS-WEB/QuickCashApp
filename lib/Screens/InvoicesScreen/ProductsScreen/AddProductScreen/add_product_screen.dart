@@ -1,6 +1,13 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:quickcash/Screens/InvoicesScreen/CategoriesScreen/categoriesModel/categoriesApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/AddProductScreen/model/addProductApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/AddProductScreen/model/addProductModel.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/util/auth_manager.dart';
+
+import '../../../../util/customSnackBar.dart';
+import '../../CategoriesScreen/categoriesModel/categoriesModel.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -10,9 +17,22 @@ class AddProductScreen extends StatefulWidget {
 }
 
 class _AddProductScreenState extends State<AddProductScreen> {
-  final TextEditingController _productCodeController = TextEditingController();
+  final CategoriesApi _categoriesApi = CategoriesApi();
+  final AddProductApi _addProductApi = AddProductApi();
+
+  final TextEditingController name = TextEditingController();
+  final TextEditingController unitPrice = TextEditingController();
+  final TextEditingController description = TextEditingController();
+  final TextEditingController productCode = TextEditingController();
+
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String selectedCategory = 'Select Category';
+
+  bool isLoading = true;
+  String? errorMessage;
+  List<CategoriesData> categoriesList = [];
+  List<String> productDetailsIds = [];
 
   // Function to generate a random product code
   String generateRandomCode(int length) {
@@ -21,22 +41,96 @@ class _AddProductScreenState extends State<AddProductScreen> {
     return List.generate(length, (index) => characters[random.nextInt(characters.length)]).join();
   }
 
-  void _updateProductCode() {
+  void updateProductCode() {
     setState(() {
-      String newCode = generateRandomCode(12); // Change 12 to any length you prefer
-      _productCodeController.text = newCode; // Update the text controller
+      String newCode = generateRandomCode(12);
+      productCode.text = newCode;
     });
   }
 
   @override
   void initState() {
     super.initState();
-    _updateProductCode(); // Generate initial product code
+    updateProductCode();
+    mCategory();
+  }
+
+  // Category Api ------------------------------
+  Future<void> mCategory() async {
+    setState(() {
+      isLoading = false;
+      errorMessage = null;
+    });
+
+    try {
+      final response = await _categoriesApi.categoriesApi();
+
+      if (response.categoriesList != null && response.categoriesList!.isNotEmpty) {
+        setState(() {
+          categoriesList = response.categoriesList!;
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Categories';
+        });
+      }
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
+  // Add Product Api  -------------------------------
+  Future<void> mAddProduct(String join) async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    int mUnitPrice = int.parse(unitPrice.text);
+
+    try{
+
+      final request = AddProductRequest(userId: AuthManager.getUserId(), name: name.text, categoryId: join, description: description.text, productCode: productCode.text, unitPrice: mUnitPrice);
+      final response = await _addProductApi.addProduct(request);
+
+      if(response.message == "Product has been added Successfully!!!"){
+        setState(() {
+          isLoading = false;
+          errorMessage = null;
+          CustomSnackBar.showSnackBar(context: context, message: "Product has been added Successfully!", color: kGreeneColor);
+
+          updateProductCode();
+          name.clear();
+          unitPrice.clear();
+          description.clear();
+
+        });
+      } else{
+        setState(() {
+          isLoading = false;
+          errorMessage = null;
+          CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
+        });
+      }
+
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+
   }
 
   @override
   void dispose() {
-    _productCodeController.dispose(); // Dispose the controller when done
+    productCode.dispose(); // Dispose the controller when done
     super.dispose();
   }
 
@@ -60,10 +154,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: largePadding),
+                // Product Name Input
                 TextFormField(
+                  controller: name,
                   keyboardType: TextInputType.text,
                   textInputAction: TextInputAction.next,
                   cursorColor: kPrimaryColor,
+                  style: const TextStyle(color: kPrimaryColor),
                   decoration: InputDecoration(
                     labelText: "Name",
                     labelStyle: const TextStyle(color: kPrimaryColor, fontSize: 16),
@@ -83,12 +180,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 ),
 
                 const SizedBox(height: largePadding),
+                // Product Code Input
                 TextFormField(
-                  controller: _productCodeController, // Use the controller
+                  controller: productCode, // Use the controller
                   keyboardType: TextInputType.text,
                   textInputAction: TextInputAction.next,
                   cursorColor: kPrimaryColor,
                   readOnly: true,
+                  style: const TextStyle(color: kPrimaryColor),
                   decoration: InputDecoration(
                     labelText: "Product Code",
                     labelStyle: const TextStyle(color: kPrimaryColor, fontSize: 16),
@@ -99,16 +198,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     filled: true,
                     fillColor: Colors.transparent,
                     suffixIcon: GestureDetector(
-                      onTap: _updateProductCode, // Call the function on tap
+                      onTap: updateProductCode, // Call the function on tap
                       child: const Padding(
                         padding: EdgeInsets.all(defaultPadding),
-                        child: Icon(Icons.repeat),
+                        child: Icon(Icons.repeat, color: kPrimaryColor,),
                       ),
                     ),
                   ),
                 ),
 
                 const SizedBox(height: largePadding),
+                // Category Dropdown
                 DropdownButtonFormField<String>(
                   value: selectedCategory,
                   style: const TextStyle(color: kPrimaryColor),
@@ -124,17 +224,18 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   ),
                   items: [
                     'Select Category',
-                    'Business',
-                    'Others',
-                  ].map((String category) {
+                    ...categoriesList.map((category) => category.categoriesName!).toList(),
+                  ].map((String categoryName) {
                     return DropdownMenuItem(
-                      value: category,
-                      child: Text(category, style: const TextStyle(color: kPrimaryColor, fontSize: 16)),
+                      value: categoryName,
+                      child: Text(categoryName, style: const TextStyle(color: kPrimaryColor, fontSize: 16)),
                     );
                   }).toList(),
                   onChanged: (newValue) {
                     setState(() {
                       selectedCategory = newValue!;
+                      final selectedCategoryData = categoriesList.firstWhere((category) => category.categoriesName == selectedCategory);
+                      productDetailsIds = selectedCategoryData.productDetails?.map((product) => product.id!).toList() ?? [];
                     });
                   },
                   validator: (value) {
@@ -145,11 +246,22 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   },
                 ),
 
+                // Display selected product details IDs
+                if (productDetailsIds.isNotEmpty)
+
+                  Text(
+                    'Product Details IDs: ${productDetailsIds.join(', ')}',
+                    style: const TextStyle(color: kPrimaryColor, fontSize: 16),
+                  ),
+
+
                 const SizedBox(height: largePadding),
                 TextFormField(
+                  controller: unitPrice,
                   keyboardType: TextInputType.number,
                   textInputAction: TextInputAction.next,
                   cursorColor: kPrimaryColor,
+                  style: const TextStyle(color: kPrimaryColor),
                   decoration: InputDecoration(
                     labelText: "Unit Price",
                     labelStyle: const TextStyle(color: kPrimaryColor, fontSize: 16),
@@ -170,11 +282,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
                 const SizedBox(height: largePadding),
                 TextFormField(
+                  controller: description,
                   keyboardType: TextInputType.text,
                   textInputAction: TextInputAction.next,
                   cursorColor: kPrimaryColor,
                   minLines: 6,
                   maxLines: 12,
+                  style: const TextStyle(color: kPrimaryColor),
                   decoration: InputDecoration(
                     labelText: "Description",
                     labelStyle: const TextStyle(color: kPrimaryColor, fontSize: 16),
@@ -194,7 +308,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   },
                 ),
 
-                const SizedBox(height: 35),
+                const SizedBox(height: largePadding),
+                if (isLoading) const Center(
+                  child: CircularProgressIndicator(
+                    color: kPrimaryColor,
+                  ),
+                ), // Show loading indicator
+                if (errorMessage != null) // Show error message if there's an error
+                  const Text('We are facing some issue?', style: TextStyle(color: Colors.red)),
+
+                const SizedBox(height: 45),
+                // Save Button
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 50),
                   child: ElevatedButton(
@@ -207,10 +331,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     ),
                     onPressed: () {
                       if (_formKey.currentState?.validate() ?? false) {
-                        // Handle the form submission logic here
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Product saved successfully!')),
-                        );
+                        setState(() {
+                          mAddProduct(productDetailsIds.join(', '));
+                        });
                       }
                     },
                     child: const Text('Save', style: TextStyle(color: Colors.white, fontSize: 16)),
