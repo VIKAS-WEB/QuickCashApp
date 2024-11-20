@@ -198,9 +198,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             children: [
                               const Text('Category:', style: TextStyle(
                                   color: Colors.white, fontSize: 16),),
-                              Text('${products.categoryDetails!.first.name}',
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 16),),
+                              Text('${products.categoryDetails?.isNotEmpty == true ? products.categoryDetails!.first.name : ''}',style: const TextStyle(
+                                  color: Colors.white, fontSize: 16),),
+
                             ],
                           ),
 
