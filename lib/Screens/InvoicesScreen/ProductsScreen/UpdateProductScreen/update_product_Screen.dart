@@ -1,7 +1,11 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/UpdateProductScreen/model/updateProductApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/UpdateProductScreen/model/updateProductModel.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/util/auth_manager.dart';
 
+import '../../../../util/customSnackBar.dart';
 import '../../CategoriesScreen/categoriesModel/categoriesApi.dart';
 import '../../CategoriesScreen/categoriesModel/categoriesModel.dart';
 import '../ProductScreen/productDetailsModel/productDetailsApi.dart';
@@ -18,6 +22,7 @@ class EditProductScreen extends StatefulWidget {
 class _EditProductScreenState extends State<EditProductScreen> {
   final CategoriesApi _categoriesApi = CategoriesApi();
   final ProductDetailsApi _productDetailsApi = ProductDetailsApi();
+  final UpdateProductApi _updateProductApi = UpdateProductApi();
 
 
   final TextEditingController name = TextEditingController();
@@ -113,6 +118,45 @@ class _EditProductScreenState extends State<EditProductScreen> {
         errorMessage = error.toString();
       });
     }
+  }
+
+  // Update Product Api -------
+  Future<void> mUpdateProduct(String categoryId) async{
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    int mUnitPrice = int.parse(unitPrice.text);
+
+    try{
+      final request = UpdateProductRequest(userId: AuthManager.getUserId(), name: name.text, categoryId: categoryId, description: description.text, productCode: productCode.text, unitPrice: mUnitPrice);
+      final response = await _updateProductApi.updateProduct(request, widget.productId);
+
+
+      if(response.message == "User Product details has been updated successfully"){
+        setState(() {
+          isLoading = false;
+          errorMessage = null;
+          CustomSnackBar.showSnackBar(context: context, message: "Product details has been updated successfully!", color: kGreeneColor);
+
+        });
+      }else{
+        setState(() {
+          isLoading = false;
+          errorMessage = null;
+          CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
+        });
+      }
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+
+
   }
 
 
@@ -319,10 +363,13 @@ class _EditProductScreenState extends State<EditProductScreen> {
                     ),
                     onPressed: () {
                       if (_formKey.currentState?.validate() ?? false) {
-                        // Handle the form submission logic here
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Product saved successfully!')),
-                        );
+                        setState(() {
+                          if (productDetailsIds.isNotEmpty) {
+                            mUpdateProduct(productDetailsIds.first);
+                          }else{
+                            CustomSnackBar.showSnackBar(context: context, message: "message", color: kPrimaryColor);
+                          }
+                        });
                       }
                     },
                     child: const Text('Save', style: TextStyle(color: Colors.white, fontSize: 16)),
