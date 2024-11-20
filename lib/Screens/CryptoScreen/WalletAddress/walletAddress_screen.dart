@@ -234,7 +234,7 @@ class _AddNewCoinBottomSheet extends State<AddNewCoinBottomSheet>{
 
       if(response.message == "Wallet Address data is added !!!"){
         setState(() {
-          CustomSnackBar.showSnackBar(context: context, message: 'Wallet Address Added Successfully!', color: kGreeneColor);
+          CustomSnackBar.showSnackBar(context: context, message: 'Wallet Address Added Successfully!', color: kGreenColor);
 
           Navigator.pop(context);
           isLoading = false;

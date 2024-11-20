@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/model/invoicesApi.dart';
-import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/model/invoicesModel.dart';
+import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/UpdateInvoiceScreen/update_invoice_screen.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/customSnackBar.dart';
+
+import 'model/invoicesApi.dart';
+import 'model/invoicesModel.dart';
 
 
 class InvoicesScreen extends StatefulWidget {
@@ -24,13 +26,13 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
     switch (status) {
       case 'Paid':
       case 'paid':
-        return Colors.green;
+        return kGreenColor;
       case 'Unpaid':
       case 'unpaid':
-        return Colors.red;
+        return kRedColor;
       case 'Partial':
       case 'partial':
-        return Colors.pink;
+        return Colors.purpleAccent;
       default:
         return kPrimaryColor;
     }
@@ -269,13 +271,20 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                               FilledButton.tonal(
                                 onPressed: () {},
                                 style: ButtonStyle(
-                                  backgroundColor: WidgetStateProperty.all(_getStatusColor(invoiceLists.status!,)),
+                                  backgroundColor: WidgetStateProperty.all(_getStatusColor(invoiceLists.status!)),
+                                  elevation: WidgetStateProperty.resolveWith<double>((states) {
+                                    if (states.contains(WidgetState.pressed)) {
+                                      return 4; // Higher elevation when pressed
+                                    }
+                                    return 4; // Default elevation
+                                  }),
                                 ),
                                 child: Text(
                                   '${invoiceLists.status![0].toUpperCase()}${invoiceLists.status!.substring(1)}',
                                   style: const TextStyle(color: Colors.white, fontSize: 15),
                                 ),
-                              ),
+                              )
+
                             ],
                           ),
 
@@ -290,108 +299,117 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               // IconButton with text
-                              Row(
+                            Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              // Conditionally show the Edit icon based on status
+                              if (invoiceLists.status == 'Unpaid' || invoiceLists.status == 'unpaid') ...[
+                                Column(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.edit_outlined,
+                                        color: Colors.white,
+                                      ),
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) => const UpdateInvoiceScreen()),
+                                        );
+                                      },
+                                    ),
+                                    const Text(
+                                      'Edit',
+                                      style: TextStyle(color: Colors.white, fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(width: smallPadding,),
+                                Column(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete_outline,
+                                        color: Colors.white,
+                                      ),
+                                      onPressed: () {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Deleted!')),
+                                        );
+                                      },
+                                    ),
+                                    const Text(
+                                      'Delete',
+                                      style: TextStyle(color: Colors.white, fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                              ],
+
+                              const SizedBox(width: smallPadding,),
+
+                              Column(
                                 children: [
-                                  Column(
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.edit_outlined,
-                                          color: Colors.white,
-                                        ),
-                                        onPressed: () {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Edited!')),
-                                          );
-                                        },
-                                      ),
-                                      const Text(
-                                        'Edit',
-                                        style: TextStyle(color: Colors.white, fontSize: 12),
-                                      ),
-                                    ],
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.link,
+                                      color: Colors.white,
+                                    ),
+                                    onPressed: () {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Invoice URL Copied!')),
+                                      );
+                                    },
                                   ),
-                                  const SizedBox(width: smallPadding,),
-                                  Column(
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.link,
-                                          color: Colors.white,
-                                        ),
-                                        onPressed: () {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Invoice URL Copied!')),
-                                          );
-                                        },
-                                      ),
-                                      const Text(
-                                        'Invoice URL',
-                                        style: TextStyle(color: Colors.white, fontSize: 12),
-                                      ),
-                                    ],
+                                  const Text(
+                                    'Invoice URL',
+                                    style: TextStyle(color: Colors.white, fontSize: 12),
                                   ),
-                                  const SizedBox(width: smallPadding,),
-                                  Column(
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.delete_outline,
-                                          color: Colors.white,
-                                        ),
-                                        onPressed: () {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Deleted!')),
-                                          );
-                                        },
-                                      ),
-                                      const Text(
-                                        'Delete',
-                                        style: TextStyle(color: Colors.white, fontSize: 12),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(width: smallPadding,),
-                                  Column(
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.watch_later_outlined,
-                                          color: Colors.white,
-                                        ),
-                                        onPressed: () {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Reminder has been sent on email address')),
-                                          );
-                                        },
-                                      ),
-                                      const Text(
-                                        'Reminder',
-                                        style: TextStyle(color: Colors.white, fontSize: 12),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(width: smallPadding,),
-                                  Column(
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.auto_mode,
-                                          color: Colors.white,
-                                        ),
-                                        onPressed: () {
-                                          _startRecurringDialog();
-                                        },
-                                      ),
-                                      const Text(
-                                        'Start Recurring',
-                                        style: TextStyle(color: Colors.white, fontSize: 12),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(width: smallPadding,),
                                 ],
                               ),
+                              const SizedBox(width: smallPadding,),
+                              Column(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.watch_later_outlined,
+                                      color: Colors.white,
+                                    ),
+                                    onPressed: () {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Reminder has been sent on email address')),
+                                      );
+                                    },
+                                  ),
+                                  const Text(
+                                    'Reminder',
+                                    style: TextStyle(color: Colors.white, fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(width: smallPadding,),
+                              Column(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.auto_mode,
+                                      color: Colors.white,
+                                    ),
+                                    onPressed: () {
+                                      _startRecurringDialog();
+                                    },
+                                  ),
+                                  const Text(
+                                    'Start Recurring',
+                                    style: TextStyle(color: Colors.white, fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(width: smallPadding,),
+                            ],
+                          ),
+
                             ],
                           )
 

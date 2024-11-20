@@ -138,7 +138,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
         setState(() {
           isLoading = false;
           errorMessage = null;
-          CustomSnackBar.showSnackBar(context: context, message: "Product details has been updated successfully!", color: kGreeneColor);
+          CustomSnackBar.showSnackBar(context: context, message: "Product details has been updated successfully!", color: kGreenColor);
 
         });
       }else{

@@ -165,7 +165,7 @@ class _CardsScreenState extends State<SpotTradeScreen> {
                   children: [
                     Text("24h Change", style: TextStyle(color: kPurpleColor)),
                     SizedBox(height: 5),
-                    Text("0.000018729.666%", style: TextStyle(color: kGreeneColor, fontSize: 16)),
+                    Text("0.000018729.666%", style: TextStyle(color: kGreenColor, fontSize: 16)),
                     SizedBox(height: smallPadding),
                     Divider(color: kPrimaryLightColor),
                     Text("24h High", style: TextStyle(color: kPurpleColor)),
@@ -539,7 +539,7 @@ class _CardsScreenState extends State<SpotTradeScreen> {
                               'Buy',
                               style: TextStyle(color: Colors.white, fontSize: 15),
                             ),
-                            backgroundColor: kGreeneColor,
+                            backgroundColor: kGreenColor,
                           ),
                         ),
 

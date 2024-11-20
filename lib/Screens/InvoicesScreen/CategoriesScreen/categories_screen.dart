@@ -83,7 +83,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         setState(() {
           mCategories();
           Navigator.of(context).pop();
-          CustomSnackBar.showSnackBar(context: context, message: "Category updated successfully!", color: kGreeneColor);
+          CustomSnackBar.showSnackBar(context: context, message: "Category updated successfully!", color: kGreenColor);
         });
       }else{
         setState(() {
@@ -108,7 +108,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         setState(() {
           mCategories();
           Navigator.of(context).pop();
-          CustomSnackBar.showSnackBar(context: context, message: "Category has been added Successfully!", color: kGreeneColor);
+          CustomSnackBar.showSnackBar(context: context, message: "Category has been added Successfully!", color: kGreenColor);
         });
       }else{
         setState(() {
@@ -132,7 +132,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         setState(() {
           mCategories();
           Navigator.of(context).pop();
-          CustomSnackBar.showSnackBar(context: context, message: "Category Data has been deleted successfully!", color: kGreeneColor);
+          CustomSnackBar.showSnackBar(context: context, message: "Category Data has been deleted successfully!", color: kGreenColor);
         });
       }else{
         setState(() {

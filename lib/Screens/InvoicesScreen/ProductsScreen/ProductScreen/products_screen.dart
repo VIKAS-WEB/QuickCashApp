@@ -81,7 +81,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         setState(() {
           mProduct();
           Navigator.of(context).pop();
-          CustomSnackBar.showSnackBar(context: context, message: "Product Data has been deleted successfully!", color: kGreeneColor);
+          CustomSnackBar.showSnackBar(context: context, message: "Product Data has been deleted successfully!", color: kGreenColor);
         });
       }else{
         setState(() {

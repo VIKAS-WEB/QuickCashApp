@@ -42,7 +42,7 @@ class _ForgotPasswordState extends State<ForgotPasswordForm> {
           CustomSnackBar.showSnackBar(
             context: context,
             message: 'Check your Registered mail, we have sent a reset password link',
-            color: kGreeneColor, // Set the color of the SnackBar
+            color: kGreenColor, // Set the color of the SnackBar
           );
         } else {
           CustomSnackBar.showSnackBar(

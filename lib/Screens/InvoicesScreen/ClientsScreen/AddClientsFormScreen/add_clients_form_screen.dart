@@ -57,7 +57,7 @@ class _AddClientsFormScreenState extends State<AddClientsFormScreen> {
           setState(() {
             isLoading = false;
             errorMessage = null;
-            CustomSnackBar.showSnackBar(context: context, message: "Client has been added Successfully!", color: kGreeneColor);
+            CustomSnackBar.showSnackBar(context: context, message: "Client has been added Successfully!", color: kGreenColor);
 
             firstName.clear();
             lastName.clear();
@@ -75,7 +75,7 @@ class _AddClientsFormScreenState extends State<AddClientsFormScreen> {
           setState(() {
             isLoading = false;
             errorMessage = null;
-            CustomSnackBar.showSnackBar(context: context, message: "Email Address is already exists", color: kGreeneColor);
+            CustomSnackBar.showSnackBar(context: context, message: "Email Address is already exists", color: kGreenColor);
           });
         } else{
           setState(() {

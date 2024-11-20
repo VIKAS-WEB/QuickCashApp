@@ -82,13 +82,13 @@ class _ClientsScreenState extends State<ClientsScreen> {
         setState(() {
           mClientsApi();
           Navigator.of(context).pop(true);
-          CustomSnackBar.showSnackBar(context: context, message: response.message!, color: kGreeneColor);
+          CustomSnackBar.showSnackBar(context: context, message: response.message!, color: kGreenColor);
         });
 
       }else{
         setState(() {
           Navigator.of(context).pop(true);
-          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue", color: kGreeneColor);
+          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue", color: kGreenColor);
         });
       }
 

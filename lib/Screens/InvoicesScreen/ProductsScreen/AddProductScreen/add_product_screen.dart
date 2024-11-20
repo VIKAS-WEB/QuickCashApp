@@ -102,7 +102,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         setState(() {
           isLoading = false;
           errorMessage = null;
-          CustomSnackBar.showSnackBar(context: context, message: "Product has been added Successfully!", color: kGreeneColor);
+          CustomSnackBar.showSnackBar(context: context, message: "Product has been added Successfully!", color: kGreenColor);
 
           updateProductCode();
           name.clear();

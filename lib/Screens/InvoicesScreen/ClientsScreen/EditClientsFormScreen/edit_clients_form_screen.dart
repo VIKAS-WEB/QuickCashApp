@@ -128,7 +128,7 @@ class _EditClientsFormScreenState extends State<EditClientsFormScreen> {
 
         final response = await _clientUpdateApi.clientUpdate(request, widget.clientsID);
 
-        CustomSnackBar.showSnackBar(context: context, message: response.message!, color: kGreeneColor);
+        CustomSnackBar.showSnackBar(context: context, message: response.message!, color: kGreenColor);
 
         setState(() {
           isLoading = false;

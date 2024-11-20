@@ -314,7 +314,7 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
               height: 160.0,
               padding: const EdgeInsets.all(smallPadding),
               decoration: BoxDecoration(
-                color: kGreeneColor,
+                color: kGreenColor,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
@@ -944,7 +944,7 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
               height: 160.0,
               padding: const EdgeInsets.all(smallPadding),
               decoration: BoxDecoration(
-                color: kGreeneColor,
+                color: kGreenColor,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(

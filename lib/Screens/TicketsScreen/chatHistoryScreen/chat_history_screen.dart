@@ -233,7 +233,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
                           const SizedBox(width: 10),
                           CircleAvatar(
                             radius: 20, // Size of the circle
-                            backgroundColor: kGreeneColor,
+                            backgroundColor: kGreenColor,
                             child: Text(
                               (message.from?.isNotEmpty ?? false) ? message.from![0] : 'N/A', // Display the first letter
                               style: const TextStyle(
