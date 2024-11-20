@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/AddProductScreen/add_product_screen.dart';
+import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/deleteProductModel/deleteProductApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/model/productApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/model/productModel.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/productDetailsModel/productDetailsApi.dart';
 import 'package:quickcash/constants.dart';
 
+import '../../../../util/customSnackBar.dart';
 import '../UpdateProductScreen/update_product_Screen.dart';
 
 class ProductsScreen extends StatefulWidget {
@@ -17,6 +19,7 @@ class ProductsScreen extends StatefulWidget {
 
 class _ProductsScreenState extends State<ProductsScreen> {
   final ProductApi _productApi = ProductApi();
+  final DeleteProductApi _deleteProductApi = DeleteProductApi();
   List<ProductData> productList =[];
 
   bool isLoading =false;
@@ -67,6 +70,32 @@ class _ProductsScreenState extends State<ProductsScreen> {
     }
     DateTime date = DateTime.parse(dateTime);
     return DateFormat('dd-MM-yyyy').format(date);
+  }
+
+  // Delete Product Api ---------------
+  Future<void> mDeleteProduct(String? productId) async {
+    try{
+      final response = await _deleteProductApi.deleteProductApi(productId!);
+
+      if(response.message == "Product Data has been deleted successfully"){
+        setState(() {
+          mProduct();
+          Navigator.of(context).pop();
+          CustomSnackBar.showSnackBar(context: context, message: "Product Data has been deleted successfully!", color: kGreeneColor);
+        });
+      }else{
+        setState(() {
+          Navigator.of(context).pop();
+          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kRedColor);
+        });
+      }
+
+    }catch (error) {
+      setState(() {
+        Navigator.of(context).pop();
+        CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kRedColor);
+      });
+    }
   }
 
 
@@ -256,7 +285,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                 icon: const Icon(
                                   Icons.delete, color: Colors.white,),
                                 onPressed: () {
-                                  _showDeleteClientDialog();
+                                  _showDeleteClientDialog(products.id);
                                 },
                               ),
                             ],
@@ -274,7 +303,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     );
   }
 
-  Future<bool> _showDeleteClientDialog() async {
+  Future<bool> _showDeleteClientDialog(String? productId) async {
     return (await showDialog(
       context: context,
       builder: (context) =>
@@ -288,12 +317,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(true); // Yes
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Product deleted successfully!"),
-                    ),
-                  );
+                 mDeleteProduct(productId);
                 },
                 child: const Text("Yes"),
               ),
