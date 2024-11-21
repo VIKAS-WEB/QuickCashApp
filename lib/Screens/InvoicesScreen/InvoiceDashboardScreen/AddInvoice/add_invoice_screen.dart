@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Import for date formatting
+import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/Invoices/invoiceNumberModel/invoiceNumberApi.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/customSnackBar.dart';
 
@@ -12,6 +13,7 @@ class AddInvoiceScreen extends StatefulWidget {
 
 class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
   final _formKey = GlobalKey<FormState>();
+  final InvoiceNoApi _invoiceNoApi = InvoiceNoApi();
 
   final TextEditingController invoiceNumber = TextEditingController();
   final TextEditingController receiverName = TextEditingController();
@@ -90,6 +92,41 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
   }
 
   @override
+  void initState() {
+    mInvoiceNo();
+    super.initState();
+  }
+
+  Future<void> mInvoiceNo() async {
+    setState(() {
+     // invoiceNumber.text = "Loading";
+    });
+
+    try{
+      final response = await _invoiceNoApi.invoiceNoApi();
+
+      if(response.message == "Invoice Number is generated and sent"){
+        setState(() {
+          invoiceNumber.text = response.invoiceNo!;
+        });
+      }else{
+        setState(() {
+          CustomSnackBar.showSnackBar(context: context, message: "Invoice Number is not generated", color: kRedColor);
+        });
+      }
+
+    }catch (error) {
+      setState(() {
+        //invoiceNumber.text = "InvoiceNo not fetch";
+        CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kRedColor);
+      });
+    }
+
+  }
+
+
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -122,7 +159,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                     }
                     return null;
                   },
-                  readOnly: false,
+                  readOnly: true,
                   style: const TextStyle(color: kPrimaryColor),
                   decoration: InputDecoration(
                     labelText: "Invoice #",
