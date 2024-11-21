@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/Invoices/invoiceDeleteModel/invoiceDeleteApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/Invoices/invoiceReminderModel/invoiceReminderApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/UpdateInvoiceScreen/update_invoice_screen.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/customSnackBar.dart';
 
-import 'model/invoicesApi.dart';
-import 'model/invoicesModel.dart';
+import 'invoiceModel/invoicesApi.dart';
+import 'invoiceModel/invoicesModel.dart';
+
 
 
 class InvoicesScreen extends StatefulWidget {
@@ -17,6 +21,8 @@ class InvoicesScreen extends StatefulWidget {
 
 class _InvoicesScreenState extends State<InvoicesScreen> {
   final InvoicesApi _invoicesApi = InvoicesApi();
+  final InvoiceReminderApi _invoiceReminderApi = InvoiceReminderApi();
+  final DeleteInvoiceApi _deleteInvoiceApi = DeleteInvoiceApi();
   List<InvoicesData> invoiceList = [];
   
   bool isLoading = true;
@@ -40,22 +46,23 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
   
   @override
   void initState() {
-    mInvoicesApi();
+    mInvoicesApi("Yes");
     super.initState();
   }
   
   
   // Invoices Api -------
-  Future<void> mInvoicesApi() async {
+  Future<void> mInvoicesApi(String s) async {
     setState(() {
-      isLoading = true;
-      errorMessage = null;
+      if(s == "Yes"){
+        isLoading = true;
+        errorMessage = null;
+      }
+
     });
     
     try{
-      
       final response = await _invoicesApi.invoicesApi();
-      
       if(response.invoicesList !=null && response.invoicesList!.isNotEmpty){
         setState(() {
           isLoading = false;
@@ -69,7 +76,6 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
           CustomSnackBar.showSnackBar(context: context, message: "No Invoices List", color: kPrimaryColor);
         });
       }
-      
     }catch (error) {
       setState(() {
         isLoading = false;
@@ -79,6 +85,77 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
     }
   }
 
+  // Delete Invoice Api --------------------
+  Future<void> mDeleteInvoice(String? invoiceId) async {
+    setState(() {
+      isLoading = false;
+      errorMessage = null;
+    });
+
+    try {
+     final response = await _deleteInvoiceApi.deleteInvoiceApi(invoiceId!);
+
+     if(response.message == "Invoice data has been deleted successfully"){
+       mInvoicesApi("No");
+       Navigator.of(context).pop();
+       CustomSnackBar.showSnackBar(context: context, message: "Invoice data has been deleted successfully", color: kGreenColor);
+     }else{
+       setState(() {
+         isLoading = false;
+         errorMessage = null;
+         Navigator.of(context).pop();
+         CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kRedColor);
+       });
+     }
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+        Navigator.of(context).pop();
+        CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
+      });
+    }
+  }
+
+  // Invoice Reminder Api -------------------------
+  Future<void> mInvoiceReminder(String? invoiceId) async {
+    setState(() {
+      isLoading = false;
+      errorMessage = null;
+    });
+
+    try{
+
+      final response = await _invoiceReminderApi.invoiceReminderApi(invoiceId!);
+
+      if(response.message == "Reminder has been sent"){
+        setState(() {
+          isLoading = false;
+          errorMessage = null;
+          CustomSnackBar.showSnackBar(context: context, message: "Reminder has been sent on email address", color: kGreenColor);
+        });
+      }else{
+        setState(() {
+          isLoading = false;
+          errorMessage = null;
+          Navigator.of(context).pop();
+          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kRedColor);
+        });
+      }
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+        Navigator.of(context).pop();
+        CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
+      });
+    }
+
+
+  }
+
+
   // Function to format the date
   String formatDate(String? dateTime) {
     if (dateTime == null) {
@@ -86,6 +163,25 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
     }
     DateTime date = DateTime.parse(dateTime);
     return DateFormat('dd-MM-yyyy').format(date);
+  }
+
+  void copyInvoiceUrl(String? url) {
+    if (url != null) {
+      Clipboard.setData(ClipboardData(text: url)).then((_) {
+        CustomSnackBar.showSnackBar(
+          context: context,
+          message: 'Invoice URL Copied!',
+          color: kPrimaryColor,
+        );
+      });
+    } else {
+      // Show an error or handle the case when referralLink is null
+      CustomSnackBar.showSnackBar(
+        context: context,
+        message: 'Invoice URL is not available!',
+        color: Colors.red,
+      );
+    }
   }
 
   @override
@@ -146,6 +242,12 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                 'Invoice Number:',
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 16),
+                              ),
+                              if(invoiceLists.recurring == "yes")
+                              const Expanded(child: Icon(
+                                Icons.repeat, // Use any icon from the Icons class
+                                color: Colors.white,
+                              ),
                               ),
                               Text(
                                 invoiceLists.invoiceNumber!,
@@ -334,9 +436,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                         color: Colors.white,
                                       ),
                                       onPressed: () {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Deleted!')),
-                                        );
+                                        mDeleteInvoiceDialog(invoiceLists.id);
                                       },
                                     ),
                                     const Text(
@@ -357,9 +457,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                       color: Colors.white,
                                     ),
                                     onPressed: () {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Invoice URL Copied!')),
-                                      );
+                                      copyInvoiceUrl(invoiceLists.url);
                                     },
                                   ),
                                   const Text(
@@ -377,9 +475,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                       color: Colors.white,
                                     ),
                                     onPressed: () {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Reminder has been sent on email address')),
-                                      );
+                                      mInvoiceReminder(invoiceLists.id);
                                     },
                                   ),
                                   const Text(
@@ -393,17 +489,22 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                 children: [
                                   IconButton(
                                     icon: const Icon(
-                                      Icons.auto_mode,
+                                      Icons.repeat,
                                       color: Colors.white,
                                     ),
                                     onPressed: () {
-                                      _startRecurringDialog();
+                                      if(invoiceLists.recurring == "yes"){
+                                        CustomSnackBar.showSnackBar(context: context, message: "Recurring Status Saved Successfully!", color: kGreenColor);
+                                      }else{
+                                        _startRecurringDialog();
+                                      }
                                     },
                                   ),
-                                  const Text(
-                                    'Start Recurring',
-                                    style: TextStyle(color: Colors.white, fontSize: 12),
+                                  Text(
+                                    invoiceLists.recurring == "yes" ? 'Stop Recurring' : 'Start Recurring',
+                                    style: const TextStyle(color: Colors.white, fontSize: 12),
                                   ),
+
                                 ],
                               ),
                               const SizedBox(width: smallPadding,),
@@ -511,7 +612,27 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
     );
   }
 
-
+  Future<bool> mDeleteInvoiceDialog(String? invoiceId) async {
+    return (await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Invoice"),
+        content: const Text("Do you really want to delete this invoice?"),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false), // No
+            child: const Text("No"),
+          ),
+          TextButton(
+            onPressed: () {
+              mDeleteInvoice(invoiceId);
+            },
+            child: const Text("Yes"),
+          ),
+        ],
+      ),
+    )) ?? false;
+  }
 
 
 
