@@ -56,28 +56,7 @@ class _InvoiceTransactionsScreenState extends State<InvoiceTransactionsScreen> {
        CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
      });
    }
-
-
-
   }
-
-  /*final List<Map<String, String>> invoiceTransactionList = [
-    {
-      'invoiceNumber': 'ITIOXX9X9O18958',
-      'paymentDate': '2024-10-20',
-      'total': '1008',
-      'paidAmount': '10555508',
-      'transactionType': 'Manual',
-    },
-    {
-      'invoiceNumber': 'ITIOXX9X9O189566571',
-      'paymentDate': '2024-10-23',
-      'total': '10708',
-      'paidAmount': '100558',
-      'transactionType': 'Manual',
-    },
-    // You can add more card entries here
-  ];*/
 
  // Function to format the date
  String formatDate(String? dateTime) {
@@ -87,8 +66,6 @@ class _InvoiceTransactionsScreenState extends State<InvoiceTransactionsScreen> {
    DateTime date = DateTime.parse(dateTime);
    return DateFormat('dd-MM-yyyy').format(date);
  }
-
-
 
  @override
   Widget build(BuildContext context) {
