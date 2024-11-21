@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/Invoices/invoiceDeleteModel/invoiceDeleteApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/Invoices/invoiceRecurringModel/invoiceRecurringApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/Invoices/invoiceRecurringModel/invoiceRecurringModel.dart';
 import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/Invoices/invoiceReminderModel/invoiceReminderApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/UpdateInvoiceScreen/update_invoice_screen.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/util/auth_manager.dart';
 import 'package:quickcash/util/customSnackBar.dart';
 
 import '../../InvoiceDashboardScreen/AddInvoice/add_invoice_screen.dart';
@@ -24,6 +27,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
   final InvoicesApi _invoicesApi = InvoicesApi();
   final InvoiceReminderApi _invoiceReminderApi = InvoiceReminderApi();
   final DeleteInvoiceApi _deleteInvoiceApi = DeleteInvoiceApi();
+  final InvoiceRecurringApi _invoiceRecurringApi = InvoiceRecurringApi();
   List<InvoicesData> invoiceList = [];
   
   bool isLoading = true;
@@ -148,6 +152,63 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
         errorMessage = error.toString();
         Navigator.of(context).pop();
         CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
+      });
+    }
+  }
+
+// Invoice Recurring Api
+  Future<void> mInvoiceRecurring(String? invoiceId, String recurringStatus, String? selectedRecurringCycle) async {
+    try {
+      String recurringCycleNumber = '';
+
+      if (selectedRecurringCycle != null && selectedRecurringCycle.isNotEmpty) {
+        switch (selectedRecurringCycle.toLowerCase()) {
+          case 'day':
+            recurringCycleNumber = '1';  // Send the number as a string
+            break;
+          case 'weekly':
+            recurringCycleNumber = '7';
+            break;
+          case 'monthly':
+            recurringCycleNumber = '31';
+            break;
+          case 'half yearly':
+            recurringCycleNumber = '180';
+            break;
+          case 'yearly':
+            recurringCycleNumber = '365';
+            break;
+          default:
+            throw Exception("Invalid recurring cycle");
+        }
+      }
+
+      final request = InvoiceRecurringRequest(
+        userId: AuthManager.getUserId(),
+        recurring: recurringStatus,
+        recurringCycle: recurringCycleNumber,
+      );
+
+      final response = await _invoiceRecurringApi.invoiceRecurringApi(request, invoiceId);
+
+      if (response.message == "Invoice details has been updated successfully") {
+        setState(() {
+          CustomSnackBar.showSnackBar(context: context, message: "Recurring Status Saved Successfully!", color: kGreenColor);
+          Navigator.of(context).pop();
+          mInvoicesApi("No");
+        });
+      } else {
+        setState(() {
+          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kRedColor);
+          Navigator.of(context).pop();
+        });
+      }
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+        Navigator.of(context).pop();
+         CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
       });
     }
   }
@@ -514,9 +575,10 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                     ),
                                     onPressed: () {
                                       if(invoiceLists.recurring == "yes"){
-                                        CustomSnackBar.showSnackBar(context: context, message: "Recurring Status Saved Successfully!", color: kGreenColor);
+                                        //CustomSnackBar.showSnackBar(context: context, message: "Recurring Status Saved Successfully!", color: kGreenColor);
+                                        stopRecurringDialog(invoiceLists.id,"no");
                                       }else{
-                                        _startRecurringDialog();
+                                        startRecurringDialog(invoiceLists.id, "yes");
                                       }
                                     },
                                   ),
@@ -545,7 +607,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
   }
 
 
-  Future<void> _startRecurringDialog() async {
+  Future<void> startRecurringDialog(String? invoiceId, String recurringStatus) async {
     String selectedRecurring = 'Select Recurring';
 
     return showDialog<void>(
@@ -607,9 +669,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                    ScaffoldMessenger.of(context).showSnackBar(
                        const SnackBar(content: Text('Please select a recurring option')));
                  }else{
-                   ScaffoldMessenger.of(context).showSnackBar(
-                       const SnackBar(content: Text('Recurring Selected')));
-                   Navigator.of(context).pop();
+                   mInvoiceRecurring(invoiceId,recurringStatus,selectedRecurring);
                  }
               },
               child: const Text('Save'),
@@ -647,4 +707,29 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
       ),
     )) ?? false;
   }
+
+
+  Future<bool> stopRecurringDialog(String? invoiceId, String recurringStatus) async {
+    return (await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Stop Recurring"),
+        content: const Text("Do you really want to stop recurring?"),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false), // No
+            child: const Text("No"),
+          ),
+          TextButton(
+            onPressed: () {
+              mInvoiceRecurring(invoiceId,recurringStatus,"");
+            },
+            child: const Text("Yes"),
+          ),
+        ],
+      ),
+    )) ?? false;
+  }
+
+
 }
