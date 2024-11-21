@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/Invoices/invoiceDeleteModel/invoiceDeleteApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ManualInvoicePayment/AddManualPaymentScreen/add_manual_payment_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ManualInvoicePayment/manualInvoiceScreen/model/manualInvoiceModel.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ManualInvoicePayment/manualInvoiceScreen/model/manualinvoiceApi.dart';
@@ -16,6 +17,7 @@ class ManualInvoiceScreen extends StatefulWidget {
 
 class _ManualInvoiceScreenState extends State<ManualInvoiceScreen> {
   final ManualInvoicesApi _manualInvoicesApi = ManualInvoicesApi();
+  final DeleteInvoiceApi _deleteInvoiceApi = DeleteInvoiceApi();
   List<ManualInvoiceData> manualInvoiceList =[];
 
   bool isLoading = true;
@@ -23,14 +25,19 @@ class _ManualInvoiceScreenState extends State<ManualInvoiceScreen> {
 
   @override
   void initState() {
-    mManualInvoice();
+    mManualInvoice("Yes");
     super.initState();
   }
 
-  Future<void> mManualInvoice() async {
+  Future<void> mManualInvoice(String s) async {
     setState(() {
-      isLoading = true;
-      errorMessage = null;
+      if(s == "Yes"){
+        isLoading = true;
+        errorMessage = null;
+      }else{
+        isLoading = false;
+        errorMessage = null;
+      }
     });
 
     try{
@@ -59,6 +66,38 @@ class _ManualInvoiceScreenState extends State<ManualInvoiceScreen> {
     }
   }
 
+  // Manual Invoice Delete Api ------------------
+  Future<void> mManualInvoiceDelete(String? manualInvoiceId) async{
+    try{
+
+      final response = await _deleteInvoiceApi.deleteInvoiceApi(manualInvoiceId!);
+
+      if(response.message == ""){
+        setState(() {
+          Navigator.of(context).pop(true);
+          mManualInvoice("No");
+          CustomSnackBar.showSnackBar(context: context, message: "Payment deleted successfully!", color: kGreenColor);
+        });
+      }else{
+        setState(() {
+          Navigator.of(context).pop(true); // Yes
+          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kGreenColor);
+        });
+      }
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+        CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
+      });
+    }
+  }
+
+
+
+
+
   // Function to format the date
   String formatDate(String? dateTime) {
     if (dateTime == null) {
@@ -67,21 +106,6 @@ class _ManualInvoiceScreenState extends State<ManualInvoiceScreen> {
     DateTime date = DateTime.parse(dateTime);
     return DateFormat('dd-MM-yyyy').format(date);
   }
-
-
-  /*final List<Map<String, String>> clientsList = [
-    {
-      'invoices': 'Ganesh ITIOXX9X9O18958',
-      'paymentDate': '2024-10-20',
-      'amount': '1008',
-    },
-    {
-      'invoices': 'Ganesh ITIOXX9X9O1895558',
-      'paymentDate': '2024-10-22',
-      'amount': '108',
-    },
-    // You can add more card entries here
-  ];*/
 
   @override
   Widget build(BuildContext context) {
@@ -232,7 +256,7 @@ class _ManualInvoiceScreenState extends State<ManualInvoiceScreen> {
                             IconButton(
                               icon: const Icon(Icons.delete, color: Colors.white),
                               onPressed: () {
-                                _showDeleteClientDialog();
+                                mDeleteManualInvoiceDialog(manualInvoice.id);
                               },
                             ),
                           ],
@@ -249,12 +273,12 @@ class _ManualInvoiceScreenState extends State<ManualInvoiceScreen> {
     );
   }
 
-  Future<bool> _showDeleteClientDialog() async {
+  Future<bool> mDeleteManualInvoiceDialog(String? manualInvoiceId) async {
     return (await showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Delete Payment"),
-        content: const Text("Do you really want to delete this payment?"),
+        content: const Text("Do you really want to delete this invoice?"),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(context).pop(false), // No
@@ -262,12 +286,7 @@ class _ManualInvoiceScreenState extends State<ManualInvoiceScreen> {
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(true); // Yes
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Payment deleted successfully!"),
-                ),
-              );
+              mManualInvoiceDelete(manualInvoiceId);
             },
             child: const Text("Yes"),
           ),
