@@ -216,7 +216,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                       },
                       backgroundColor: kPrimaryColor,
                       label: const Text(
-                        'New Invoice',
+                        'Add Invoice',
                         style: TextStyle(color: kWhiteColor, fontSize: 15),
                       ),
                       icon: const Icon(Icons.add, color: kWhiteColor),
