@@ -81,6 +81,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
       setState(() {
         isLoading = false;
         errorMessage = error.toString();
+        print(errorMessage);
         CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
       });
     }

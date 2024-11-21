@@ -152,7 +152,7 @@ class ProductInfo {
       productName: json['productName'] as String?,
       productId: json['productId'] as String?,
       qty: json['qty'] as String?,
-      price: json['price'] as int?,
+      price: (json['price'] is String ? int.tryParse(json['price']) : json['price']) as int?,
       tax: json['tax'] as int?,
       taxValue: json['taxValue'] as int?,
       amount: json['amount'] as int?,
