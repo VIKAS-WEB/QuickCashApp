@@ -32,7 +32,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   bool isLoading = true;
   String? errorMessage;
   List<CategoriesData> categoriesList = [];
-  List<String> productDetailsIds = [];
+  String? selectedCategoryId;
 
   // Function to generate a random product code
   String generateRandomCode(int length) {
@@ -85,7 +85,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   // Add Product Api  -------------------------------
-  Future<void> mAddProduct(String join) async {
+  Future<void> mAddProduct(String selectedCategoryId) async {
     setState(() {
       isLoading = true;
       errorMessage = null;
@@ -95,7 +95,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
     try{
 
-      final request = AddProductRequest(userId: AuthManager.getUserId(), name: name.text, categoryId: join, description: description.text, productCode: productCode.text, unitPrice: mUnitPrice);
+      final request = AddProductRequest(userId: AuthManager.getUserId(), name: name.text, categoryId: selectedCategoryId, description: description.text, productCode: productCode.text, unitPrice: mUnitPrice);
       final response = await _addProductApi.addProduct(request);
 
       if(response.message == "Product has been added Successfully!!!"){
@@ -118,11 +118,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
         });
       }
 
-
     }catch (error) {
       setState(() {
         isLoading = false;
         errorMessage = error.toString();
+        CustomSnackBar.showSnackBar(context: context, message: 'We are facing some issue!', color: kRedColor);
       });
     }
 
@@ -130,7 +130,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   @override
   void dispose() {
-    productCode.dispose(); // Dispose the controller when done
+    productCode.dispose();
     super.dispose();
   }
 
@@ -235,7 +235,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     setState(() {
                       selectedCategory = newValue!;
                       final selectedCategoryData = categoriesList.firstWhere((category) => category.categoriesName == selectedCategory);
-                      productDetailsIds = selectedCategoryData.productDetails?.map((product) => product.id!).toList() ?? [];
+
+                      selectedCategoryId = selectedCategoryData.id;  // Store the category ID
                     });
                   },
                   validator: (value) {
@@ -245,15 +246,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     return null;
                   },
                 ),
-
-                // Display selected product details IDs
-                if (productDetailsIds.isNotEmpty)
-
-                  Text(
-                    'Product Details IDs: ${productDetailsIds.join(', ')}',
-                    style: const TextStyle(color: kPrimaryColor, fontSize: 16),
-                  ),
-
 
                 const SizedBox(height: largePadding),
                 TextFormField(
@@ -314,8 +306,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     color: kPrimaryColor,
                   ),
                 ), // Show loading indicator
-                if (errorMessage != null) // Show error message if there's an error
-                  const Text('We are facing some issue?', style: TextStyle(color: Colors.red)),
 
                 const SizedBox(height: 45),
                 // Save Button
@@ -332,7 +322,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     onPressed: () {
                       if (_formKey.currentState?.validate() ?? false) {
                         setState(() {
-                          mAddProduct(productDetailsIds.join(', '));
+                          mAddProduct(selectedCategoryId!);
                         });
                       }
                     },

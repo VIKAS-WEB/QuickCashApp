@@ -37,7 +37,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
   bool isLoading = true;
   String? errorMessage;
   List<CategoriesData> categoriesList = [];
-  List<String> productDetailsIds = [];
+  String? selectedCategoryId;
 
   // Function to generate a random product code
   String generateRandomCode(int length) {
@@ -75,7 +75,6 @@ class _EditProductScreenState extends State<EditProductScreen> {
         setState(() {
           categoriesList = response.categoriesList!;
           isLoading = false;
-         // selectedCategory = widget.category!;
 
         });
       } else {
@@ -103,10 +102,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
       unitPrice.text = (response.unitPrice ?? 0.0).toString();
       description.text = response.description ?? 'N/A';
 
-      // Find the selected category's data
       final selectedCategoryData = categoriesList.firstWhere((category) => category.categoriesName == selectedCategory);
-      // Store non-null product IDs for internal use
-      productDetailsIds = selectedCategoryData.productDetails?.map((product) => product.id).where((id) => id != null).cast<String>().toList() ?? [];
+      selectedCategoryId = selectedCategoryData.id;
 
       setState(() {
         isLoading = false;
@@ -133,7 +130,6 @@ class _EditProductScreenState extends State<EditProductScreen> {
       final request = UpdateProductRequest(userId: AuthManager.getUserId(), name: name.text, categoryId: categoryId, description: description.text, productCode: productCode.text, unitPrice: mUnitPrice);
       final response = await _updateProductApi.updateProduct(request, widget.productId);
 
-
       if(response.message == "User Product details has been updated successfully"){
         setState(() {
           isLoading = false;
@@ -155,11 +151,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
         errorMessage = error.toString();
       });
     }
-
-
   }
-
-
 
   @override
   void dispose() {
@@ -264,12 +256,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   onChanged: (newValue) {
                     setState(() {
                       selectedCategory = newValue!;
-
-                      // Find the selected category's data
                       final selectedCategoryData = categoriesList.firstWhere((category) => category.categoriesName == selectedCategory);
-
-                      // Store non-null product IDs for internal use
-                      productDetailsIds = selectedCategoryData.productDetails?.map((product) => product.id).where((id) => id != null).cast<String>().toList() ?? [];
+                      selectedCategoryId = selectedCategoryData.id;
                     });
                   },
                   validator: (value) {
@@ -279,14 +267,6 @@ class _EditProductScreenState extends State<EditProductScreen> {
                     return null;
                   },
                 ),
-
-                 // Display only the first product details ID
-                if (productDetailsIds.isNotEmpty)
-                  Text(
-                    'Product ID: ${productDetailsIds.first}',  // Show only the first ID
-                    style: const TextStyle(color: kPrimaryColor, fontSize: 16),
-                  ),
-
 
                 const SizedBox(height: largePadding),
                 TextFormField(
@@ -364,8 +344,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
                     onPressed: () {
                       if (_formKey.currentState?.validate() ?? false) {
                         setState(() {
-                          if (productDetailsIds.isNotEmpty) {
-                            mUpdateProduct(productDetailsIds.first);
+                          if (selectedCategoryId !=null) {
+                            mUpdateProduct(selectedCategoryId!);
                           }else{
                             CustomSnackBar.showSnackBar(context: context, message: "message", color: kPrimaryColor);
                           }

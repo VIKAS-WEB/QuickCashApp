@@ -10,12 +10,12 @@ class UpdateProductApi {
     _dio.options.baseUrl = ApiConstants.baseUrl;
     _dio.options.headers['Authorization'] = 'Bearer ${AuthManager.getToken()}'; // Ensure token is prefixed with "Bearer"
 
-    /*_dio.interceptors.add(LogInterceptor(
+    _dio.interceptors.add(LogInterceptor(
       request: true,
       requestBody: true,
       responseBody: true,
       responseHeader: true,
-    ));*/
+    ));
 
   }
 
