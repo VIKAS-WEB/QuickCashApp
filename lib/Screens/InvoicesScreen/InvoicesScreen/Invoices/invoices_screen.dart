@@ -7,6 +7,7 @@ import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/UpdateInvoiceScr
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/customSnackBar.dart';
 
+import '../../InvoiceDashboardScreen/AddInvoice/add_invoice_screen.dart';
 import 'invoiceModel/invoicesApi.dart';
 import 'invoiceModel/invoicesModel.dart';
 
@@ -125,7 +126,6 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
     });
 
     try{
-
       final response = await _invoiceReminderApi.invoiceReminderApi(invoiceId!);
 
       if(response.message == "Reminder has been sent"){
@@ -142,7 +142,6 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
           CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kRedColor);
         });
       }
-
     }catch (error) {
       setState(() {
         isLoading = false;
@@ -151,8 +150,6 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
         CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
       });
     }
-
-
   }
 
 
@@ -205,9 +202,33 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(
-                height: largePadding,
+              Row(mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  SizedBox(
+                    width: 150,
+                    child: FloatingActionButton.extended(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const AddInvoiceScreen()),
+                        );
+                      },
+                      backgroundColor: kPrimaryColor,
+                      label: const Text(
+                        'New Invoice',
+                        style: TextStyle(color: kWhiteColor, fontSize: 15),
+                      ),
+                      icon: const Icon(Icons.add, color: kWhiteColor),
+                    ),
+                  ),
+                ],
               ),
+
+              const SizedBox(
+                height: defaultPadding,
+              ),
+
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -448,7 +469,6 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                               ],
 
                               const SizedBox(width: smallPadding,),
-
                               Column(
                                 children: [
                                   IconButton(
@@ -504,16 +524,13 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                     invoiceLists.recurring == "yes" ? 'Stop Recurring' : 'Start Recurring',
                                     style: const TextStyle(color: Colors.white, fontSize: 12),
                                   ),
-
                                 ],
                               ),
                               const SizedBox(width: smallPadding,),
                             ],
                           ),
-
                             ],
                           )
-
                         ],
                       ),
                     ),
@@ -529,7 +546,6 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
 
 
   Future<void> _startRecurringDialog() async {
-
     String selectedRecurring = 'Select Recurring';
 
     return showDialog<void>(
@@ -587,7 +603,6 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
           actions: [
             TextButton(
               onPressed: () {
-
                  if(selectedRecurring == "Select Recurring") {
                    ScaffoldMessenger.of(context).showSnackBar(
                        const SnackBar(content: Text('Please select a recurring option')));
@@ -596,7 +611,6 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                        const SnackBar(content: Text('Recurring Selected')));
                    Navigator.of(context).pop();
                  }
-
               },
               child: const Text('Save'),
             ),
@@ -633,7 +647,4 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
       ),
     )) ?? false;
   }
-
-
-
 }
