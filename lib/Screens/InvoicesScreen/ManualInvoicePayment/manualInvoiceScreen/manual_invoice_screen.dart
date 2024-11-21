@@ -253,12 +253,12 @@ class _ManualInvoiceScreenState extends State<ManualInvoiceScreen> {
                                 mViewPayments(context, manualInvoice);
                               },
                             ),
-                            IconButton(
+                            /*IconButton(
                               icon: const Icon(Icons.delete, color: Colors.white),
                               onPressed: () {
                                 mDeleteManualInvoiceDialog(manualInvoice.id);
                               },
-                            ),
+                            ),*/
                           ],
                         ),
                       ],
@@ -286,7 +286,7 @@ class _ManualInvoiceScreenState extends State<ManualInvoiceScreen> {
           ),
           TextButton(
             onPressed: () {
-              mManualInvoiceDelete(manualInvoiceId);
+              //mManualInvoiceDelete(manualInvoiceId);
             },
             child: const Text("Yes"),
           ),

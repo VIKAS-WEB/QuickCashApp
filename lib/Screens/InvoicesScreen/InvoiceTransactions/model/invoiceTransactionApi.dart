@@ -1,16 +1,16 @@
 import 'package:dio/dio.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import '../../../../../util/apiConstants.dart';
-import 'manualInvoiceModel.dart';
+import 'invoiceTransactionModel.dart';
 
-class ManualInvoicesApi {
+class InvoicesTransactionApi {
   final Dio _dio = Dio();
 
-  ManualInvoicesApi() {
+  InvoicesTransactionApi() {
     _dio.options.baseUrl = ApiConstants.baseUrl;
 
 
-     /*_dio.interceptors.add(LogInterceptor(
+   /* _dio.interceptors.add(LogInterceptor(
       request: true,
       requestBody: true,
       responseBody: true,
@@ -18,10 +18,10 @@ class ManualInvoicesApi {
     ));*/
   }
 
-  Future<ManualInvoicesResponse> manualInvoiceApi() async {
+  Future<InvoicesTransactionResponse> invoiceTransactionApi() async {
     try {
       final response = await _dio.get(
-        '/manualPayment/list',
+        '/manualPayment/transaction-list',
         options: Options(headers: {
           'Authorization': 'Bearer ${AuthManager.getToken()}',
           'Accept': 'application/json',
@@ -29,7 +29,7 @@ class ManualInvoicesApi {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return ManualInvoicesResponse.fromJson(response.data);
+        return InvoicesTransactionResponse.fromJson(response.data);
       } else {
         throw Exception('Failed to fetch data: ${response.statusMessage}');
       }
