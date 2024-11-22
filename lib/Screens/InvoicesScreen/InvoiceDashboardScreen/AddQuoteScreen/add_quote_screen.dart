@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quickcash/constants.dart';
-import 'package:intl/intl.dart'; // Import for date formatting
-import 'package:flutter_quill/flutter_quill.dart';
+import 'package:intl/intl.dart'; //
 
 import '../../../../util/customSnackBar.dart';
 
@@ -15,7 +14,7 @@ class AddQuoteScreen extends StatefulWidget {
 class _AddQuoteScreenState extends State<AddQuoteScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController invoiceNumber = TextEditingController();
+  final TextEditingController quoteNumber = TextEditingController();
   final TextEditingController receiverName = TextEditingController();
   final TextEditingController receiverEmail = TextEditingController();
   final TextEditingController receiverAddress = TextEditingController();
@@ -47,6 +46,28 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
   List<Map<String, dynamic>> productList = [
     {"selectedProduct": 'Select Product', "quantity": "", "price": ""}
   ];
+
+
+  @override
+  void initState() {
+    updateProductCode();
+    super.initState();
+  }
+
+// Function to generate a product code based on the current timestamp
+  String generateCodeFromTimestamp() {
+    int timestamp = DateTime.now().millisecondsSinceEpoch;
+    String timestampStr = timestamp.toString();
+    return timestampStr.substring(timestampStr.length - 10);
+  }
+
+  void updateProductCode() {
+    setState(() {
+      String newCode = generateCodeFromTimestamp();
+      quoteNumber.text = newCode;
+    });
+  }
+
 
   void addProduct() {
     setState(() {
@@ -113,15 +134,15 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
             children: <Widget>[
               const SizedBox(height: largePadding),
               TextFormField(
-                controller: invoiceNumber,
+                controller: quoteNumber,
                 keyboardType: TextInputType.text,
                 textInputAction: TextInputAction.next,
                 cursorColor: kPrimaryColor,
                 onSaved: (value) {},
-                readOnly: false,
+                readOnly: true,
                 style: const TextStyle(color: kPrimaryColor),
                 decoration: InputDecoration(
-                  labelText: "Invoice #",
+                  labelText: "Quote #",
                   labelStyle:
                   const TextStyle(color: kPrimaryColor, fontSize: 16),
                   border: OutlineInputBorder(

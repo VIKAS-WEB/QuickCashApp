@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/InvoicesScreen/InvoiceDashboardScreen/AddQuoteScreen/add_quote_screen.dart';
+import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteDelete/quoteDeleteApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteModel/quotesApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteModel/quotesModel.dart';
 import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteReminderModel/quoteReminderApi.dart';
@@ -18,6 +19,7 @@ class QuotesScreen extends StatefulWidget {
 class _QuotesScreenState extends State<QuotesScreen> {
   final QuoteApi _quoteApi = QuoteApi();
   final QuoteReminderApi _quoteReminderApi = QuoteReminderApi();
+  final QuoteDeleteApi _quoteDeleteApi = QuoteDeleteApi();
 
   List<QuoteData> quotesList = [];
   bool isLoading = false;
@@ -26,15 +28,17 @@ class _QuotesScreenState extends State<QuotesScreen> {
 
   @override
   void initState() {
-    mQuote();
+    mQuote("Yes");
     super.initState();
   }
 
   // Quote List Api
-  Future<void> mQuote() async{
+  Future<void> mQuote(String s) async{
     setState(() {
-      isLoading = true;
-      errorMessage = null;
+     if(s == "Yes"){
+       isLoading = true;
+       errorMessage = null;
+     }
     });
 
     try{
@@ -87,11 +91,47 @@ class _QuotesScreenState extends State<QuotesScreen> {
         });
       }
 
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+        CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
+      });
+    }
+  }
+
+  // Quote Delete Api
+  Future<void> mQuoteDelete(String? quoteId) async{
+    setState(() {
+      isLoading = false;
+      errorMessage = null;
+    });
+
+    try{
+      final response = await _quoteDeleteApi.quoteDeleteApi(quoteId!);
+
+      if(response.message == "Quote data has been deleted successfully"){
+        setState(() {
+          isLoading = false;
+          errorMessage = null;
+          Navigator.of(context).pop(false);
+          mQuote("No");
+          CustomSnackBar.showSnackBar(context: context, message: "Quote data has been deleted successfully", color: kPrimaryColor);
+        });
+      }else{
+        setState(() {
+          isLoading = false;
+          errorMessage = null;
+          Navigator.of(context).pop(false);
+          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kPrimaryColor);
+        });
+      }
 
     }catch (error) {
       setState(() {
         isLoading = false;
         errorMessage = error.toString();
+        Navigator.of(context).pop(false);
         CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
       });
     }
@@ -166,7 +206,7 @@ class _QuotesScreenState extends State<QuotesScreen> {
                 itemBuilder: (context, index) {
                   final quotes = quotesList[index];
                   return Padding(
-                    padding: const EdgeInsets.all(0),
+                    padding: const EdgeInsets.symmetric(vertical: smallPadding),
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(defaultPadding),
@@ -376,7 +416,7 @@ class _QuotesScreenState extends State<QuotesScreen> {
                                           color: Colors.white,
                                         ),
                                         onPressed: () {
-                                          mDeleteInvoiceDialog("quoteId");
+                                          mDeleteInvoiceDialog(quotes.id);
                                         },
                                       ),
                                       const Text(
@@ -443,7 +483,7 @@ class _QuotesScreenState extends State<QuotesScreen> {
           ),
           TextButton(
             onPressed: () {
-             // mDeleteInvoice(invoiceId);
+              mQuoteDelete(quoteId);
             },
             child: const Text("Yes"),
           ),
