@@ -15,7 +15,7 @@ class AddManualPaymentScreen extends StatefulWidget {
   State<AddManualPaymentScreen> createState() => _AddManualPaymentScreenState();
 }
 
-class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
+class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> with WidgetsBindingObserver {
   final GetManualPaymentApi _getManualPaymentApi = GetManualPaymentApi();
   final AddManualPaymentApi _addManualPaymentApi = AddManualPaymentApi();
 
@@ -38,6 +38,7 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
     super.initState();
     mGetManualPaymentDetails();
     _dateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
