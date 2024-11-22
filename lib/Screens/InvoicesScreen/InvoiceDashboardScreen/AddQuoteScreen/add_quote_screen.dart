@@ -3,6 +3,8 @@ import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart'; // Import for date formatting
 import 'package:flutter_quill/flutter_quill.dart';
 
+import '../../../../util/customSnackBar.dart';
+
 class AddQuoteScreen extends StatefulWidget {
   const AddQuoteScreen({super.key});
 
@@ -11,13 +13,26 @@ class AddQuoteScreen extends StatefulWidget {
 }
 
 class _AddQuoteScreenState extends State<AddQuoteScreen> {
+  final _formKey = GlobalKey<FormState>();
 
-  final QuillController _controller = QuillController.basic();
+  final TextEditingController invoiceNumber = TextEditingController();
+  final TextEditingController receiverName = TextEditingController();
+  final TextEditingController receiverEmail = TextEditingController();
+  final TextEditingController receiverAddress = TextEditingController();
+  final TextEditingController discount = TextEditingController();
 
-  String? selectedValue;
-  DateTime? selectedDate; // Variable to hold selected date
+
+  String? selectedType = "other";
+  String? selectedRecurring = "yes";
+  DateTime? quoteDate;
+  DateTime? dueDate;
+  String selectedMember = 'Select Member';
+  String selectedStatus = 'Select Status';
   String selectedInvoiceTemplate = 'Default';
+  String selectedPaymentQR = 'Payment QR Code';
+  String selectedRecurringCycle = 'Day';
   String selectedCurrency = 'Select Currency';
+  String selectedProduct = 'Select Product';
   String selectedDiscount = 'Select Discount';
   String selectedTax = 'Select Tax';
 
@@ -48,16 +63,30 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
     }
   }
 
-  Future<void> _selectDate(BuildContext context) async {
+  Future<void> mQuoteDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate ?? DateTime.now(),
+      initialDate: quoteDate ?? DateTime.now(),
       firstDate: DateTime(1947),
       lastDate: DateTime(2101),
     );
-    if (picked != null && picked != selectedDate) {
+    if (picked != null && picked != quoteDate) {
       setState(() {
-        selectedDate = picked;
+        quoteDate = picked;
+      });
+    }
+  }
+
+  Future<void> mDueDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: dueDate ?? DateTime.now(),
+      firstDate: DateTime(1947),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != dueDate) {
+      setState(() {
+        dueDate = picked;
       });
     }
   }
@@ -76,12 +105,15 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(defaultPadding),
-          child: Column(
+          child: Form(
+            key: _formKey,
+              child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
               const SizedBox(height: largePadding),
               TextFormField(
+                controller: invoiceNumber,
                 keyboardType: TextInputType.text,
                 textInputAction: TextInputAction.next,
                 cursorColor: kPrimaryColor,
@@ -116,106 +148,161 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                 children: <Widget>[
                   Radio<String>(
                     value: 'member',
-                    groupValue: selectedValue,
+                    groupValue: selectedType,
                     onChanged: (String? value) {
                       setState(() {
-                        selectedValue = value;
+                        selectedType = value;
                       });
                     },
                   ),
                   const Text('Member', style: TextStyle(color: kPrimaryColor)),
                   Radio<String>(
                     value: 'other',
-                    groupValue: selectedValue,
+                    groupValue: selectedType,
                     onChanged: (String? value) {
                       setState(() {
-                        selectedValue = value;
+                        selectedType = value;
                       });
                     },
                   ),
                   const Text('Other', style: TextStyle(color: kPrimaryColor)),
                 ],
               ),
-              const SizedBox(height: largePadding),
-              TextFormField(
-                keyboardType: TextInputType.text,
-                textInputAction: TextInputAction.next,
-                cursorColor: kPrimaryColor,
-                onSaved: (value) {},
-                readOnly: false,
-                style: const TextStyle(color: kPrimaryColor),
-                decoration: InputDecoration(
-                  labelText: "Receiver Name",
-                  labelStyle:
-                  const TextStyle(color: kPrimaryColor, fontSize: 16),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(),
+
+              if (selectedType == "Member" || selectedType == "member") ...[
+                // Selected Member
+                const SizedBox(height: largePadding),
+                DropdownButtonFormField<String>(
+                  value: selectedMember,
+                  style: const TextStyle(color: kPrimaryColor),
+                  decoration: InputDecoration(
+                    labelText: 'Select Member',
+                    labelStyle: const TextStyle(color: kPrimaryColor),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(),
+                    ),
+                    filled: true,
+                    fillColor: Colors.transparent,
                   ),
-                  filled: true,
-                  fillColor: Colors.transparent,
+                  items: [
+                    'Select Member',
+                    'Ganesh',
+                    'David',
+                  ].map((String role) {
+                    return DropdownMenuItem(
+                      value: role,
+                      child: Text(
+                        role,
+                        style: const TextStyle(
+                            color: kPrimaryColor, fontSize: 16),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (newValue) {
+                    setState(() {
+                      selectedMember = newValue!;
+                    });
+                  },
                 ),
-                onChanged: (value) {
-                  setState(() {});
-                },
-              ),
-              const SizedBox(height: largePadding),
-              TextFormField(
-                keyboardType: TextInputType.emailAddress,
-                textInputAction: TextInputAction.next,
-                cursorColor: kPrimaryColor,
-                onSaved: (value) {},
-                readOnly: false,
-                style: const TextStyle(color: kPrimaryColor),
-                decoration: InputDecoration(
-                  labelText: "Receiver Email",
-                  labelStyle:
-                  const TextStyle(color: kPrimaryColor, fontSize: 16),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(),
+              ],
+
+              if (selectedType == "Other" || selectedType == "other") ...[
+                const SizedBox(height: largePadding),
+                TextFormField(
+                  controller: receiverName,
+                  keyboardType: TextInputType.text,
+                  textInputAction: TextInputAction.next,
+                  cursorColor: kPrimaryColor,
+                  onSaved: (value) {},
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter receiver name';
+                    }
+                    return null;
+                  },
+                  readOnly: false,
+                  style: const TextStyle(color: kPrimaryColor),
+                  decoration: InputDecoration(
+                    labelText: "Receiver Name",
+                    labelStyle:
+                    const TextStyle(color: kPrimaryColor, fontSize: 16),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(),
+                    ),
+                    filled: true,
+                    fillColor: Colors.transparent,
                   ),
-                  filled: true,
-                  fillColor: Colors.transparent,
                 ),
-                onChanged: (value) {
-                  setState(() {});
-                },
-              ),
-              const SizedBox(height: largePadding),
-              TextFormField(
-                keyboardType: TextInputType.text,
-                textInputAction: TextInputAction.next,
-                cursorColor: kPrimaryColor,
-                onSaved: (value) {},
-                readOnly: false,
-                style: const TextStyle(color: kPrimaryColor),
-                decoration: InputDecoration(
-                  labelText: "Receiver Address",
-                  labelStyle:
-                  const TextStyle(color: kPrimaryColor, fontSize: 16),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(),
+                const SizedBox(height: largePadding),
+                TextFormField(
+                  controller: receiverEmail,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  cursorColor: kPrimaryColor,
+                  onSaved: (value) {},
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter receiver email';
+                    }
+                    return null;
+                  },
+                  readOnly: false,
+                  style: const TextStyle(color: kPrimaryColor),
+                  decoration: InputDecoration(
+                    labelText: "Receiver Email",
+                    labelStyle:
+                    const TextStyle(color: kPrimaryColor, fontSize: 16),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(),
+                    ),
+                    filled: true,
+                    fillColor: Colors.transparent,
                   ),
-                  filled: true,
-                  fillColor: Colors.transparent,
                 ),
-                onChanged: (value) {
-                  setState(() {});
-                },
-              ),
+                const SizedBox(height: largePadding),
+                TextFormField(
+                  controller: receiverAddress,
+                  keyboardType: TextInputType.text,
+                  textInputAction: TextInputAction.next,
+                  cursorColor: kPrimaryColor,
+                  onSaved: (value) {},
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter receiver address';
+                    }
+                    return null;
+                  },
+                  readOnly: false,
+                  style: const TextStyle(color: kPrimaryColor),
+                  decoration: InputDecoration(
+                    labelText: "Receiver Address",
+                    labelStyle:
+                    const TextStyle(color: kPrimaryColor, fontSize: 16),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(),
+                    ),
+                    filled: true,
+                    fillColor: Colors.transparent,
+                  ),
+                ),
+              ],
+
               const SizedBox(height: largePadding),
               GestureDetector(
-                onTap: () => _selectDate(context), // Open date picker on tap
+                onTap: () => mQuoteDate(context), // Open date picker on tap
                 child: AbsorbPointer(
                   // Prevent keyboard from appearing
                   child: TextFormField(
                     controller: TextEditingController(
-                      text: selectedDate == null
+                      text: quoteDate == null
                           ? ''
-                          : DateFormat('dd-MM-yyyy').format(selectedDate!),
+                          : DateFormat('dd-MM-yyyy').format(quoteDate!),
                     ),
+                    style: const TextStyle(color: kPrimaryColor),
                     decoration: InputDecoration(
                       labelText: "Quote Date*",
                       labelStyle:
@@ -238,15 +325,16 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
 
               const SizedBox(height: largePadding),
               GestureDetector(
-                onTap: () => _selectDate(context), // Open date picker on tap
+                onTap: () => mDueDate(context), // Open date picker on tap
                 child: AbsorbPointer(
                   // Prevent keyboard from appearing
                   child: TextFormField(
                     controller: TextEditingController(
-                      text: selectedDate == null
+                      text: dueDate == null
                           ? ''
-                          : DateFormat('dd-MM-yyyy').format(selectedDate!),
+                          : DateFormat('dd-MM-yyyy').format(dueDate!),
                     ),
+                    style: const TextStyle(color: kPrimaryColor),
                     decoration: InputDecoration(
                       labelText: "Due Date*",
                       labelStyle:
@@ -411,8 +499,10 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                                 const SizedBox(height: largePadding),
                                 TextFormField(
                                   keyboardType: TextInputType.number,
+                                  style: const TextStyle(color: kPrimaryColor),
                                   decoration: InputDecoration(
                                     labelText: "Quantity",
+                                    labelStyle: const TextStyle(color: kPrimaryColor),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -426,8 +516,10 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                                 const SizedBox(height: largePadding),
                                 TextFormField(
                                   keyboardType: TextInputType.number,
+                                  style: const TextStyle(color: kPrimaryColor),
                                   decoration: InputDecoration(
                                     labelText: "Price",
+                                    labelStyle: const TextStyle(color: kPrimaryColor),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -791,6 +883,22 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                           height: 47.0,
                           child: FloatingActionButton.extended(
                             onPressed: () {
+                              if (_formKey.currentState?.validate() ?? false) {
+                              }else if(selectedType!.isEmpty){
+                                CustomSnackBar.showSnackBar(context: context, message: "Please select type", color: kRedColor);
+                              }else if(quoteDate == null){
+                                CustomSnackBar.showSnackBar(context: context, message: "Please select invoice date", color: kRedColor);
+                              }else if(dueDate == null){
+                                CustomSnackBar.showSnackBar(context: context, message: "Please select due date", color: kRedColor);
+                              }else if(selectedStatus.isEmpty){
+                                CustomSnackBar.showSnackBar(context: context, message: "Please select status", color: kRedColor);
+                              }else if(selectedInvoiceTemplate.isEmpty){
+                                CustomSnackBar.showSnackBar(context: context, message: "Please select invoice template", color: kRedColor);
+                              }else if(selectedCurrency.isEmpty){
+                                CustomSnackBar.showSnackBar(context: context, message: "Please select currency", color: kRedColor);
+                              }else{
+                                CustomSnackBar.showSnackBar(context: context, message: "Save", color: kRedColor);
+                              }
 
                             },
                             label: const Text(
@@ -812,7 +920,7 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
               const SizedBox(height: 35),
 
             ],
-          ),
+          )),
         ),
       ),
     );

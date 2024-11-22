@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/InvoicesScreen/InvoiceDashboardScreen/AddQuoteScreen/add_quote_screen.dart';
-import 'package:quickcash/components/background.dart';
+import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteModel/quotesApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteModel/quotesModel.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/customSnackBar.dart';
-
-import '../InvoicesScreen/Invoices/invoiceModel/invoicesModel.dart';
 
 class QuotesScreen extends StatefulWidget {
   const QuotesScreen({super.key});
@@ -15,10 +15,60 @@ class QuotesScreen extends StatefulWidget {
 }
 
 class _QuotesScreenState extends State<QuotesScreen> {
-  //Temp
-  List<InvoicesData> quotesList = [];
+  final QuoteApi _quoteApi = QuoteApi();
+
+  List<QuoteData> quotesList = [];
   bool isLoading = false;
   String? errorMessage;
+
+
+  @override
+  void initState() {
+    mQuote();
+    super.initState();
+  }
+
+  Future<void> mQuote() async{
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try{
+      final response = await _quoteApi.quoteApi();
+
+      if(response.quoteList !=null && response.quoteList!.isNotEmpty){
+        setState(() {
+          isLoading = false;
+          errorMessage = null;
+          quotesList = response.quoteList!;
+        });
+      }else{
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Quote List';
+          CustomSnackBar.showSnackBar(context: context, message: "No Invoices List", color: kPrimaryColor);
+        });
+      }
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+        CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
+      });
+    }
+  }
+
+  // Function to format the date
+  String formatDate(String? dateTime) {
+    if (dateTime == null) {
+      return 'Date not available';
+    }
+    DateTime date = DateTime.parse(dateTime);
+    return DateFormat('dd-MM-yyyy').format(date);
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +119,7 @@ class _QuotesScreenState extends State<QuotesScreen> {
                 ],
               ),
               const SizedBox(
-                height: defaultPadding,
+                height: largePadding,
               ),
               ListView.builder(
                 shrinkWrap: true,
@@ -78,7 +128,7 @@ class _QuotesScreenState extends State<QuotesScreen> {
                 itemBuilder: (context, index) {
                   final quotes = quotesList[index];
                   return Padding(
-                    padding: const EdgeInsets.all(defaultPadding),
+                    padding: const EdgeInsets.all(0),
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(defaultPadding),
@@ -97,18 +147,18 @@ class _QuotesScreenState extends State<QuotesScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Row(
+                           Row(
                             mainAxisAlignment:
                             MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
+                              const Text(
                                 'Quote Number:',
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 16),
                               ),
                               Text(
-                                '564512545112515',
-                                style: TextStyle(
+                                quotes.quoteNumber ?? 'N/A',
+                                style: const TextStyle(
                                     color: Colors.white, fontSize: 16),
                               ),
                             ],
@@ -122,18 +172,18 @@ class _QuotesScreenState extends State<QuotesScreen> {
                           const SizedBox(
                             height: smallPadding,
                           ),
-                          const Row(
+                      Row(
                             mainAxisAlignment:
                             MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
+                              const Text(
                                 'Quote Date:',
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 16),
                               ),
                               Text(
-                                '22-11-2024',
-                                style: TextStyle(
+                                formatDate(quotes.invoiceDate),
+                                style: const TextStyle(
                                     color: Colors.white, fontSize: 16),
                               ),
                             ],
@@ -147,18 +197,18 @@ class _QuotesScreenState extends State<QuotesScreen> {
                           const SizedBox(
                             height: smallPadding,
                           ),
-                          const Row(
+                          Row(
                             mainAxisAlignment:
                             MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
+                              const Text(
                                 'Due Date:',
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 16),
                               ),
                               Text(
-                                '23-11-2024',
-                                style: TextStyle(
+                                formatDate(quotes.dueDate),
+                                style: const TextStyle(
                                     color: Colors.white, fontSize: 16),
                               ),
                             ],
@@ -172,18 +222,18 @@ class _QuotesScreenState extends State<QuotesScreen> {
                           const SizedBox(
                             height: smallPadding,
                           ),
-                          const Row(
+                          Row(
                             mainAxisAlignment:
                             MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
+                              const Text(
                                 'Amount:',
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 16),
                               ),
                               Text(
-                                '545',
-                                style: TextStyle(
+                                '${quotes.currencyText} ${quotes.total}',
+                                style: const TextStyle(
                                     color: Colors.white, fontSize: 16),
                               ),
                             ],
@@ -197,19 +247,23 @@ class _QuotesScreenState extends State<QuotesScreen> {
                           const SizedBox(
                             height: smallPadding,
                           ),
-                          const Row(
+                          Row(
                             mainAxisAlignment:
                             MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
+                              const Text(
                                 'Status:',
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 16),
                               ),
                               Text(
-                                'Created',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 16),
+                                (quotes.status != null && quotes.status!.isNotEmpty)
+                                    ? quotes.status![0].toUpperCase() + quotes.status!.substring(1)
+                                    : '',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
                               ),
                             ],
                           ),

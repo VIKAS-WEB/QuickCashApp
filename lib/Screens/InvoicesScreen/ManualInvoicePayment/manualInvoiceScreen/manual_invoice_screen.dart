@@ -252,32 +252,6 @@ class _ManualInvoiceScreenState extends State<ManualInvoiceScreen> with WidgetsB
     );
   }
 
-  /*Future<bool?> mViewPayments(BuildContext context, ManualInvoiceData manualInvoice) {
-    // Implementation for viewing payments
-    return showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Do you want to delete this Invoice?"),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(false);
-            },
-            child: const Text("No"),
-          ),
-          TextButton(
-            onPressed: () {
-              mManualInvoiceDelete(manualInvoice.id);
-            },
-            child: const Text("Yes"),
-          ),
-        ],
-      ),
-    );
-  }*/
-
-
-
 }
 void mViewPayments(BuildContext context, ManualInvoiceData manualInvoice) {
   showModalBottomSheet<void>(
@@ -292,9 +266,7 @@ void mViewPayments(BuildContext context, ManualInvoiceData manualInvoice) {
 
 class ViewPayments extends StatefulWidget {
   final ManualInvoiceData manualInvoice;
-
   const ViewPayments({super.key, required this.manualInvoice});
-
 
   @override
   State<ViewPayments>  createState() => _ViewPaymentsState();
