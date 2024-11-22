@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/auth_manager.dart';
 
+import '../../util/apiConstants.dart';
+
 class MyHeaderDrawer extends StatefulWidget {
   const MyHeaderDrawer({super.key});
 
@@ -11,6 +13,9 @@ class MyHeaderDrawer extends StatefulWidget {
 }
 
 class _MyHeaderDrawerState extends State<MyHeaderDrawer>{
+
+  String? profileImageUrl ='${ApiConstants.baseImageUrl}${AuthManager.getUserId()}/${AuthManager.getUserImage()}';
+
 
   @override
   Widget build(BuildContext context){
@@ -23,17 +28,29 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer>{
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(height: defaultPadding,),
-          Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            height: 60,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              image: DecorationImage(
-                image: NetworkImage('https://quickcash.oyefin.com/storage/66d6f4868f27287f8f7f2546/ownerProfile-173079761956539.jpg'),
-                fit: BoxFit.cover, // Ensures the image covers the container fully
+
+          // Profile Image Section
+          if (profileImageUrl != null)
+            Center(
+              child: Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  CircleAvatar(
+                    radius: 45,
+                    backgroundImage:
+                    NetworkImage(profileImageUrl!),
+                  ),
+                ],
+              ),
+            )
+          else
+            const Center(
+              child: CircleAvatar(
+                radius: 50,
+                backgroundImage: AssetImage(
+                    'assets/images/profile_pic.png'), // Default Image
               ),
             ),
-          ),
 
           Text(
             AuthManager.getUserName(),

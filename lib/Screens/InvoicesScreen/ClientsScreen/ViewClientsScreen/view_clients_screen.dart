@@ -4,7 +4,6 @@ import 'package:quickcash/Screens/InvoicesScreen/ClientsScreen/ViewClientsScreen
 import 'package:quickcash/constants.dart';
 
 import '../../../../util/apiConstants.dart';
-import '../../../../util/auth_manager.dart';
 
 class ViewClientsScreen extends StatefulWidget {
   final String? clientsID;
@@ -61,7 +60,7 @@ class _ViewClientsScreenState extends State<ViewClientsScreen> {
       if (response.profilePhoto != null) {
         // Assuming response.ownerProfile contains the image filename
         profileImageUrl =
-        '${ApiConstants.baseImageUrl}${AuthManager.getUserId()}/${response.profilePhoto}';
+        '${ApiConstants.baseClientImageUrl}/${response.profilePhoto}';
       }
 
       setState(() {
