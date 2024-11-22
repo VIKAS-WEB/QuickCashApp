@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Import this for date formatting
+import 'package:quickcash/Screens/InvoicesScreen/ManualInvoicePayment/AddManualPaymentScreen/addManualPaymentModel/addManualPaymentApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/ManualInvoicePayment/AddManualPaymentScreen/addManualPaymentModel/addManualPaymentModel.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ManualInvoicePayment/AddManualPaymentScreen/getManualPaymentDataModel/getManualPaymentApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ManualInvoicePayment/AddManualPaymentScreen/getManualPaymentDataModel/getManualPaymentModel.dart';
 import 'package:quickcash/constants.dart';
-
+import 'package:quickcash/util/auth_manager.dart';
 import '../../../../util/customSnackBar.dart';
 
 class AddManualPaymentScreen extends StatefulWidget {
@@ -15,12 +17,21 @@ class AddManualPaymentScreen extends StatefulWidget {
 
 class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
   final GetManualPaymentApi _getManualPaymentApi = GetManualPaymentApi();
+  final AddManualPaymentApi _addManualPaymentApi = AddManualPaymentApi();
+
   final TextEditingController _dateController = TextEditingController();
+  final TextEditingController amountPay = TextEditingController();
+  final TextEditingController mNotes = TextEditingController();
+
   String? selectedInvoice = 'Select Invoice'; // Default value
 
   List<GetManualPaymentData> manualPaymentDetailsList = [];
   bool isLoading = false;
   String? errorMessage;
+
+  double? dueAmount = 0.0;
+  double? paidAmount = 0.0;
+  String? currency = "";
 
   @override
   void initState() {
@@ -35,6 +46,7 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
     super.dispose();
   }
 
+  // Get Manual Payment Details Api
   Future<void> mGetManualPaymentDetails() async {
     setState(() {
       isLoading = true;
@@ -49,7 +61,6 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
           isLoading = false;
           errorMessage = null;
           manualPaymentDetailsList = response.getManualPaymentList!;
-          // No need to change selectedInvoice as 'Select Invoice' should be the default
         });
       } else {
         setState(() {
@@ -62,6 +73,77 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
         isLoading = false;
         errorMessage = error.toString();
         CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
+      });
+    }
+  }
+
+
+  // Add Manual Payment Details Api
+  Future<void> mAddManualPayment(invoiceId, String amount, String notes) async{
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try{
+      double mAmount = double.parse(amount);
+
+      final request = AddManualPaymentRequest(userId: AuthManager.getUserId(), invoiceNumber: selectedInvoice!, currency: currency!, invoiceId: invoiceId, notes: notes, amount: mAmount, paymentDate: _dateController.text, mode: "Cash", dueAmount: dueAmount!, paidAmount: paidAmount!);
+      final response = await _addManualPaymentApi.addManualPayment(request);
+
+      if(response.message == "Payment has been done Successfully"){
+        setState(() {
+          isLoading = false;
+          errorMessage =null;
+          CustomSnackBar.showSnackBar(context: context, message: "Payment has been done Successfully", color: kGreenColor);
+          amountPay.clear();
+          Navigator.pop(context);
+        });
+      }else if(response.message == "Please make sure enter amount should not be more than Invoice generated amount!"){
+        setState(() {
+          CustomSnackBar.showSnackBar(context: context, message: "Please make sure enter amount should not be more than Invoice generated amount!", color: kRedColor);
+          isLoading = false;
+          errorMessage = null;
+        });
+      }else{
+        setState(() {
+          isLoading = false;
+          CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
+        });
+      }
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+        CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
+      });
+    }
+
+
+  }
+
+
+
+
+
+  void updateAmountFields(String? invoiceNumber) {
+    final selectedPayment = manualPaymentDetailsList.firstWhere(
+          (payment) => payment.invoiceNumber == invoiceNumber,
+      orElse: () => GetManualPaymentData(),
+    );
+
+    if (selectedPayment.id != null) {
+      setState(() {
+        dueAmount = selectedPayment.dueAmount ?? 0.0;
+        paidAmount = selectedPayment.paidAmount ?? 0.0;
+        currency = selectedPayment.currencyText ?? " ";
+      });
+    }else{
+      setState(() {
+        dueAmount = 0.0;
+        paidAmount = 0.0;
+        currency = "";
       });
     }
   }
@@ -89,7 +171,6 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               const SizedBox(height: largePadding),
               DropdownButtonFormField<String?>(
                 value: selectedInvoice,
@@ -117,6 +198,7 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
                 onChanged: (newValue) {
                   setState(() {
                     selectedInvoice = newValue;
+                    updateAmountFields(newValue);
                   });
                 },
                 validator: (value) {
@@ -126,7 +208,6 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
                   return null;
                 },
               ),
-
               const SizedBox(height: defaultPadding),
               TextFormField(
                 keyboardType: TextInputType.number,
@@ -134,6 +215,7 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
                 cursorColor: kPrimaryColor,
                 onSaved: (value) {},
                 readOnly: true,
+                controller: TextEditingController(text: '$currency ${dueAmount?.toString() ?? '0.0'}'),
                 style: const TextStyle(color: kPrimaryColor),
                 decoration: InputDecoration(
                   labelText: "Due Amount",
@@ -152,6 +234,7 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
                 cursorColor: kPrimaryColor,
                 onSaved: (value) {},
                 readOnly: true,
+                controller: TextEditingController(text: '$currency ${paidAmount?.toString() ?? '0.0'}'),
                 style: const TextStyle(color: kPrimaryColor),
                 decoration: InputDecoration(
                   labelText: "Paid Amount",
@@ -185,11 +268,12 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
               ),
               const SizedBox(height: defaultPadding),
               TextFormField(
+                controller: amountPay,
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.next,
                 cursorColor: kPrimaryColor,
                 onSaved: (value) {},
-                readOnly: true,
+                readOnly: false,
                 style: const TextStyle(color: kPrimaryColor),
                 decoration: InputDecoration(
                   labelText: "Amount",
@@ -200,6 +284,12 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
                   filled: true,
                   fillColor: Colors.transparent,
                 ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a amount';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: defaultPadding),
               TextFormField(
@@ -222,9 +312,11 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
               ),
               const SizedBox(height: largePadding),
               TextFormField(
+                controller: mNotes,
                 keyboardType: TextInputType.text,
                 textInputAction: TextInputAction.next,
                 cursorColor: kPrimaryColor,
+                style: const TextStyle(color: kPrimaryColor),
                 minLines: 6,
                 maxLines: 12,
                 decoration: InputDecoration(
@@ -256,9 +348,24 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  onPressed: () {
-                    // Implement your logic for the Pay button here
-                  },
+                  onPressed: (){
+
+                    final selectedPayment = manualPaymentDetailsList.firstWhere(
+                          (payment) => payment.invoiceNumber == selectedInvoice,
+                      orElse: () => GetManualPaymentData(),
+                    );
+
+                    if(selectedInvoice != "Select Invoice"){
+                      if(amountPay.text.isNotEmpty){
+                        mAddManualPayment(selectedPayment.id,amountPay.text,mNotes.text);
+                      }else{
+                        CustomSnackBar.showSnackBar(context: context, message: "Please enter a amount", color: kRedColor);
+                      }
+                    }else{
+                      CustomSnackBar.showSnackBar(context: context, message: "Please select invoice", color: kRedColor);
+
+                    }
+                  }, // Call printInvoiceId when the button is pressed
                   child: const Text('Pay', style: TextStyle(color: Colors.white, fontSize: 16)),
                 ),
               ),
