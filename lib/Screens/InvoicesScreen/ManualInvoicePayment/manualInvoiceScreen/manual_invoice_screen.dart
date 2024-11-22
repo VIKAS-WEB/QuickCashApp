@@ -252,7 +252,7 @@ class _ManualInvoiceScreenState extends State<ManualInvoiceScreen> with WidgetsB
     );
   }
 
-  Future<bool?> mViewPayments(BuildContext context, ManualInvoiceData manualInvoice) {
+  /*Future<bool?> mViewPayments(BuildContext context, ManualInvoiceData manualInvoice) {
     // Implementation for viewing payments
     return showDialog(
       context: context,
@@ -272,6 +272,182 @@ class _ManualInvoiceScreenState extends State<ManualInvoiceScreen> with WidgetsB
             child: const Text("Yes"),
           ),
         ],
+      ),
+    );
+  }*/
+
+
+
+}
+void mViewPayments(BuildContext context, ManualInvoiceData manualInvoice) {
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    builder: (BuildContext context) {
+      return ViewPayments(manualInvoice: manualInvoice); // Pass the selected invoice
+    },
+  );
+}
+
+
+class ViewPayments extends StatefulWidget {
+  final ManualInvoiceData manualInvoice;
+
+  const ViewPayments({super.key, required this.manualInvoice});
+
+
+  @override
+  State<ViewPayments>  createState() => _ViewPaymentsState();
+}
+
+class _ViewPaymentsState extends State<ViewPayments> {
+
+  // Function to format the date
+  String formatDate(String? dateTime) {
+    if (dateTime == null) {
+      return 'Date not available';
+    }
+    DateTime date = DateTime.parse(dateTime);
+    return DateFormat('dd-MM-yyyy').format(date);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final manualInvoice = widget.manualInvoice; // Access the passed invoice data
+
+    return Container(
+      padding: const EdgeInsets.all(defaultPadding),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Transaction Details',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: kPrimaryColor,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: kPrimaryColor),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            TextFormField(
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.next,
+              cursorColor: kPrimaryColor,
+              readOnly: true,
+              style: const TextStyle(color: kPrimaryColor),
+              initialValue: manualInvoice.clientInfo?.first.name ?? 'N/A',
+              decoration: InputDecoration(
+                labelText: "Name",
+                labelStyle: const TextStyle(color: kPrimaryColor),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide()
+                ),
+                filled: true,
+                fillColor: Colors.transparent,
+              ),
+            ),
+
+            const SizedBox(height: defaultPadding),
+            TextFormField(
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.next,
+              cursorColor: kPrimaryColor,
+              readOnly: true,
+              style: const TextStyle(color: kPrimaryColor),
+              initialValue: manualInvoice.clientInfo?.first.email ?? 'N/A',
+              decoration: InputDecoration(
+                labelText: "Email",
+                labelStyle: const TextStyle(color: kPrimaryColor),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide()
+                ),
+                filled: true,
+                fillColor: Colors.transparent,
+              ),
+            ),
+
+            const SizedBox(height: defaultPadding),
+            TextFormField(
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.next,
+              cursorColor: kPrimaryColor,
+              readOnly: true,
+              style: const TextStyle(color: kPrimaryColor),
+              initialValue: '${manualInvoice.amountCurrencyText} ${manualInvoice.amount ?? 'N/A'}',
+              decoration: InputDecoration(
+                labelText: "Amount",
+                labelStyle: const TextStyle(color: kPrimaryColor),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide()
+                ),
+                filled: true,
+                fillColor: Colors.transparent,
+              ),
+            ),
+
+            const SizedBox(height: defaultPadding),
+            TextFormField(
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.next,
+              cursorColor: kPrimaryColor,
+              readOnly: true,
+              style: const TextStyle(color: kPrimaryColor),
+              initialValue: formatDate(manualInvoice.paymentDate),
+              decoration: InputDecoration(
+                labelText: "Payment Date",
+                labelStyle: const TextStyle(color: kPrimaryColor),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide()
+                ),
+                filled: true,
+                fillColor: Colors.transparent,
+              ),
+            ),
+
+            const SizedBox(height: defaultPadding),
+            TextFormField(
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.next,
+              cursorColor: kPrimaryColor,
+              readOnly: true,
+              maxLines: 12,
+              minLines: 6,
+              style: const TextStyle(color: kPrimaryColor),
+              initialValue: manualInvoice.notes ?? 'N/A',
+              decoration: InputDecoration(
+                labelText: "Notes",
+                labelStyle: const TextStyle(color: kPrimaryColor),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide()
+                ),
+                floatingLabelBehavior: FloatingLabelBehavior.always,
+                filled: true,
+                fillColor: Colors.transparent,
+              ),
+            ),
+
+
+            const SizedBox(height: 30.0),
+          ],
+        ),
       ),
     );
   }
