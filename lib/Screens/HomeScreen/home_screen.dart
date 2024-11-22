@@ -87,9 +87,9 @@ class _HomeScreenState extends State<HomeScreen> {
       case DrawerSections.quotes:
         container = const QuotesScreen();
         break;
-      case DrawerSections.invoiceTemplates:
+     /* case DrawerSections.invoiceTemplates:
         container = const InvoiceTemplatesScreen();
-        break;
+        break;*/
       case DrawerSections.invoicesSub:
         container = const InvoicesScreen();
         break;
@@ -394,7 +394,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 });
               },
             ),
-            submenuItem(
+            /*submenuItem(
               " - Templates",
                   () {
                 Navigator.pop(context);
@@ -402,7 +402,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   currentPage = DrawerSections.invoiceTemplates;
                 });
               },
-            ),
+            ),*/
             submenuItem(
               " - Invoices",
                   () {
@@ -511,7 +511,7 @@ enum DrawerSections {
   categories,
   products,
   quotes,
-  invoiceTemplates,
+  /*invoiceTemplates,*/
   invoicesSub,
   manualInvoicePayment,
   invoiceTransactions,

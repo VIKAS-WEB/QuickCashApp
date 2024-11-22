@@ -467,7 +467,7 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                           child: Container(
                             padding: const EdgeInsets.all(defaultPadding),
                             decoration: BoxDecoration(
-                              color: Colors.white60,
+                              color: Colors.white,
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
@@ -613,7 +613,7 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                         SizedBox(
                           width: 100, // Set your desired fixed width here
                           child: TextFormField(
-                            keyboardType: TextInputType.text,
+                            keyboardType: TextInputType.number,
                             textInputAction: TextInputAction.next,
                             cursorColor: kPrimaryColor,
                             style: const TextStyle(color: kPrimaryColor),
