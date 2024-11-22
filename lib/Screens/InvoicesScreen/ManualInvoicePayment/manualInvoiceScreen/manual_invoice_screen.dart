@@ -36,32 +36,19 @@ class _ManualInvoiceScreenState extends State<ManualInvoiceScreen> with WidgetsB
   void dispose() {
     // Remove the lifecycle observer when the widget is disposed
     WidgetsBinding.instance.removeObserver(this);
-    print("object1");
     super.dispose();
   }
 
- /* // Lifecycle state change handler
+  // Lifecycle state change handler
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
-      // The app is resumed (similar to onResume in Android)
-      print("App resumed");
+
       mManualInvoice("Yes"); // You can refresh your data here if needed
     }
-  }*/
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.paused) {
-      // The app has moved to the background (similar to `onPause()` in Android)
-      print("ScreenA: App is in background");
-    } else if (state == AppLifecycleState.resumed) {
-      // The app has come back to the foreground (similar to `onResume()` in Android)
-      print("ScreenA: App is in foreground");
-    }
   }
+
 
   Future<void> mManualInvoice(String s) async {
     setState(() {
