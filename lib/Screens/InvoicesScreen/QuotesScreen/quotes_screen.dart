@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/InvoicesScreen/InvoiceDashboardScreen/AddQuoteScreen/add_quote_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteModel/quotesApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteModel/quotesModel.dart';
+import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteReminderModel/quoteReminderApi.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/customSnackBar.dart';
 
@@ -16,6 +17,7 @@ class QuotesScreen extends StatefulWidget {
 
 class _QuotesScreenState extends State<QuotesScreen> {
   final QuoteApi _quoteApi = QuoteApi();
+  final QuoteReminderApi _quoteReminderApi = QuoteReminderApi();
 
   List<QuoteData> quotesList = [];
   bool isLoading = false;
@@ -28,6 +30,7 @@ class _QuotesScreenState extends State<QuotesScreen> {
     super.initState();
   }
 
+  // Quote List Api
   Future<void> mQuote() async{
     setState(() {
       isLoading = true;
@@ -58,6 +61,41 @@ class _QuotesScreenState extends State<QuotesScreen> {
         CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
       });
     }
+  }
+
+
+  // Quote Reminder Api
+  Future<void> mQuoteReminder(String? quoteId) async {
+    setState(() {
+      isLoading = false;
+      errorMessage = null;
+    });
+
+    try{
+      final response = await _quoteReminderApi.quoteReminderApi(quoteId!);
+
+      if(response.message == "Reminder has been sent"){
+        CustomSnackBar.showSnackBar(context: context, message: "Reminder has been start", color: kGreenColor);
+
+      }else{
+        setState(() {
+          setState(() {
+            isLoading = false;
+            errorMessage = null;
+            CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kPrimaryColor);
+          });
+        });
+      }
+
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+        CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
+      });
+    }
+
   }
 
   // Function to format the date
@@ -316,7 +354,7 @@ class _QuotesScreenState extends State<QuotesScreen> {
                                           color: Colors.white,
                                         ),
                                         onPressed: () {
-                                          copyQuoteUrl("url");
+                                          copyQuoteUrl(quotes.url);
                                         },
                                       ),
                                       const Text(
@@ -361,10 +399,7 @@ class _QuotesScreenState extends State<QuotesScreen> {
                                           color: Colors.white,
                                         ),
                                         onPressed: () {
-                                          CustomSnackBar.showSnackBar(
-                                              context: context,
-                                              message: "Reminder",
-                                              color: kPrimaryColor);
+                                          mQuoteReminder(quotes.id);
                                         },
                                       ),
                                       const Text(
