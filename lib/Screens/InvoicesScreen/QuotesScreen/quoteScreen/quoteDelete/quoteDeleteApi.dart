@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import '../../../../../util/apiConstants.dart';
-import '../../ClientsScreen/ClientsScreen/deleteClientModel/deleteClientModel.dart';
+import '../../../ClientsScreen/ClientsScreen/deleteClientModel/deleteClientModel.dart';
 
 class QuoteDeleteApi {
   final Dio _dio = Dio();

@@ -1,16 +1,16 @@
 import 'package:dio/dio.dart';
+import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteScreen/quoteModel/quotesModel.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import '../../../../../util/apiConstants.dart';
-import '../../ClientsScreen/ClientsScreen/deleteClientModel/deleteClientModel.dart';
 
-class QuoteReminderApi {
+class QuoteApi {
   final Dio _dio = Dio();
 
-  QuoteReminderApi() {
+  QuoteApi() {
     _dio.options.baseUrl = ApiConstants.baseUrl;
 
 
-    /*_dio.interceptors.add(LogInterceptor(
+    /* _dio.interceptors.add(LogInterceptor(
       request: true,
       requestBody: true,
       responseBody: true,
@@ -18,17 +18,18 @@ class QuoteReminderApi {
     ));*/
   }
 
-  Future<DeleteClientResponse> quoteReminderApi(String quoteId) async {
+  Future<QuoteResponse> quoteApi() async {
     try {
       final response = await _dio.get(
-        '/quote/reminder-inv/$quoteId',
+        '/quote/list/${AuthManager.getUserId()}',
         options: Options(headers: {
           'Authorization': 'Bearer ${AuthManager.getToken()}',
+          'Accept': 'application/json',
         }),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return DeleteClientResponse.fromJson(response.data);
+        return QuoteResponse.fromJson(response.data);
       } else {
         throw Exception('Failed to fetch data: ${response.statusMessage}');
       }

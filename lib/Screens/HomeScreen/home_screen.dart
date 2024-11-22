@@ -12,7 +12,7 @@ import 'package:quickcash/Screens/InvoicesScreen/InvoiceTransactions/invoice_tra
 import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/Invoices/invoices_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ManualInvoicePayment/manualInvoiceScreen/manual_invoice_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/products_screen.dart';
-import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quotes_screen.dart';
+import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteScreen/quotes_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/Settings/settings_screen.dart';
 import 'package:quickcash/Screens/LoginScreen/login_screen.dart';
 import 'package:quickcash/Screens/ReferAndEarnScreen/refer_and_earn_screen.dart';

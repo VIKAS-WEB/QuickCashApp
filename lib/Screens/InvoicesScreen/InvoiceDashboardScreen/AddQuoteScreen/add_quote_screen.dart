@@ -22,16 +22,11 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
 
 
   String? selectedType = "other";
-  String? selectedRecurring = "yes";
   DateTime? quoteDate;
   DateTime? dueDate;
   String selectedMember = 'Select Member';
-  String selectedStatus = 'Select Status';
   String selectedInvoiceTemplate = 'Default';
-  String selectedPaymentQR = 'Payment QR Code';
-  String selectedRecurringCycle = 'Day';
   String selectedCurrency = 'Select Currency';
-  String selectedProduct = 'Select Product';
   String selectedDiscount = 'Select Discount';
   String selectedTax = 'Select Tax';
 
@@ -911,8 +906,6 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                                 CustomSnackBar.showSnackBar(context: context, message: "Please select invoice date", color: kRedColor);
                               }else if(dueDate == null){
                                 CustomSnackBar.showSnackBar(context: context, message: "Please select due date", color: kRedColor);
-                              }else if(selectedStatus.isEmpty){
-                                CustomSnackBar.showSnackBar(context: context, message: "Please select status", color: kRedColor);
                               }else if(selectedInvoiceTemplate.isEmpty){
                                 CustomSnackBar.showSnackBar(context: context, message: "Please select invoice template", color: kRedColor);
                               }else if(selectedCurrency.isEmpty){

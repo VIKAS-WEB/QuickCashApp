@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/InvoicesScreen/InvoiceDashboardScreen/AddQuoteScreen/add_quote_screen.dart';
-import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteDelete/quoteDeleteApi.dart';
-import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteModel/quotesApi.dart';
-import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteModel/quotesModel.dart';
-import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteReminderModel/quoteReminderApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteScreen/quoteDelete/quoteDeleteApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteScreen/quoteModel/quotesApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteScreen/quoteModel/quotesModel.dart';
+import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteScreen/quoteReminderModel/quoteReminderApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/updateQuoteScreen/updateQuoteScreen.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/customSnackBar.dart';
 
@@ -368,10 +369,12 @@ class _QuotesScreenState extends State<QuotesScreen> {
                                           color: Colors.white,
                                         ),
                                         onPressed: () {
-                                          CustomSnackBar.showSnackBar(
-                                              context: context,
-                                              message: "Edit",
-                                              color: kPrimaryColor);
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                const UpdateQuoteScreen()),
+                                          );
                                         },
                                       ),
                                       const Text(
