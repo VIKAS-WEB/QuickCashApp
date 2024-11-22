@@ -11,15 +11,15 @@ class GetManualPaymentApi {
     _dio.options.baseUrl = ApiConstants.baseUrl;
 
 
-    /*_dio.interceptors.add(LogInterceptor(
+    _dio.interceptors.add(LogInterceptor(
       request: true,
       requestBody: true,
       responseBody: true,
       responseHeader: true,
-    ));*/
+    ));
   }
 
-  Future<GetManualPaymentResponse> clientsApi() async {
+  Future<GetManualPaymentResponse> getManualPaymentDetailsApi() async {
     try {
       final response = await _dio.get(
         '/manualPayment/unpaidapi/${AuthManager.getUserId()}',

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Import this for date formatting
+import 'package:quickcash/Screens/InvoicesScreen/ManualInvoicePayment/AddManualPaymentScreen/getManualPaymentDataModel/getManualPaymentApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/ManualInvoicePayment/AddManualPaymentScreen/getManualPaymentDataModel/getManualPaymentModel.dart';
 import 'package:quickcash/constants.dart';
+
+import '../../../../util/customSnackBar.dart';
 
 class AddManualPaymentScreen extends StatefulWidget {
   const AddManualPaymentScreen({super.key});
@@ -10,20 +14,56 @@ class AddManualPaymentScreen extends StatefulWidget {
 }
 
 class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
+  final GetManualPaymentApi _getManualPaymentApi = GetManualPaymentApi();
   final TextEditingController _dateController = TextEditingController();
-  String selectedInvoice = 'Select Invoice';
+  String? selectedInvoice = 'Select Invoice'; // Default value
+
+  List<GetManualPaymentData> manualPaymentDetailsList = [];
+  bool isLoading = false;
+  String? errorMessage;
 
   @override
   void initState() {
     super.initState();
-    // Set the current date in the TextEditingController
+    mGetManualPaymentDetails();
     _dateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
   }
 
   @override
   void dispose() {
-    _dateController.dispose(); // Dispose the controller when the widget is removed
+    _dateController.dispose();
     super.dispose();
+  }
+
+  Future<void> mGetManualPaymentDetails() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final response = await _getManualPaymentApi.getManualPaymentDetailsApi();
+
+      if (response.getManualPaymentList != null && response.getManualPaymentList!.isNotEmpty) {
+        setState(() {
+          isLoading = false;
+          errorMessage = null;
+          manualPaymentDetailsList = response.getManualPaymentList!;
+          // No need to change selectedInvoice as 'Select Invoice' should be the default
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No data';
+        });
+      }
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+        CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
+      });
+    }
   }
 
   @override
@@ -37,15 +77,21 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
           style: TextStyle(color: Colors.white),
         ),
       ),
-      body: SingleChildScrollView(
+      body: isLoading
+          ? const Center(
+        child: CircularProgressIndicator(
+          color: kPrimaryColor,
+        ),
+      )
+          : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(defaultPadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-              const SizedBox(height: largePadding,),
-              DropdownButtonFormField<String>(
+              const SizedBox(height: largePadding),
+              DropdownButtonFormField<String?>(
                 value: selectedInvoice,
                 style: const TextStyle(color: kPrimaryColor),
                 decoration: InputDecoration(
@@ -59,30 +105,29 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
                   fillColor: Colors.transparent,
                 ),
                 items: [
-                  'Select Invoice',
-                  'ITIO5545555',
-                  'ITIO336666666',
-                ].map((String category) {
-                  return DropdownMenuItem(
-                    value: category,
-                    child: Text(category, style: const TextStyle(color: kPrimaryColor, fontSize: 16)),
+                  'Select Invoice', // Default value
+                  ...manualPaymentDetailsList
+                      .map((payment) => payment.invoiceNumber)
+                ].map((String? invoice) {
+                  return DropdownMenuItem<String?>(
+                    value: invoice,
+                    child: Text(invoice ?? '', style: const TextStyle(color: kPrimaryColor, fontSize: 16)),
                   );
                 }).toList(),
                 onChanged: (newValue) {
                   setState(() {
-                    selectedInvoice = newValue!;
+                    selectedInvoice = newValue;
                   });
                 },
                 validator: (value) {
-                  if (value == 'Select Category') {
-                    return 'Please select a category';
+                  if (value == 'Select Invoice') {
+                    return 'Please select an invoice';
                   }
                   return null;
                 },
               ),
 
-
-              const SizedBox(height: defaultPadding,),
+              const SizedBox(height: defaultPadding),
               TextFormField(
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.next,
@@ -90,21 +135,17 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
                 onSaved: (value) {},
                 readOnly: true,
                 style: const TextStyle(color: kPrimaryColor),
-
                 decoration: InputDecoration(
                   labelText: "Due Amount",
                   labelStyle: const TextStyle(color: kPrimaryColor),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide()
-                  ),
+                      borderSide: const BorderSide()),
                   filled: true,
                   fillColor: Colors.transparent,
                 ),
-                initialValue: '₹1008',
               ),
-
-              const SizedBox(height: defaultPadding,),
+              const SizedBox(height: defaultPadding),
               TextFormField(
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.next,
@@ -112,21 +153,16 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
                 onSaved: (value) {},
                 readOnly: true,
                 style: const TextStyle(color: kPrimaryColor),
-
                 decoration: InputDecoration(
                   labelText: "Paid Amount",
                   labelStyle: const TextStyle(color: kPrimaryColor),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide()
-                  ),
+                      borderSide: const BorderSide()),
                   filled: true,
                   fillColor: Colors.transparent,
                 ),
-                initialValue: '₹10508',
               ),
-
-
               const SizedBox(height: largePadding),
               TextFormField(
                 controller: _dateController, // Use the controller here
@@ -147,8 +183,7 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
                   fillColor: Colors.transparent,
                 ),
               ),
-
-              const SizedBox(height: defaultPadding,),
+              const SizedBox(height: defaultPadding),
               TextFormField(
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.next,
@@ -156,20 +191,17 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
                 onSaved: (value) {},
                 readOnly: true,
                 style: const TextStyle(color: kPrimaryColor),
-
                 decoration: InputDecoration(
                   labelText: "Amount",
                   labelStyle: const TextStyle(color: kPrimaryColor),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide()
-                  ),
+                      borderSide: const BorderSide()),
                   filled: true,
                   fillColor: Colors.transparent,
                 ),
               ),
-
-              const SizedBox(height: defaultPadding,),
+              const SizedBox(height: defaultPadding),
               TextFormField(
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.next,
@@ -177,21 +209,17 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
                 onSaved: (value) {},
                 readOnly: true,
                 style: const TextStyle(color: kPrimaryColor),
-
                 decoration: InputDecoration(
                   labelText: "Payment Mode",
                   labelStyle: const TextStyle(color: kPrimaryColor),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide()
-                  ),
+                      borderSide: const BorderSide()),
                   filled: true,
                   fillColor: Colors.transparent,
                 ),
-                initialValue: 'CASH',
+                initialValue: 'CASH', // Replace this with actual dynamic value if available
               ),
-
-
               const SizedBox(height: largePadding),
               TextFormField(
                 keyboardType: TextInputType.text,
@@ -212,12 +240,11 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a notes';
+                    return 'Please enter a note';
                   }
                   return null;
                 },
               ),
-
               const SizedBox(height: 35),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 50),
@@ -230,14 +257,12 @@ class _AddManualPaymentScreenState extends State<AddManualPaymentScreen> {
                     ),
                   ),
                   onPressed: () {
-                    //....
+                    // Implement your logic for the Pay button here
                   },
                   child: const Text('Pay', style: TextStyle(color: Colors.white, fontSize: 16)),
                 ),
               ),
-
-              const SizedBox(height: defaultPadding,),
-
+              const SizedBox(height: defaultPadding),
             ],
           ),
         ),
