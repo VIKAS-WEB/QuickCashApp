@@ -221,6 +221,7 @@ Future<void> mTaxes() async {
                                             productList[index]['price'] = newValue.unitPrice.toString();
                                             productList[index]['quantity'] = "1";
                                             calculateAmount(index);
+                                            mDiscount();
                                           });
                                         } else {
 
@@ -228,6 +229,7 @@ Future<void> mTaxes() async {
                                             productList[index]['price'] = "";
                                             productList[index]['quantity'] = "0";
                                             calculateAmount(index);
+                                            mDiscount();
                                           });
                                         }
 
@@ -254,6 +256,7 @@ Future<void> mTaxes() async {
                                         productList[index]['quantity'] = value;
                                         // Recalculate the amount when the quantity is changed
                                         calculateAmount(index);
+                                        mDiscount();
                                       });
                                     },
                                   ),
@@ -278,6 +281,7 @@ Future<void> mTaxes() async {
                                         productList[index]['price'] = value; // User can manually update the price
                                         // Recalculate the amount when the price is changed
                                         calculateAmount(index);
+                                        mDiscount();
                                       });
                                     },
                                   ),
@@ -537,17 +541,41 @@ Future<void> mTaxes() async {
     );
   }
 
-  void mDiscount(){
+  void mDiscount() {
     double discountAmount = 0;
-    if(selectedDiscount == "Fixed"){
+
+    if (selectedDiscount == "Fixed") {
       setState(() {
+        // Parse discount.text into double
         discountAmount = double.tryParse(discount.text) ?? 0;
         showDiscount = discountAmount.toStringAsFixed(2);
       });
-    } else {
-      // Add logic for other types of discounts here if needed
+    } else if (selectedDiscount == "Percentage") {
+      setState(() {
+        // Ensure subTotal is parsed to double before using it
+        double totalPrice = double.tryParse(subTotal.toString()) ?? 0; // Parse subTotal as double
+
+        // Check if discount.text can be parsed into a valid percentage
+        double percentage = double.tryParse(discount.text) ?? 0;
+
+        // Print debug information for subTotal and discount percentage
+        print("subTotal: $totalPrice, discount.text: ${discount.text}");
+
+        if (percentage > 0 && totalPrice > 0) {
+          // Calculate the discount amount based on the percentage
+          discountAmount = (percentage / 100) * totalPrice;
+          // Show the calculated discount
+          showDiscount = discountAmount.toStringAsFixed(2);
+        } else {
+          // Handle invalid input
+          showDiscount = "Invalid Input";
+        }
+      });
     }
   }
+
+
+
 
 
   void calculateTotalAmount() {
@@ -621,7 +649,7 @@ Future<void> mTaxes() async {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text('Done'),
+              child: const Text('Done'),
             ),
           ],
         );
