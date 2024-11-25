@@ -396,37 +396,7 @@ Future<void> mTaxes() async {
                         ],
                       ),
 
-              /*        const SizedBox(height: largePadding),
-                      DropdownButtonFormField<String>(
-                        value: selectedTax,
-                        style: const TextStyle(color: kPrimaryColor),
-
-                        decoration: InputDecoration(
-                          labelText: 'Tax',
-                          labelStyle: const TextStyle(color: kPrimaryColor),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(),
-                          ),
-                        ),
-
-                        items: ['Select Tax', 'Test Product',].map((String role) {
-                          return DropdownMenuItem(
-                            value: role,
-                            child: Text(role, style: const TextStyle(
-                                color: kPrimaryColor, fontSize: 16),),
-                          );
-                        }).toList(),
-                        onChanged: (newValue) {
-                          setState(() {
-                            selectedTax = newValue!;
-                          });
-                        },
-                      ),
-
-*/
                       const SizedBox(height: largePadding,),
-
                       GestureDetector(
                         onTap: _showMultiSelectDialog,
                         child: InputDecorator(
