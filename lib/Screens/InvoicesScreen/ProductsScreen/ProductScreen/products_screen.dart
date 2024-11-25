@@ -40,12 +40,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
     try{
       final response = await _productApi.productApi();
 
-      if(response.categoriesList !=null && response.categoriesList!.isNotEmpty){
+      if(response.productsList !=null && response.productsList!.isNotEmpty){
         setState(() {
           isLoading = false;
           errorMessage = null;
 
-          productList = response.categoriesList!;
+          productList = response.productsList!;
 
         });
       }else {

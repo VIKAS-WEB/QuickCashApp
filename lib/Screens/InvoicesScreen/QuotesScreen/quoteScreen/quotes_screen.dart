@@ -10,6 +10,8 @@ import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/updateQuoteScreen/
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/customSnackBar.dart';
 
+import '../../../../test_code.dart';
+
 class QuotesScreen extends StatefulWidget {
   const QuotesScreen({super.key});
 
@@ -179,11 +181,16 @@ class _QuotesScreenState extends State<QuotesScreen> {
                     width: 150,
                     child: FloatingActionButton.extended(
                       onPressed: () {
-                        Navigator.push(
+                        /*Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) =>
                               const AddQuoteScreen()),
+                        );*/
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const TestCodeScreen()),
                         );
                       },
                       backgroundColor: kPrimaryColor,

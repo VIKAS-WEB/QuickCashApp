@@ -15,12 +15,12 @@ class Category {
 class ProductData {
   final String? id;
   final String? productName;
-  final List<Category>? categoryDetails;  // Updated to a List<Category>
+  final List<Category>? categoryDetails;
   final String? date;
   final int? unitPrice;
-  final String? productCode;  // Added to match the response
-  final String? user;  // Added user field
-  final bool? status;  // Added status field
+  final String? productCode;
+  final String? user;
+  final bool? status;
 
   ProductData({
     this.id,
@@ -50,15 +50,15 @@ class ProductData {
 }
 
 class ProductResponse {
-  final List<ProductData>? categoriesList;
+  final List<ProductData>? productsList;
 
   ProductResponse({
-    this.categoriesList,
+    this.productsList,
   });
 
   factory ProductResponse.fromJson(Map<String, dynamic> json) {
     return ProductResponse(
-      categoriesList: (json['data'] as List<dynamic>?)
+      productsList: (json['data'] as List<dynamic>?)
           ?.map((item) => ProductData.fromJson(item as Map<String, dynamic>))
           .toList(),
     );

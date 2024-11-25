@@ -3,6 +3,7 @@ import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/mo
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/model/productModel.dart';
 import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart'; //
+import 'package:quickcash/test_code.dart';
 
 import '../../../../util/customSnackBar.dart';
 import '../../../CardsScreen/currencyApiModel/currencyApi.dart';
@@ -114,12 +115,12 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
     try{
       final response = await _productApi.productApi();
 
-      if(response.categoriesList !=null && response.categoriesList!.isNotEmpty){
+      if(response.productsList !=null && response.productsList!.isNotEmpty){
         setState(() {
           isLoading = false;
           errorMessage = null;
 
-          productLists = response.categoriesList!;
+          productLists = response.productsList!;
 
         });
       }else {
