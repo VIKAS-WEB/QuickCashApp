@@ -18,6 +18,7 @@ class _AddQuoteScreenState extends State<TestCodeScreen> {
   String selectedDiscount = 'Select Discount';
   String selectedTax = 'Select Tax';
   ProductData? selectedProduct;
+  String subTotal = "0.00";
 
   bool isLoading = false;
   String? errorMessage;
@@ -363,21 +364,31 @@ class _AddQuoteScreenState extends State<TestCodeScreen> {
                       ),
 
                       const SizedBox(height: 35,),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Sub Total:", style: TextStyle(
+                          const Text(
+                            "Sub Total:",
+                            style: TextStyle(
                               color: kPrimaryColor,
                               fontSize: 14,
-                              fontWeight: FontWeight.bold),),
-                          Padding(padding: EdgeInsets.symmetric(
-                              horizontal: defaultPadding),
-                            child: Text("100.00", style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
+                            child: Text(
+                              subTotal, // Dynamically updated value
+                              style: const TextStyle(
                                 color: kPrimaryColor,
                                 fontSize: 14,
-                                fontWeight: FontWeight.bold),),),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
+
 
                       const SizedBox(height: defaultPadding,),
                       const Row(
@@ -437,23 +448,43 @@ class _AddQuoteScreenState extends State<TestCodeScreen> {
     );
   }
 
-  // Add this function to calculate the amount based on quantity and price
+  void calculateTotalAmount() {
+    double totalAmount = 0;
+
+    // Iterate over all products and sum their amounts
+    for (var product in productList) {
+      final amount = double.tryParse(product['amount'] ?? '0') ?? 0;
+      totalAmount += amount;
+    }
+
+    setState(() {
+      // Update the Sub Total field with the calculated total amount
+      subTotal = totalAmount.toStringAsFixed(2);
+    });
+  }
+
   void calculateAmount(int index) {
     final quantity = double.tryParse(productList[index]['quantity'] ?? '0') ?? 0;
     final price = double.tryParse(productList[index]['price'] ?? '0') ?? 0;
 
-    if(quantity != 0){
+    if (quantity != 0) {
       final amount = quantity * price;
       setState(() {
         productList[index]['amount'] = amount.toStringAsFixed(2);
       });
-    }else{
+    } else {
       setState(() {
         final amount = price;
         productList[index]['price'] = amount.toStringAsFixed(2);
       });
     }
+
+    // Recalculate the total amount every time an individual amount changes
+    calculateTotalAmount();
   }
+
+
+
 
 }
 
