@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/model/productApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/model/productModel.dart';
 import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart'; //
 
@@ -19,7 +21,9 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
   final _formKey = GlobalKey<FormState>();
   final CurrencyApi _currencyApi = CurrencyApi();
   final ClientsApi _clientsApi = ClientsApi();
+  final ProductApi _productApi = ProductApi();
   List<ClientsData> clientsData = [];
+  List<ProductData> productLists =[];
 
   String? selectedCurrency;
   List<CurrencyListsData> currency = [];
@@ -61,6 +65,7 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
     updateProductCode();
     mGetCurrency();
     mClientsApi();
+    mProduct();
     super.initState();
   }
 
@@ -81,7 +86,6 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
 
     try{
       final response = await _clientsApi.clientsApi();
-
       if(response.clientsList !=null && response.clientsList!.isNotEmpty){
         setState(() {
           clientsData = response.clientsList!;
@@ -93,6 +97,37 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
           errorMessage = 'No Clients List';
         });
       }
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
+  Future<void> mProduct() async{
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try{
+      final response = await _productApi.productApi();
+
+      if(response.categoriesList !=null && response.categoriesList!.isNotEmpty){
+        setState(() {
+          isLoading = false;
+          errorMessage = null;
+
+          productLists = response.categoriesList!;
+
+        });
+      }else {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Product List';
+        });
+      }
 
     }catch (error) {
       setState(() {
@@ -100,8 +135,8 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
         errorMessage = error.toString();
       });
     }
-
   }
+
 
 
 // Function to generate a product code based on the current timestamp
@@ -273,7 +308,7 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                       }
                     });
                   },
-                )
+                ),
 
               ],
 
