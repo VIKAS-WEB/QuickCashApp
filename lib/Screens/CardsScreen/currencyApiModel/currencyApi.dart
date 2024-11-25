@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:quickcash/Screens/CardsScreen/currencyApiModel/currencyModel.dart';
-import 'package:quickcash/Screens/UserProfileScreen/UserProfileScreen/model/userProfileModel.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import '../../../../util/apiConstants.dart';
 

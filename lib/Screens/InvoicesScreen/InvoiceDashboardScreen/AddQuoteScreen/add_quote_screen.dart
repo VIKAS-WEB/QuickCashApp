@@ -3,6 +3,10 @@ import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart'; //
 
 import '../../../../util/customSnackBar.dart';
+import '../../../CardsScreen/currencyApiModel/currencyApi.dart';
+import '../../../CardsScreen/currencyApiModel/currencyModel.dart';
+import '../../ClientsScreen/ClientsScreen/model/clientsApi.dart';
+import '../../ClientsScreen/ClientsScreen/model/clientsModel.dart';
 
 class AddQuoteScreen extends StatefulWidget {
   const AddQuoteScreen({super.key});
@@ -13,6 +17,12 @@ class AddQuoteScreen extends StatefulWidget {
 
 class _AddQuoteScreenState extends State<AddQuoteScreen> {
   final _formKey = GlobalKey<FormState>();
+  final CurrencyApi _currencyApi = CurrencyApi();
+  final ClientsApi _clientsApi = ClientsApi();
+  List<ClientsData> clientsData = [];
+
+  String? selectedCurrency;
+  List<CurrencyListsData> currency = [];
 
   final TextEditingController quoteNumber = TextEditingController();
   final TextEditingController receiverName = TextEditingController();
@@ -24,13 +34,16 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
   String? selectedType = "other";
   DateTime? quoteDate;
   DateTime? dueDate;
-  String selectedMember = 'Select Member';
+ // String? selectedMember;
+  ClientsData? selectedMember;  // This will hold the full ClientsData object
+
   String selectedInvoiceTemplate = 'Default';
-  String selectedCurrency = 'Select Currency';
   String selectedDiscount = 'Select Discount';
   String selectedTax = 'Select Tax';
 
   bool _isAdded = false;
+  bool isLoading = false;
+  String? errorMessage;
 
   void _toggleButton() {
     setState(() {
@@ -46,8 +59,50 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
   @override
   void initState() {
     updateProductCode();
+    mGetCurrency();
+    mClientsApi();
     super.initState();
   }
+
+  // Currency Api ----
+  Future<void> mGetCurrency() async {
+    final response = await _currencyApi.currencyApi();
+    if(response.currencyList !=null && response.currencyList!.isNotEmpty) {
+      currency = response.currencyList!;
+    }
+  }
+
+  // Clients Api ----
+  Future<void> mClientsApi() async {
+    setState(() {
+      isLoading = false;
+      errorMessage = null;
+    });
+
+    try{
+      final response = await _clientsApi.clientsApi();
+
+      if(response.clientsList !=null && response.clientsList!.isNotEmpty){
+        setState(() {
+          clientsData = response.clientsList!;
+          isLoading = false;
+        });
+      }else {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Clients List';
+        });
+      }
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+
+  }
+
 
 // Function to generate a product code based on the current timestamp
   String generateCodeFromTimestamp() {
@@ -188,7 +243,7 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
               if (selectedType == "Member" || selectedType == "member") ...[
                 // Selected Member
                 const SizedBox(height: largePadding),
-                DropdownButtonFormField<String>(
+                DropdownButtonFormField<ClientsData>(
                   value: selectedMember,
                   style: const TextStyle(color: kPrimaryColor),
                   decoration: InputDecoration(
@@ -201,26 +256,25 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                     filled: true,
                     fillColor: Colors.transparent,
                   ),
-                  items: [
-                    'Select Member',
-                    'Ganesh',
-                    'David',
-                  ].map((String role) {
-                    return DropdownMenuItem(
+                  items: clientsData.map((ClientsData role) {
+                    return DropdownMenuItem<ClientsData>(
                       value: role,
                       child: Text(
-                        role,
-                        style: const TextStyle(
-                            color: kPrimaryColor, fontSize: 16),
+                        '${role.firstName} ${role.lastName}',
+                        style: const TextStyle(color: kPrimaryColor, fontSize: 16),
                       ),
                     );
                   }).toList(),
-                  onChanged: (newValue) {
+                  onChanged: (ClientsData? newValue) {
                     setState(() {
-                      selectedMember = newValue!;
+                      selectedMember = newValue;
+                      if (selectedMember != null) {
+                        print('Selected Member: ${selectedMember?.firstName} ${selectedMember?.lastName}'); // Output full name
+                      }
                     });
                   },
-                ),
+                )
+
               ],
 
               if (selectedType == "Other" || selectedType == "other") ...[
@@ -403,34 +457,57 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
 
 
               // Select Currency
-              const SizedBox(height: largePadding),
-              DropdownButtonFormField<String>(
-                value: selectedCurrency,
-                style: const TextStyle(color: kPrimaryColor),
+              const SizedBox(height: defaultPadding),
+              GestureDetector(
+                onTap: () {
+                  // Check if currency list is not empty before showing the menu
+                  if (currency.isNotEmpty) {
+                    RenderBox renderBox = context.findRenderObject() as RenderBox;
+                    Offset offset = renderBox.localToGlobal(Offset.zero);
 
-                decoration: InputDecoration(
-                  labelText: 'Select Currency',
-                  labelStyle: const TextStyle(color: kPrimaryColor),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(),
-                  ),
-                  filled: true,
-                  fillColor: Colors.transparent,
-                ),
-
-                items: ['Select Currency', 'USD', 'INR', 'EUR'].map((String role) {
-                  return DropdownMenuItem(
-                    value: role,
-                    child: Text(role,style: const TextStyle(color: kPrimaryColor,fontSize: 16),),
-                  );
-                }).toList(),
-                onChanged: (newValue) {
-                  setState(() {
-                    selectedCurrency = newValue!;
-                  });
+                    showMenu<String>(
+                      context: context,
+                      position: RelativeRect.fromLTRB(
+                        offset.dx,
+                        offset.dy + renderBox.size.height,
+                        offset.dx + renderBox.size.width,
+                        0.0,
+                      ),
+                      items: currency.map((CurrencyListsData currencyItem) {
+                        return PopupMenuItem<String>(
+                          value: currencyItem.currencyCode, // Use the appropriate property
+                          child: Text(currencyItem.currencyCode!, style: const TextStyle(color: kPrimaryColor),), // Display the name or code of the currency
+                        );
+                      }).toList(),
+                    ).then((String? newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          selectedCurrency = newValue; // Update the selected coin
+                        });
+                      }
+                    });
+                  } else {
+                  }
                 },
+                child: Material(
+                  color: Colors.transparent, // Make the Material widget invisible
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 15.0),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: kPrimaryColor),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(selectedCurrency ?? "Select Currency", style: const TextStyle(color: kPrimaryColor, fontSize: 16)),
+                        const Icon(Icons.arrow_drop_down, color: kPrimaryColor),
+                      ],
+                    ),
+                  ),
+                ),
               ),
+
 
 
 
@@ -908,7 +985,7 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                                 CustomSnackBar.showSnackBar(context: context, message: "Please select due date", color: kRedColor);
                               }else if(selectedInvoiceTemplate.isEmpty){
                                 CustomSnackBar.showSnackBar(context: context, message: "Please select invoice template", color: kRedColor);
-                              }else if(selectedCurrency.isEmpty){
+                              }else if(selectedCurrency!.isEmpty){
                                 CustomSnackBar.showSnackBar(context: context, message: "Please select currency", color: kRedColor);
                               }else{
                                 CustomSnackBar.showSnackBar(context: context, message: "Save", color: kRedColor);
