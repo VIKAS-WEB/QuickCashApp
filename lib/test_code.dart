@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/model/productApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/model/productModel.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/model/taxApi/taxApi.dart';
+import 'package:quickcash/model/taxApi/taxApiModel.dart';
+import 'package:quickcash/util/customSnackBar.dart';
 
 class TestCodeScreen extends StatefulWidget {
   const TestCodeScreen({super.key});
@@ -13,12 +16,19 @@ class TestCodeScreen extends StatefulWidget {
 class _AddQuoteScreenState extends State<TestCodeScreen> {
   final _formKey = GlobalKey<FormState>();
   final ProductApi _productApi = ProductApi();
+  final TaxApi _taxApi = TaxApi();
+
   List<ProductData> productLists =[];
+  List<TaxData> taxList =[];
+  List<String> selectedTaxes = []; // To store selected tax names
+
+
   final TextEditingController discount = TextEditingController();
   String selectedDiscount = 'Select Discount';
   String selectedTax = 'Select Tax';
   ProductData? selectedProduct;
   String subTotal = "0.00";
+  String showDiscount = "0.00";
 
   bool isLoading = false;
   String? errorMessage;
@@ -30,6 +40,7 @@ class _AddQuoteScreenState extends State<TestCodeScreen> {
   @override
   void initState() {
     mProduct();
+    mTaxes();
     super.initState();
   }
 
@@ -61,12 +72,52 @@ class _AddQuoteScreenState extends State<TestCodeScreen> {
     }
   }
 
-  void addProduct() {
+
+Future<void> mTaxes() async {
+  setState(() {
+    isLoading = true;
+    errorMessage = null;
+  });
+
+  try{
+    final response = await _taxApi.taxesApi();
+
+    if(response.taxesList !=null && response.taxesList!.isNotEmpty){
+      isLoading = false;
+      errorMessage = null;
+      taxList = response.taxesList!;
+
+      print(response.taxesList!.first.name);
+
+    } else {
+      setState(() {
+        isLoading = false;
+        errorMessage = 'No Tax List';
+      });
+    }
+  }catch (error) {
     setState(() {
-      productList.add(
-          {"selectedProduct": null, "quantity": "", "price": ""});
+      isLoading = false;
+      errorMessage = error.toString();
     });
   }
+}
+
+  void addProduct() {
+    if (productList.length < productLists.length) {
+      setState(() {
+        productList.add({"selectedProduct": null, "quantity": "", "price": ""});
+      });
+    } else {
+      // Show a message or alert that no more products can be added
+      CustomSnackBar.showSnackBar(
+        context: context,
+        message: 'You cannot add more products.',
+        color: kPrimaryColor,
+      );
+    }
+  }
+
 
   void removeProduct(int index) {
     if (productList.length > 1) {
@@ -286,15 +337,20 @@ class _AddQuoteScreenState extends State<TestCodeScreen> {
                           SizedBox(
                             width: 100, // Set your desired fixed width here
                             child: TextFormField(
+                              controller: discount,
                               keyboardType: TextInputType.number,
                               textInputAction: TextInputAction.next,
                               cursorColor: kPrimaryColor,
                               style: const TextStyle(color: kPrimaryColor),
-                              onSaved: (value) {},
+                              onChanged: (value) {
+                                setState(() {
+                                  mDiscount();
+                                });
+                              },
+                              enabled: selectedDiscount != "Select Discount",
                               decoration: InputDecoration(
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      defaultPadding),
+                                  borderRadius: BorderRadius.circular(defaultPadding),
                                   borderSide: const BorderSide(),
                                 ),
                                 hintText: "0",
@@ -302,6 +358,7 @@ class _AddQuoteScreenState extends State<TestCodeScreen> {
                               ),
                             ),
                           ),
+
 
                           const SizedBox(width: defaultPadding,),
                           Expanded(child: DropdownButtonFormField<String>(
@@ -335,7 +392,7 @@ class _AddQuoteScreenState extends State<TestCodeScreen> {
                         ],
                       ),
 
-                      const SizedBox(height: largePadding),
+              /*        const SizedBox(height: largePadding),
                       DropdownButtonFormField<String>(
                         value: selectedTax,
                         style: const TextStyle(color: kPrimaryColor),
@@ -362,6 +419,36 @@ class _AddQuoteScreenState extends State<TestCodeScreen> {
                           });
                         },
                       ),
+
+*/
+                      const SizedBox(height: largePadding,),
+
+                      GestureDetector(
+                        onTap: _showMultiSelectDialog,
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            labelText: 'Select Taxes',
+                            labelStyle: const TextStyle(color: kPrimaryColor),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(),
+                            ),
+                            suffixIcon: const Icon(Icons.arrow_drop_down, color: kPrimaryColor), // Add the dropdown icon
+                          ),
+                          child: Text(
+                            selectedTaxes.isEmpty
+                                ? 'Select taxes'
+                                : selectedTaxes.join(', '),
+                            style: const TextStyle(color: kPrimaryColor),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+                      Text('Selected Taxes: ${selectedTaxes.join(', ')}'), // Show selected taxes
+
+
+
 
                       const SizedBox(height: 35,),
                       Row(
@@ -391,15 +478,17 @@ class _AddQuoteScreenState extends State<TestCodeScreen> {
 
 
                       const SizedBox(height: defaultPadding,),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Discount:", style: TextStyle(color: kPrimaryColor,
+                          const Text("Discount:", style: TextStyle(color: kPrimaryColor,
                               fontSize: 14,
                               fontWeight: FontWeight.bold),),
-                          Padding(padding: EdgeInsets.symmetric(
+                          Padding(padding: const EdgeInsets.symmetric(
                               horizontal: defaultPadding),
-                            child: Text("0.00", style: TextStyle(
+                            child: Text(
+                              showDiscount,
+                              style: const TextStyle(
                                 color: kPrimaryColor,
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold),),),
@@ -448,6 +537,19 @@ class _AddQuoteScreenState extends State<TestCodeScreen> {
     );
   }
 
+  void mDiscount(){
+    double discountAmount = 0;
+    if(selectedDiscount == "Fixed"){
+      setState(() {
+        discountAmount = double.tryParse(discount.text) ?? 0;
+        showDiscount = discountAmount.toStringAsFixed(2);
+      });
+    } else {
+      // Add logic for other types of discounts here if needed
+    }
+  }
+
+
   void calculateTotalAmount() {
     double totalAmount = 0;
 
@@ -484,7 +586,50 @@ class _AddQuoteScreenState extends State<TestCodeScreen> {
   }
 
 
-
-
+  // Method to display the multi-select dropdown using a custom widget
+  void _showMultiSelectDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Select Taxes'),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return SingleChildScrollView(
+                child: Column(
+                  children: taxList.map((tax) {
+                    return CheckboxListTile(
+                      title: Text(tax.name ?? ''),
+                      value: selectedTaxes.contains(tax.name),
+                      onChanged: (bool? isSelected) {
+                        setState(() {
+                          if (isSelected == true) {
+                            selectedTaxes.add(tax.name!); // Add to the list
+                          } else {
+                            selectedTaxes.remove(tax.name!); // Remove from the list
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Done'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
+
+
+
 
