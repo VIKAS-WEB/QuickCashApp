@@ -45,8 +45,7 @@ class _TaxScreen extends State<TaxScreen> {
         setState(() {
           isLoading = false;
           errorMessage = null;
-          // Directly assign the list of TaxDetailsItem from the API response
-          taxDetailsList = response.taxDetailsList!; // No need to map to TaxDetailsItem again
+          taxDetailsList = response.taxDetailsList!;
         });
       } else {
         setState(() {
@@ -110,13 +109,7 @@ class _TaxScreen extends State<TaxScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: isLoading
-          ? const Center(
-        child: CircularProgressIndicator(
-          color: kPrimaryColor,
-        ),
-      )
-          : SingleChildScrollView(
+      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(defaultPadding),
           child: Column(
@@ -145,7 +138,13 @@ class _TaxScreen extends State<TaxScreen> {
                 ],
               ),
 
-              ListView.builder(
+              isLoading
+                  ? const Center(
+                child: CircularProgressIndicator(
+                  color: kPrimaryColor,
+                ),
+              )
+                  : ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: taxDetailsList.length,
@@ -153,7 +152,7 @@ class _TaxScreen extends State<TaxScreen> {
                     final taxDetails = taxDetailsList[index];
 
                     return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: smallPadding),
+                      padding: const EdgeInsets.only(bottom: defaultPadding),
                       child: Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(defaultPadding),
