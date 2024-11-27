@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/model/productModel.dart';
 import 'package:quickcash/model/taxApi/taxApiModel.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import '../../../../../util/apiConstants.dart';

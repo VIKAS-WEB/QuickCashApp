@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:quickcash/Screens/InvoicesScreen/Settings/PaymentQRCodeScreen/PaymentQRCodeDetailsModel/paymentQRCodeDetailModel.dart';
-import 'package:quickcash/Screens/InvoicesScreen/Settings/TaxScreen/model/taxDetailsModel.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import '../../../../../util/apiConstants.dart';
 

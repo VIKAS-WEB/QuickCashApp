@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:quickcash/Screens/InvoicesScreen/ClientsScreen/ViewClientsScreen/model/viewClientsModel.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/productDetailsModel/productDetailModel.dart';
 import 'package:quickcash/util/auth_manager.dart';
 

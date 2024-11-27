@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:quickcash/Screens/InvoicesScreen/InvoiceDashboardScreen/AddQuoteScreen/add_quote_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteScreen/quoteDelete/quoteDeleteApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteScreen/quoteModel/quotesApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteScreen/quoteModel/quotesModel.dart';

@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:quickcash/Screens/UserProfileScreen/UserUpdateDetailsScreen/model/userUpdateDetailsModel.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import '../../../../../util/apiConstants.dart';
 import 'updateClientsModel.dart';
