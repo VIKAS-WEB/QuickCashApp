@@ -71,7 +71,6 @@ class _TaxScreen extends State<TaxScreen> {
     });
     try{
       final response = await _taxDeleteApi.taxDeleteApi(taxId!);
-      print(response.message);
 
       if(response.message == "Tax is successfully deleted"){
         setState(() {
@@ -145,9 +144,7 @@ class _TaxScreen extends State<TaxScreen> {
                   ),
                 ],
               ),
-              const SizedBox(
-                height: defaultPadding,
-              ),
+
               ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -263,7 +260,7 @@ class _TaxScreen extends State<TaxScreen> {
                                               context,
                                               MaterialPageRoute(
                                                   builder: (context) =>
-                                                  const UpdateTaxScreen()),
+                                                  UpdateTaxScreen(taxId: taxDetails.id,taxName: taxDetails.name, taxValue: taxDetails.taxValue, taxType: taxDetails.isDefault)),
                                             );
                                           },
                                         ),

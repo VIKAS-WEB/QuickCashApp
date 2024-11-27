@@ -1,21 +1,85 @@
 import 'package:flutter/material.dart';
+import 'package:quickcash/Screens/InvoicesScreen/Settings/TaxScreen/updateTaxDetailsScreen/model/taxUpdateModel.dart';
+import 'package:quickcash/Screens/InvoicesScreen/Settings/TaxScreen/updateTaxDetailsScreen/model/updateTaxDetailApi.dart';
+import 'package:quickcash/util/auth_manager.dart';
 import 'package:quickcash/util/customSnackBar.dart';
 
 import '../../../../../constants.dart';
 
 class UpdateTaxScreen extends StatefulWidget {
-  const UpdateTaxScreen({super.key});
+  final String? taxId;
+  final String? taxName;
+  final double? taxValue;
+  final String? taxType;
+  const UpdateTaxScreen({super.key, required this.taxId, required this.taxName, required this.taxValue, required this.taxType});
 
   @override
   State<UpdateTaxScreen> createState() => _UpdateTaxScreenState();
 }
 
 class _UpdateTaxScreenState extends State<UpdateTaxScreen> {
+  final TaxUpdateApi _taxUpdateApi = TaxUpdateApi();
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController name = TextEditingController();
   final TextEditingController taxRate = TextEditingController();
   String? selectedType = "yes";
+  bool isLoading = false;
+  String? errorMessage;
+
+
+  @override
+  void initState() {
+    mSetTaxData();
+    super.initState();
+  }
+
+  Future<void> mSetTaxData() async {
+    name.text = widget.taxName!;
+    taxRate.text = widget.taxValue.toString();
+    selectedType = widget.taxType!;
+  }
+
+  Future<void> mUpdateTax() async{
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      setState(() {
+        isLoading = true;
+        errorMessage = null;
+      });
+
+      try {
+        final request = TaxUpdateRequest(userId: AuthManager.getUserId(),
+            name: name.text,
+            value: taxRate.text,
+            type: selectedType!);
+        final response = await _taxUpdateApi.taxUpdate(request, widget.taxId);
+
+        if(response.message == "Tax data has been saved !!!"){
+         setState(() {
+           isLoading = false;
+           errorMessage = null;
+           CustomSnackBar.showSnackBar(context: context, message: "Tax Data has been Updated!", color: kPrimaryColor);
+         });
+        }else{
+          setState(() {
+            isLoading = false;
+            errorMessage = null;
+            CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kPrimaryColor);
+          });
+        }
+
+      } catch (error) {
+        setState(() {
+          isLoading = false;
+          errorMessage = error.toString();
+          CustomSnackBar.showSnackBar(
+              context: context, message: errorMessage!, color: kRedColor);
+        });
+      }
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -128,6 +192,17 @@ class _UpdateTaxScreenState extends State<UpdateTaxScreen> {
                       const Text('No', style: TextStyle(color: kPrimaryColor)),
                     ],
                   ),
+
+                  const SizedBox(height: defaultPadding,),
+                  if (isLoading) const Center(
+                    child: CircularProgressIndicator(
+                      color: kPrimaryColor,
+                    ),
+                  ), // Show loading indicator
+                  if (errorMessage != null) // Show error message if there's an error
+                    Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+
+
                   const SizedBox(
                     height: 45.0,
                   ),
@@ -136,11 +211,7 @@ class _UpdateTaxScreenState extends State<UpdateTaxScreen> {
                       width: 180,
                       height: 50.0,
                       child: FloatingActionButton.extended(
-                        onPressed: () {
-                          if (_formKey.currentState?.validate() ?? false) {
-                            CustomSnackBar.showSnackBar(context: context, message: "Submitted", color: kPrimaryColor);
-                          }
-                        },
+                        onPressed: isLoading ? null : mUpdateTax,
                         label: const Text(
                           'Submit',
                           style: TextStyle(color: Colors.white, fontSize: 15),
