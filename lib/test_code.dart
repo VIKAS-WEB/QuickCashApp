@@ -20,7 +20,8 @@ class _AddQuoteScreenState extends State<TestCodeScreen> {
 
   List<ProductData> productLists =[];
   List<TaxData> taxList =[];
-  List<String> selectedTaxes = []; // To store selected tax names
+  List<String> selectedTaxes = [];
+  List<String> selectedTaxesCalculate = [];
 
 
   final TextEditingController discount = TextEditingController();
@@ -29,12 +30,15 @@ class _AddQuoteScreenState extends State<TestCodeScreen> {
   ProductData? selectedProduct;
   String subTotal = "0.00";
   String showDiscount = "0.00";
+  String showTaxes = "0.00";
+  String showTotalAmount = "0.00";
+  double totalTaxValue = 0;
 
   bool isLoading = false;
   String? errorMessage;
 
   List<Map<String, dynamic>> productList = [
-    {"selectedProduct": null, "": "", "price": ""}
+    {"selectedProduct": null, "quantity": "", "price": ""}
   ];
 
   @override
@@ -86,9 +90,6 @@ Future<void> mTaxes() async {
       isLoading = false;
       errorMessage = null;
       taxList = response.taxesList!;
-
-      print(response.taxesList!.first.name);
-
     } else {
       setState(() {
         isLoading = false;
@@ -108,6 +109,9 @@ Future<void> mTaxes() async {
       setState(() {
         productList.add({"selectedProduct": null, "quantity": "", "price": ""});
       });
+      // Print the updated productList or the newly added product
+      print("Product added: ${productList.last}");
+      print("Updated productList: $productList");
     } else {
       // Show a message or alert that no more products can be added
       CustomSnackBar.showSnackBar(
@@ -123,6 +127,10 @@ Future<void> mTaxes() async {
     if (productList.length > 1) {
       setState(() {
         productList.removeAt(index);
+        _calculateTotalTaxValue();
+        mCalculateTax();
+        mDiscount();
+        mTotalAmount();
       });
     }
   }
@@ -222,17 +230,19 @@ Future<void> mTaxes() async {
                                             productList[index]['quantity'] = "1";
                                             calculateAmount(index);
                                             mDiscount();
+                                            mCalculateTax();
+                                            mTotalAmount();
                                           });
                                         } else {
-
                                           setState(() {
                                             productList[index]['price'] = "";
                                             productList[index]['quantity'] = "0";
                                             calculateAmount(index);
                                             mDiscount();
+                                            mCalculateTax();
+                                            mTotalAmount();
                                           });
                                         }
-
                                       });
                                     },
                                   ),
@@ -257,6 +267,8 @@ Future<void> mTaxes() async {
                                         // Recalculate the amount when the quantity is changed
                                         calculateAmount(index);
                                         mDiscount();
+                                        mCalculateTax();
+                                        mTotalAmount();
                                       });
                                     },
                                   ),
@@ -282,6 +294,8 @@ Future<void> mTaxes() async {
                                         // Recalculate the amount when the price is changed
                                         calculateAmount(index);
                                         mDiscount();
+                                        mCalculateTax();
+                                        mTotalAmount();
                                       });
                                     },
                                   ),
@@ -309,7 +323,11 @@ Future<void> mTaxes() async {
                                       const Text("Action", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                                       IconButton(
                                         icon: const Icon(Icons.delete, color: Colors.red),
-                                        onPressed: () => removeProduct(index),
+                                        onPressed: () {
+                                          setState(() {
+                                            removeProduct(index);
+                                          });
+                                          },
                                       ),
                                     ],
                                   ),
@@ -349,6 +367,8 @@ Future<void> mTaxes() async {
                               onChanged: (value) {
                                 setState(() {
                                   mDiscount();
+                                  mCalculateTax();
+                                  mTotalAmount();
                                 });
                               },
                               enabled: selectedDiscount != "Select Discount",
@@ -409,22 +429,16 @@ Future<void> mTaxes() async {
                               borderRadius: BorderRadius.circular(12),
                               borderSide: const BorderSide(),
                             ),
-                            suffixIcon: const Icon(Icons.arrow_drop_down, color: kPrimaryColor), // Add the dropdown icon
+                            suffixIcon: const Icon(Icons.arrow_drop_down, color: kPrimaryColor),
                           ),
                           child: Text(
                             selectedTaxes.isEmpty
-                                ? 'Select taxes'
+                                ? 'Select Taxes'
                                 : selectedTaxes.join(', '),
                             style: const TextStyle(color: kPrimaryColor),
                           ),
                         ),
                       ),
-
-                      const SizedBox(height: 20),
-                      Text('Selected Taxes: ${selectedTaxes.join(', ')}'), // Show selected taxes
-
-
-
 
                       const SizedBox(height: 35,),
                       Row(
@@ -472,15 +486,15 @@ Future<void> mTaxes() async {
                       ),
 
                       const SizedBox(height: defaultPadding,),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Tax:", style: TextStyle(color: kPrimaryColor,
+                          const Text("Tax:", style: TextStyle(color: kPrimaryColor,
                               fontSize: 14,
                               fontWeight: FontWeight.bold),),
-                          Padding(padding: EdgeInsets.symmetric(
+                          Padding(padding: const EdgeInsets.symmetric(
                               horizontal: defaultPadding),
-                            child: Text("0.00", style: TextStyle(
+                            child: Text(showTaxes, style: const TextStyle(
                                 color: kPrimaryColor,
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold),),),
@@ -488,15 +502,15 @@ Future<void> mTaxes() async {
                       ),
 
                       const SizedBox(height: defaultPadding,),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Total:", style: TextStyle(color: kPrimaryColor,
+                          const Text("Total:", style: TextStyle(color: kPrimaryColor,
                               fontSize: 14,
                               fontWeight: FontWeight.bold),),
-                          Padding(padding: EdgeInsets.symmetric(
+                          Padding(padding: const EdgeInsets.symmetric(
                               horizontal: defaultPadding),
-                            child: Text("0.00", style: TextStyle(
+                            child: Text(showTotalAmount, style: const TextStyle(
                                 color: kPrimaryColor,
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold),),),
@@ -518,50 +532,80 @@ Future<void> mTaxes() async {
 
     if (selectedDiscount == "Fixed") {
       setState(() {
-        // Parse discount.text into double
         discountAmount = double.tryParse(discount.text) ?? 0;
         showDiscount = discountAmount.toStringAsFixed(2);
       });
     } else if (selectedDiscount == "Percentage") {
       setState(() {
-        // Ensure subTotal is parsed to double before using it
-        double totalPrice = double.tryParse(subTotal.toString()) ?? 0; // Parse subTotal as double
-
-        // Check if discount.text can be parsed into a valid percentage
+        double totalPrice = double.tryParse(subTotal.toString()) ?? 0;
         double percentage = double.tryParse(discount.text) ?? 0;
 
-        // Print debug information for subTotal and discount percentage
-        print("subTotal: $totalPrice, discount.text: ${discount.text}");
-
         if (percentage > 0 && totalPrice > 0) {
-          // Calculate the discount amount based on the percentage
           discountAmount = (percentage / 100) * totalPrice;
-          // Show the calculated discount
           showDiscount = discountAmount.toStringAsFixed(2);
         } else {
-          // Handle invalid input
-          showDiscount = "Invalid Input";
+          showDiscount = "0.00";
         }
       });
     }
   }
 
+  void mCalculateTax() {
+    double taxAmount = 0;
 
+    setState(() {
+      double totalPrice = double.tryParse(subTotal.toString()) ?? 0;
+      double? percentage = double.tryParse(totalTaxValue.toStringAsFixed(2)) ?? 0;
 
+      if(percentage >0 && totalPrice> 0){
+        taxAmount = (percentage / 100) * totalPrice;
+        showTaxes = taxAmount.toStringAsFixed(2);
+      }else{
+        showTaxes = "0.00";
+      }
+    });
+  }
 
-
-  void calculateTotalAmount() {
+  void mTotalAmount() {
     double totalAmount = 0;
 
-    // Iterate over all products and sum their amounts
+    setState(() {
+      double totalPrice = double.tryParse(subTotal.toString()) ?? 0.0;
+      double? percentage = double.tryParse(showDiscount.toString()) ?? 0.0;
+      double? taxes = double.tryParse(showTaxes.toString()) ?? 0.0;
+
+      if(totalPrice > 0 && percentage >0  && taxes > 0){
+        totalAmount = totalPrice - percentage + taxes;
+        showTotalAmount = totalAmount.toStringAsFixed(2);
+      }else if(totalPrice >0 && percentage >0){
+        totalAmount = totalPrice - percentage;
+        showTotalAmount = totalAmount.toStringAsFixed(2);
+      }else if(totalPrice >0 && taxes >0){
+        totalAmount = totalPrice + taxes;
+        showTotalAmount = totalAmount.toStringAsFixed(2);
+      }else if(totalPrice >0){
+        totalAmount = totalPrice;
+        showTotalAmount = totalPrice.toStringAsFixed(2);
+      } else{
+        showTotalAmount = "0.00";
+      }
+    });
+  }
+
+
+  void calculateSubTotalAmount() {
+    double totalAmount = 0;
+
     for (var product in productList) {
       final amount = double.tryParse(product['amount'] ?? '0') ?? 0;
       totalAmount += amount;
     }
 
     setState(() {
-      // Update the Sub Total field with the calculated total amount
       subTotal = totalAmount.toStringAsFixed(2);
+      mDiscount();
+      mCalculateTax();
+      mTotalAmount();
     });
   }
 
@@ -582,7 +626,10 @@ Future<void> mTaxes() async {
     }
 
     // Recalculate the total amount every time an individual amount changes
-    calculateTotalAmount();
+    calculateSubTotalAmount();
+    mDiscount();
+    mCalculateTax();
+    mTotalAmount();
   }
 
 
@@ -599,15 +646,22 @@ Future<void> mTaxes() async {
                 child: Column(
                   children: taxList.map((tax) {
                     return CheckboxListTile(
-                      title: Text(tax.name ?? ''),
-                      value: selectedTaxes.contains(tax.name),
+                      title: Text(
+                        '${tax.name ?? ''} - ${tax.taxValue ?? ''}',
+                        style: const TextStyle(color: kPrimaryColor),
+                      ),
+                      value: selectedTaxes.contains('${tax.name ?? ''} - ${tax.taxValue ?? ''}'),
                       onChanged: (bool? isSelected) {
                         setState(() {
                           if (isSelected == true) {
-                            selectedTaxes.add(tax.name!); // Add to the list
+                            selectedTaxes.add('${tax.name ?? ''} - ${tax.taxValue ?? ''}');
                           } else {
-                            selectedTaxes.remove(tax.name!); // Remove from the list
+                            selectedTaxes.remove('${tax.name ?? ''} - ${tax.taxValue ?? ''}');
                           }
+                          // Recalculate the total tax value
+                          totalTaxValue = _calculateTotalTaxValue();
+                          mCalculateTax();
+                          mTotalAmount();
                         });
                       },
                     );
@@ -620,6 +674,7 @@ Future<void> mTaxes() async {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
+                setState(() {});
               },
               child: const Text('Done'),
             ),
@@ -628,6 +683,21 @@ Future<void> mTaxes() async {
       },
     );
   }
+
+
+
+  double _calculateTotalTaxValue() {
+    double total = 0.0;
+    for (var selectedTax in selectedTaxes) {
+      final tax = taxList.firstWhere(
+            (tax) => '${tax.name ?? ''} - ${tax.taxValue ?? ''}' == selectedTax,
+        orElse: () => TaxData(name: '', taxValue: 0),
+      );
+      total += (tax.taxValue ?? 0).toDouble();
+    }
+    return total;
+  }
+
 }
 
 
