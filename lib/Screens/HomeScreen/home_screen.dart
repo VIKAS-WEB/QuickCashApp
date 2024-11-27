@@ -12,7 +12,7 @@ import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/Invoices/invoice
 import 'package:quickcash/Screens/InvoicesScreen/ManualInvoicePayment/manualInvoiceScreen/manual_invoice_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/products_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteScreen/quotes_screen.dart';
-import 'package:quickcash/Screens/InvoicesScreen/Settings/settings_screen.dart';
+import 'package:quickcash/Screens/InvoicesScreen/Settings/settingsMainScreen.dart';
 import 'package:quickcash/Screens/LoginScreen/login_screen.dart';
 import 'package:quickcash/Screens/ReferAndEarnScreen/refer_and_earn_screen.dart';
 import 'package:quickcash/Screens/SpotTradeScreen/spot_trade_screen.dart';
@@ -99,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
         container = const InvoiceTransactionsScreen();
         break;
       case DrawerSections.settings:
-        container = const SettingsScreen();
+        container = const SettingsMainScreen();
         break;
       default:
         container = const DashboardScreen(); // Fallback

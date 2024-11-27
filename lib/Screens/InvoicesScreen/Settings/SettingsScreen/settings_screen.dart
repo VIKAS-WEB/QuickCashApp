@@ -2,11 +2,11 @@ import 'dart:io';
 import 'package:country_state_city_pro/country_state_city_pro.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:quickcash/Screens/InvoicesScreen/Settings/model/settingsApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/Settings/SettingsScreen/model/settingsApi.dart';
 import 'package:quickcash/constants.dart';
 
-import '../../../util/apiConstants.dart';
-import '../../../util/auth_manager.dart';
+import '../../../../util/apiConstants.dart';
+import '../../../../util/auth_manager.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -82,13 +82,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: kPrimaryColor,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          "Settings", style: TextStyle(color: Colors.white),
-        ),
-      ),
       body: isLoading
           ? const Center(
         child: CircularProgressIndicator(
@@ -108,11 +101,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (errorMessage != null)
                   Text(errorMessage!,
                       style: const TextStyle(color: Colors.red)),
-
-                const SizedBox(
-                  height: defaultPadding,
-                ),
-
 
                 // Company Name
                 TextFormField(
