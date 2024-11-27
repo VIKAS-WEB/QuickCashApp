@@ -389,6 +389,8 @@ Future<void> mTaxes() async {
                             onChanged: (newValue) {
                               setState(() {
                                 selectedDiscount = newValue!;
+                                discount.clear();
+                                showDiscount = "0.00";
                               });
                             },
                           ),
