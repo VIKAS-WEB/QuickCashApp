@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/InvoicesScreen/Settings/PaymentQRCodeScreen/AddPaymentQRCodeScreen/addPaymentQRCodeScreen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/Settings/PaymentQRCodeScreen/PaymentQRCodeDetailsModel/paymentQRCodeDetailModel.dart';
 import 'package:quickcash/Screens/InvoicesScreen/Settings/PaymentQRCodeScreen/PaymentQRCodeDetailsModel/paymentQRCodeDetailsApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/Settings/PaymentQRCodeScreen/PaymentQRCodeDetailsModel/qrCodeDeleteApi.dart';
 
 import '../../../../constants.dart';
 import '../../../../util/apiConstants.dart';
@@ -17,6 +18,7 @@ class PaymentQRCodeScreen extends StatefulWidget {
 
 class _PaymentQRCodeScreen extends State<PaymentQRCodeScreen> {
   final QRCodeDetailsApi _qrCodeDetailsApi = QRCodeDetailsApi();
+  final QrCodeDeleteApi _qrCodeDeleteApi = QrCodeDeleteApi();
   List<QRCodeDetailsItem> qrCodeDetailsList = [];
 
   bool isLoading = false;
@@ -60,6 +62,40 @@ class _PaymentQRCodeScreen extends State<PaymentQRCodeScreen> {
         errorMessage = error.toString();
         CustomSnackBar.showSnackBar(
             context: context, message: errorMessage!, color: kRedColor);
+      });
+    }
+  }
+
+  Future<void> mQrCodeDelete(String? qrCodeId) async {
+    setState(() {
+      isLoading = false;
+      errorMessage = null;
+    });
+    try{
+      final response = await _qrCodeDeleteApi.qrCodeDeleteApi(qrCodeId!);
+
+      if(response.message == "QR Code data has been deleted successfully"){
+        setState(() {
+          isLoading = false;
+          errorMessage = null;
+          Navigator.of(context).pop(false);
+          mQRCodeDetails("No");
+          CustomSnackBar.showSnackBar(context: context, message: "QR Code data has been deleted successfully", color: kPrimaryColor);
+        });
+      }else{
+        setState(() {
+          isLoading = false;
+          errorMessage = null;
+          Navigator.of(context).pop(false);
+          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kPrimaryColor);
+        });
+      }
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+        CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
       });
     }
   }
@@ -255,7 +291,7 @@ class _PaymentQRCodeScreen extends State<PaymentQRCodeScreen> {
                                               color: Colors.white,
                                             ),
                                             onPressed: () {
-                                            //  mDeleteTaxDialog(taxDetails.id);
+                                              mDeleteQrCodeDialog(qrCodeDetails.id);
                                             },
                                           ),
                                           const Text(
@@ -284,4 +320,27 @@ class _PaymentQRCodeScreen extends State<PaymentQRCodeScreen> {
       ),
     ));
   }
+
+  Future<bool> mDeleteQrCodeDialog(String? qrCodeId) async {
+    return (await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Quote"),
+        content: const Text("Do you really want to delete this tax?"),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false), // No
+            child: const Text("No"),
+          ),
+          TextButton(
+            onPressed: () {
+              mQrCodeDelete(qrCodeId);
+            },
+            child: const Text("Yes"),
+          ),
+        ],
+      ),
+    )) ?? false;
+  }
+
 }
