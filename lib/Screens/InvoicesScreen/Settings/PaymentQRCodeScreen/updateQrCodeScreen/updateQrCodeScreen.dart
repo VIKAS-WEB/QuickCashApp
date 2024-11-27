@@ -1,0 +1,279 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:quickcash/constants.dart';
+
+import '../../../../../util/apiConstants.dart';
+import '../../../../../util/customSnackBar.dart';
+
+class UpdatePaymentQRCodeScreen extends StatefulWidget{
+  final String? qrCodeId;
+  final String? qrCodeTitle;
+  final String? qrCodeImage;
+  final String? qrCodeType;
+
+  const UpdatePaymentQRCodeScreen({super.key, required this.qrCodeId, required this.qrCodeTitle, required this.qrCodeImage, required this.qrCodeType});
+
+  @override
+  State<UpdatePaymentQRCodeScreen> createState() => _UpdatePaymentQRCodeScreenState();
+}
+
+class _UpdatePaymentQRCodeScreenState extends State<UpdatePaymentQRCodeScreen>{
+  final _formKey = GlobalKey<FormState>();
+
+  final TextEditingController title = TextEditingController();
+  String? selectedType = "yes";
+  String? imagePath;
+  String? imageUrl;
+
+  bool isLoading = false;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    mSetQrCodeDetails();
+    super.initState();
+  }
+
+  Future<void> mSetQrCodeDetails() async{
+    title.text = widget.qrCodeTitle!;
+    imageUrl = '${ApiConstants.baseQRCodeImageUrl}${widget.qrCodeImage}';
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: kPrimaryColor,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          "Edit QR Code",
+          style: TextStyle(color: Colors.white),
+        ),
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(defaultPadding),
+          child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: <Widget>[
+                  const SizedBox(
+                    height: 35,
+                  ),
+                  TextFormField(
+                    controller: title,
+                    keyboardType: TextInputType.text,
+                    textInputAction: TextInputAction.next,
+                    cursorColor: kPrimaryColor,
+                    onSaved: (value) {},
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter title';
+                      }
+                      return null;
+                    },
+                    readOnly: false,
+                    style: const TextStyle(color: kPrimaryColor),
+                    decoration: InputDecoration(
+                      labelText: "Title",
+                      labelStyle:
+                      const TextStyle(color: kPrimaryColor, fontSize: 16),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(),
+                      ),
+                      filled: true,
+                      fillColor: Colors.transparent,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: largePadding,
+                  ),
+
+                  const Padding(padding: EdgeInsets.only(left: smallPadding),
+                    child: Text("Upload Payment QR-code",style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold),),),
+
+                  const SizedBox(height: 2.0,),
+
+                  if(imageUrl !=null)
+                  Card(
+                    child: Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: imagePath != null
+                              ? Image.file(
+                            File(imagePath!),
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: 250,
+                          )
+                              : Image.network(
+                            imageUrl.toString(),
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: 250,
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 8,
+                          right: 8,
+                          child: GestureDetector(
+                            onTap: () async {
+                              final ImagePicker picker = ImagePicker();
+                              final XFile? image = await picker.pickImage(
+                                  source: ImageSource.gallery);
+
+                              if (image != null) {
+                                setState(() {
+                                  imagePath =
+                                      image.path; // Store the image path
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('Image selected')),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('No image selected.')),
+                                );
+                              }
+                            },
+                            child: const CircleAvatar(
+                              backgroundColor: Colors.white,
+                              child: Icon(
+                                Icons.edit,
+                                color: kPrimaryColor,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                  else if(isLoading)
+                    Card(
+                      child: Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: imagePath != null
+                                ? Image.file(
+                              File(imagePath!),
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: 250,
+                            )
+                                : Image.network(
+                              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmN0el3AEK0rjTxhTGTBJ05JGJ7rc4_GSW6Q&s',
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: 250,
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 8,
+                            right: 8,
+                            child: GestureDetector(
+                              onTap: () async {
+                                final ImagePicker picker = ImagePicker();
+                                final XFile? image = await picker.pickImage(
+                                    source: ImageSource.gallery);
+
+                                if (image != null) {
+                                  setState(() {
+                                    imagePath =
+                                        image.path; // Store the image path
+                                  });
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text('Image selected')),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text('No image selected.')),
+                                  );
+                                }
+                              },
+                              child: const CircleAvatar(
+                                backgroundColor: Colors.white,
+                                child: Icon(
+                                  Icons.edit,
+                                  color: kPrimaryColor,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+
+                  const SizedBox(height: largePadding),
+                  const Text(
+                    "Default",
+                    style: TextStyle(
+                        color: kPrimaryColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: <Widget>[
+                      Radio<String>(
+                        value: 'yes',
+                        groupValue: selectedType,
+                        onChanged: (String? value) {
+                          setState(() {
+                            selectedType = value;
+                          });
+                        },
+                      ),
+                      const Text('Yes', style: TextStyle(color: kPrimaryColor)),
+                      Radio<String>(
+                        value: 'no',
+                        groupValue: selectedType,
+                        onChanged: (String? value) {
+                          setState(() {
+                            selectedType = value;
+                          });
+                        },
+                      ),
+                      const Text('No', style: TextStyle(color: kPrimaryColor)),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 45.0,
+                  ),
+                  Center(
+                    child: SizedBox(
+                      width: 180,
+                      height: 50.0,
+                      child: FloatingActionButton.extended(
+                        onPressed: () {
+                          if (_formKey.currentState?.validate() ?? false) {
+                            CustomSnackBar.showSnackBar(context: context, message: "Submitted", color: kPrimaryColor);
+                          }
+                        },
+                        label: const Text(
+                          'Submit',
+                          style: TextStyle(color: Colors.white, fontSize: 15),
+                        ),
+                        backgroundColor: kPrimaryColor,
+                      ),
+                    ),
+                  )
+                ],
+              )),
+        ),
+      ),
+    );
+  }
+}

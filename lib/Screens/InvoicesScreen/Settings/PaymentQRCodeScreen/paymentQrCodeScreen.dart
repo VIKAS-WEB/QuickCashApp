@@ -4,6 +4,7 @@ import 'package:quickcash/Screens/InvoicesScreen/Settings/PaymentQRCodeScreen/Ad
 import 'package:quickcash/Screens/InvoicesScreen/Settings/PaymentQRCodeScreen/PaymentQRCodeDetailsModel/paymentQRCodeDetailModel.dart';
 import 'package:quickcash/Screens/InvoicesScreen/Settings/PaymentQRCodeScreen/PaymentQRCodeDetailsModel/paymentQRCodeDetailsApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/Settings/PaymentQRCodeScreen/PaymentQRCodeDetailsModel/qrCodeDeleteApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/Settings/PaymentQRCodeScreen/updateQrCodeScreen/updateQrCodeScreen.dart';
 
 import '../../../../constants.dart';
 import '../../../../util/apiConstants.dart';
@@ -142,9 +143,7 @@ class _PaymentQRCodeScreen extends State<PaymentQRCodeScreen> {
                 ),
               ],
             ),
-            const SizedBox(
-              height: defaultPadding,
-            ),
+
             isLoading
                 ? const Center(
                     child: CircularProgressIndicator(
@@ -262,12 +261,12 @@ class _PaymentQRCodeScreen extends State<PaymentQRCodeScreen> {
                                               color: Colors.white,
                                             ),
                                             onPressed: () {
-                                             /* Navigator.push(
+                                              Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
                                                     builder: (context) =>
-                                                        UpdateTaxScreen(taxId: taxDetails.id,taxName: taxDetails.name, taxValue: taxDetails.taxValue, taxType: taxDetails.isDefault)),
-                                              );*/
+                                                        UpdatePaymentQRCodeScreen(qrCodeId: qrCodeDetails.id,qrCodeTitle: qrCodeDetails.title, qrCodeImage: qrCodeDetails.image, qrCodeType: qrCodeDetails.isDefault)),
+                                              );
                                             },
                                           ),
                                           const Text(
