@@ -24,7 +24,7 @@ class _SettingsMainScreenState extends State<SettingsMainScreen>{
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     colorScheme.primary.withOpacity(0.05);
     colorScheme.primary.withOpacity(0.15);
-    const int tabsCount = 8;
+    const int tabsCount = 3;
 
     return DefaultTabController(
       initialIndex: 0,

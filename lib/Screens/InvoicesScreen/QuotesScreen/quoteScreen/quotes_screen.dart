@@ -57,7 +57,7 @@ class _QuotesScreenState extends State<QuotesScreen> {
         setState(() {
           isLoading = false;
           errorMessage = 'No Quote List';
-          CustomSnackBar.showSnackBar(context: context, message: "No Invoices List", color: kPrimaryColor);
+          CustomSnackBar.showSnackBar(context: context, message: "No Quote List", color: kPrimaryColor);
         });
       }
 
