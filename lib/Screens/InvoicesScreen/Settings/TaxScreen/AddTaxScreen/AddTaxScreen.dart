@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:quickcash/Screens/InvoicesScreen/Settings/TaxScreen/AddTaxScreen/model/addTaxApi.dart';
 import 'package:quickcash/util/customSnackBar.dart';
 
 import '../../../../../constants.dart';
+import '../../../../../util/auth_manager.dart';
+import '../updateTaxDetailsScreen/model/taxUpdateModel.dart';
 
 class AddTaxScreen extends StatefulWidget {
   const AddTaxScreen({super.key});
@@ -11,11 +14,56 @@ class AddTaxScreen extends StatefulWidget {
 }
 
 class _AddTaxScreenState extends State<AddTaxScreen> {
+  final AddTaxApi _addTaxApi = AddTaxApi();
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController name = TextEditingController();
   final TextEditingController taxRate = TextEditingController();
   String? selectedType = "yes";
+  bool isLoading = false;
+  String? errorMessage;
+
+  Future<void> mAddTax() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      setState(() {
+        isLoading = true;
+        errorMessage = null;
+      });
+
+      try {
+        final request = TaxUpdateRequest(userId: AuthManager.getUserId(),
+            name: name.text,
+            value: taxRate.text,
+            type: selectedType!);
+        final response = await _addTaxApi.addTaxApi(request);
+
+        if(response.message == "Tax data has been saved !!!"){
+          setState(() {
+            isLoading = false;
+            errorMessage = null;
+            name.clear();
+            taxRate.clear();
+            CustomSnackBar.showSnackBar(context: context, message: "Tax Data has been Submitted!", color: kPrimaryColor);
+          });
+        }else{
+          setState(() {
+            isLoading = false;
+            errorMessage = null;
+            CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kPrimaryColor);
+          });
+        }
+
+      } catch (error) {
+        setState(() {
+          isLoading = false;
+          errorMessage = error.toString();
+          CustomSnackBar.showSnackBar(
+              context: context, message: errorMessage!, color: kRedColor);
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -128,6 +176,18 @@ class _AddTaxScreenState extends State<AddTaxScreen> {
                       const Text('No', style: TextStyle(color: kPrimaryColor)),
                     ],
                   ),
+
+                  const SizedBox(height: defaultPadding,),
+                  if (isLoading) const Center(
+                    child: CircularProgressIndicator(
+                      color: kPrimaryColor,
+                    ),
+                  ), // Show loading indicator
+                  if (errorMessage != null) // Show error message if there's an error
+                    Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+
+
+
                   const SizedBox(
                     height: 45.0,
                   ),
@@ -136,11 +196,7 @@ class _AddTaxScreenState extends State<AddTaxScreen> {
                       width: 180,
                       height: 50.0,
                       child: FloatingActionButton.extended(
-                        onPressed: () {
-                          if (_formKey.currentState?.validate() ?? false) {
-                            CustomSnackBar.showSnackBar(context: context, message: "Submitted", color: kPrimaryColor);
-                          }
-                        },
+                        onPressed: isLoading ? null : mAddTax,
                         label: const Text(
                           'Submit',
                           style: TextStyle(color: Colors.white, fontSize: 15),
