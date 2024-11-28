@@ -21,14 +21,6 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
   final InvoiceDashboardApi _invoiceDashboardApi = InvoiceDashboardApi();
   final QuotesDashboardApi _quotesDashboardApi = QuotesDashboardApi();
 
-
-  @override
-  void initState() {
-    mInvoiceDashboard();
-    mQuotesDashboard();
-    super.initState();
-  }
-
   // Invoice
   double? totalInvoice;
   String? totalInvoicePaid;
@@ -42,14 +34,17 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
   int? totalQuotesReject;
 
   bool isLoading = false;
-
-
   bool light = true;
 
   List<ChartData> paymentOverview = [];
   List<ChartData> invoiceOverview = [];
 
-  String? selectedDays;
+  @override
+  void initState() {
+    mInvoiceDashboard();
+    mQuotesDashboard();
+    super.initState();
+  }
 
   // Invoice Dashboard Api ------
   Future<void> mInvoiceDashboard() async {
@@ -536,69 +531,6 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
               ),
             ),
 
-
-           /* const SizedBox(height: defaultPadding,),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(defaultPadding),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    spreadRadius: 1,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Padding(padding: const EdgeInsets.all(0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "Invoice Income Overview",
-                          style: TextStyle(
-                              color: kPrimaryColor,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        GestureDetector(
-                          onTap: () => _showCurrencyDropdown(context, true),
-                          child: Container(
-                            height: 50.0,
-                            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 15.0),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: kPrimaryColor),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  selectedDays != null
-                                      ? '$selectedDays'
-                                      : 'Today',
-                                  style: const TextStyle(color: kPrimaryColor,  fontSize: 14, fontWeight: FontWeight.w500),
-                                ),
-                                const Icon(Icons.arrow_drop_down, color: kPrimaryColor),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-
-              ),
-            ),*/
-
-
             const SizedBox(
               height: defaultPadding,
             ),
@@ -732,107 +664,6 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
             const SizedBox(
               height: largePadding,
             ),
-           /* const Text(
-              "Invoice Payment Transaction List",
-              style: TextStyle(
-                  color: kPrimaryColor,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(
-              height: smallPadding,
-            ),
-            Column(
-              children: invoicePaymentList.map((ticketsData) {
-                return Card(
-                  margin: const EdgeInsets.symmetric(
-                      vertical: smallPadding, horizontal: 0),
-                  color: kPrimaryColor,
-                  child: ListTile(
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: defaultPadding),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text("Invoice Number:",
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 16)),
-                            Text("${ticketsData['invoiceNumber']}",
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 16)),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        const Divider(),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text("Payment Date:",
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 16)),
-                            Text("${ticketsData['paymentDate']}",
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 16)),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        const Divider(),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text("Total:",
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 16)),
-                            Text("${ticketsData['total']}",
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 16)),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        const Divider(),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text("Paid Amount:",
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 16)),
-                            Text("${ticketsData['paidAmount']}",
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 16)),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        const Divider(),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text("Transaction Type:",
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 16)),
-                            OutlinedButton(
-                              onPressed: () {},
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(
-                                    color: Colors.white, width: 1),
-                              ),
-                              child: Text("${ticketsData['transactionType']}",
-                                  style:
-                                  const TextStyle(color: Colors.white)),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),*/
           ],
         ),
       ),
@@ -1113,50 +944,11 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                 ],
               ),
             ),
-
-
           ],
         ),
       ),
     );
   }
-
-/*void _showCurrencyDropdown(BuildContext context, bool isSend) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return ListView(
-          children: [
-            _buildDaysOption('Today', isSend),
-            _buildDaysOption('This Week',isSend),
-            _buildDaysOption('Last Week',isSend),
-            _buildDaysOption('This Month',isSend),
-            _buildDaysOption('Last Month',isSend),
-          ],
-        );
-      },
-    );
-  }*/
-
-/*Widget _buildDaysOption(String currency, bool isSend) {
-    return ListTile(
-      title: Row(
-        children: [
-          const SizedBox(width: smallPadding),
-          Text(currency,style: const TextStyle(color: kPrimaryColor,fontSize: 14,fontWeight: FontWeight.w500),),
-        ],
-      ),
-      onTap: () {
-        setState(() {
-          if (isSend) {
-            selectedDays = currency;
-          }
-        });
-        Navigator.pop(context);
-      },
-    );
-  }*/
-
 }
 
 // Indicator Widget for Deposit, Debit, and Fee Debit
