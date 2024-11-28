@@ -47,14 +47,7 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
   bool light = true;
 
   List<ChartData> paymentOverview = [];
-
-
-  final List<ChartData> invoiceOverview = <ChartData>[
-    ChartData(x: 'Paid', y: 70),
-    ChartData(x: 'Unpaid', y: 27),
-    ChartData(x: 'Overdue', y: 27),
-  ];
-
+  List<ChartData> invoiceOverview = [];
 
   String? selectedDays;
 
@@ -78,6 +71,12 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
           paymentOverview = [
             ChartData(x: 'Paid', y: double.tryParse(totalInvoicePaid ?? '0') ?? 0),
             ChartData(x: 'Unpaid', y: totalInvoiceUnpaid ?? 0.0),
+          ];
+
+          invoiceOverview = [
+            ChartData(x: 'Paid', y: double.tryParse(totalInvoicePaid ?? '0') ?? 0),
+            ChartData(x: 'Unpaid', y: totalInvoiceUnpaid ?? 0.0),
+            ChartData(x: 'Overdue', y: double.tryParse(totalInvoiceOverdue ?? '0') ?? 0),
           ];
 
           isLoading = false;
@@ -669,7 +668,7 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
             ),
             Container(
               width: double.infinity,
-              height: 200,
+              height: 250,
               padding: const EdgeInsets.all(defaultPadding),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -708,7 +707,7 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                                 yValueMapper: (ChartData data, _) => data.y,
                                 dataLabelMapper: (ChartData data, _) =>
                                 data.x,
-                                radius: '100%',
+                                radius: '60%',
                                 explodeIndex: 1,
                                 explode: true,
                                 dataLabelSettings: const DataLabelSettings(
@@ -721,7 +720,7 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                                     connectorLineSettings:
                                     ConnectorLineSettings(
                                         type: ConnectorType.curve,
-                                        length: '15%')))
+                                        length: '5%')))
                           ],
                         ),
                       ],
