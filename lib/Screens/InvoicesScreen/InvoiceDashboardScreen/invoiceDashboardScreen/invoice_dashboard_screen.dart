@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:quickcash/Screens/InvoicesScreen/InvoiceDashboardScreen/AddInvoice/add_invoice_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/InvoiceDashboardScreen/AddQuoteScreen/add_quote_screen.dart';
+import 'package:quickcash/Screens/InvoicesScreen/InvoiceDashboardScreen/invoiceDashboardScreen/quotesModel/quotesDashboardApi.dart';
 import 'package:quickcash/constants.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:quickcash/util/customSnackBar.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+
+import 'invoiceModel/imvoiceDashboardApi.dart';
 
 class InvoiceDashboardScreen extends StatefulWidget {
   const InvoiceDashboardScreen({super.key});
@@ -14,6 +18,32 @@ class InvoiceDashboardScreen extends StatefulWidget {
 }
 
 class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
+  final InvoiceDashboardApi _invoiceDashboardApi = InvoiceDashboardApi();
+  final QuotesDashboardApi _quotesDashboardApi = QuotesDashboardApi();
+
+
+  @override
+  void initState() {
+    mInvoiceDashboard();
+    mQuotesDashboard();
+    super.initState();
+  }
+
+  // Invoice
+  double? totalInvoice;
+  String? totalInvoicePaid;
+  double? totalInvoiceUnpaid;
+  String? totalInvoiceOverdue;
+
+  // Quotes
+  int? totalQuotes;
+  int? totalQuotesConverted;
+  int? totalQuotesAccept;
+  int? totalQuotesReject;
+
+  bool isLoading = false;
+
+
   bool light = true;
 
   final List<ChartData> paymentOverview = <ChartData>[
@@ -27,67 +57,74 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
     ChartData(x: 'Overdue', y: 27),
   ];
 
-  final List<Map<String, String>> invoicePaymentList = [
-    {
-      'invoiceNumber': 'ITIOXX9X9O18958',
-      'paymentDate': '10-10-2024',
-      'total': '\$3.5735152490829463',
-      'paidAmount': '\$3.5735152490829463',
-      'transactionType': 'Manual',
-    },
-    {
-      'invoiceNumber': 'ITIOXX9X9O18955558',
-      'paymentDate': '11-10-2024',
-      'total': '\$3.573515249044829463',
-      'paidAmount': '\$3.57351524904829463',
-      'transactionType': 'Manual',
-    },
-    {
-      'invoiceNumber': 'ITIOXX9X9O1895558',
-      'paymentDate': '09-10-2024',
-      'total': '\$3.573515249074829463',
-      'paidAmount': '\$3.573515265490829463',
-      'transactionType': 'Manual',
-    },
-  ];
 
   String? selectedDays;
 
-  void _showCurrencyDropdown(BuildContext context, bool isSend) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return ListView(
-          children: [
-            _buildDaysOption('Today', isSend),
-            _buildDaysOption('This Week',isSend),
-            _buildDaysOption('Last Week',isSend),
-            _buildDaysOption('This Month',isSend),
-            _buildDaysOption('Last Month',isSend),
-          ],
-        );
-      },
-    );
+  // Invoice Dashboard Api ------
+  Future<void> mInvoiceDashboard() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response = await _invoiceDashboardApi.invoiceDashboardApi();
+
+      if (response.message == "Dashboard Invoice are fetched successfully!!!") {
+        setState(() {
+          totalInvoice = response.data?.totalInvoice;
+          totalInvoicePaid = response.data?.totalPaid;
+          totalInvoiceUnpaid = response.data?.totalUnpaid;
+          totalInvoiceOverdue = response.data?.totalOverdue;
+          isLoading = false;
+        });
+      }else{
+        setState(() {
+          totalInvoice = "0.00" as double?;
+          totalInvoicePaid = "0.00";
+          totalInvoiceUnpaid = "0.00" as double?;
+          totalInvoiceOverdue = "0.00";
+        });
+      }
+
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        CustomSnackBar.showSnackBar(context: context, message: "Something went wrong!", color: kPrimaryColor);
+      });
+    }
   }
 
-  Widget _buildDaysOption(String currency, bool isSend) {
-    return ListTile(
-      title: Row(
-        children: [
-          const SizedBox(width: smallPadding),
-          Text(currency,style: const TextStyle(color: kPrimaryColor,fontSize: 14,fontWeight: FontWeight.w500),),
-        ],
-      ),
-      onTap: () {
+  // Quotes Dashboard Api --------------
+  Future<void> mQuotesDashboard() async {
+    setState(() {
+      isLoading = false;
+    });
+
+    try{
+      final response = await _quotesDashboardApi.quotesDashboardApi();
+
+      if(response.message == "Dashboard Quote details are fetched successfully!!!"){
         setState(() {
-          if (isSend) {
-            selectedDays = currency;
-          }
+          totalQuotes = response.data?.totalQuote;
+          totalQuotesConverted = response.data?.totalConverted;
+          totalQuotesAccept = response.data?.totalAccept;
+          totalQuotesReject = response.data?.totalReject;
         });
-        Navigator.pop(context);
-      },
-    );
+      }else{
+        totalQuotes = 0;
+        totalQuotesConverted = 0;
+        totalQuotesAccept = 0;
+        totalQuotesReject = 0;
+      }
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        CustomSnackBar.showSnackBar(context: context, message: "Something went wrong!", color: kPrimaryColor);
+      });
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +137,13 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
           style: TextStyle(color: Colors.white),
         ),
       ),
-      body: SingleChildScrollView(
+      body:  isLoading
+          ? const Center(
+        child: CircularProgressIndicator(
+          color: kPrimaryColor,
+        ),
+      )
+          : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(defaultPadding),
           child: Column(
@@ -135,7 +178,6 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                     child: FloatingActionButton.extended(
                       onPressed: () {
                         // Handle adding invoice or quote
-
                         if (light) {
                           // Navigate to Add Invoice Screen
                           Navigator.push(
@@ -151,8 +193,6 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                                 builder: (context) => const AddQuoteScreen()),
                           );
                         }
-
-
                       },
                       label: Text(
                         light ? 'New Invoice' : 'New Quotes',
@@ -204,12 +244,12 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 // Space between children
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.all(defaultPadding),
+                  Padding(
+                    padding: const EdgeInsets.all(defaultPadding),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           "Total Invoice",
                           style: TextStyle(
                             color: Colors.white,
@@ -217,21 +257,22 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: defaultPadding),
-                        Icon(
+                        const SizedBox(height: defaultPadding),
+                        const Icon(
                           Icons.receipt,
                           size: 30,
                           color: Colors.white,
                         ),
-                        SizedBox(height: defaultPadding),
+                        const SizedBox(height: defaultPadding),
                         Text(
-                          "\$47.65",
-                          style: TextStyle(
+                          '\$${totalInvoice?.toStringAsFixed(2) ?? '0.00'}',
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
-                        ),
+                        )
+
                       ],
                     ),
                   ),
@@ -266,12 +307,12 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 // Space between children
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.all(defaultPadding),
+                  Padding(
+                    padding: const EdgeInsets.all(defaultPadding),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           "Total Paid",
                           style: TextStyle(
                             color: Colors.white,
@@ -279,16 +320,16 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: defaultPadding),
-                        Icon(
+                        const SizedBox(height: defaultPadding),
+                        const Icon(
                           Icons.task_alt,
                           size: 30,
                           color: Colors.white,
                         ),
-                        SizedBox(height: defaultPadding),
+                        const SizedBox(height: defaultPadding),
                         Text(
-                          "\$14.75",
-                          style: TextStyle(
+                          "\$${totalInvoicePaid ?? 0}",
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -349,9 +390,9 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                           color: Colors.white,
                         ),
                         const SizedBox(height: defaultPadding),
-                        const Text(
-                          "\$56.25",
-                          style: TextStyle(
+                        Text(
+                          '\$${totalInvoiceUnpaid?.toStringAsFixed(2) ?? '0.00'}',
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -391,12 +432,12 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 // Space between children
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.all(defaultPadding),
+                  Padding(
+                    padding: const EdgeInsets.all(defaultPadding),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           "Total Overdue",
                           style: TextStyle(
                             color: Colors.white,
@@ -404,16 +445,16 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: defaultPadding),
-                        Icon(
+                        const SizedBox(height: defaultPadding),
+                        const Icon(
                           Icons.access_time_filled_rounded,
                           size: 30,
                           color: Colors.white,
                         ),
-                        SizedBox(height: defaultPadding),
+                        const SizedBox(height: defaultPadding),
                         Text(
-                          "\$45557.58",
-                          style: TextStyle(
+                          "\$${totalInvoiceOverdue ?? 0.0}",
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -483,7 +524,7 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
             ),
 
 
-            const SizedBox(height: defaultPadding,),
+           /* const SizedBox(height: defaultPadding,),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(defaultPadding),
@@ -542,7 +583,7 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                 ),
 
               ),
-            ),
+            ),*/
 
 
             const SizedBox(
@@ -680,7 +721,7 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
             const SizedBox(
               height: largePadding,
             ),
-            const Text(
+           /* const Text(
               "Invoice Payment Transaction List",
               style: TextStyle(
                   color: kPrimaryColor,
@@ -780,7 +821,7 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                   ),
                 );
               }).toList(),
-            ),
+            ),*/
           ],
         ),
       ),
@@ -838,9 +879,9 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                           color: Colors.white,
                         ),
                         const SizedBox(height: defaultPadding),
-                        const Text(
-                          "\$47.65",
-                          style: TextStyle(
+                        Text(
+                          '${totalQuotes ?? 0}',
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -916,9 +957,9 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                         ),
 
                         const SizedBox(height: defaultPadding),
-                        const Text(
-                          "\$14.75",
-                          style: TextStyle(
+                        Text(
+                          "${totalQuotesConverted ?? 0}",
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -958,12 +999,12 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 // Space between children
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.all(defaultPadding),
+                  Padding(
+                    padding: const EdgeInsets.all(defaultPadding),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           "Total Accept",
                           style: TextStyle(
                             color: Colors.white,
@@ -971,16 +1012,16 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: defaultPadding),
-                        Icon(
+                        const SizedBox(height: defaultPadding),
+                        const Icon(
                           Icons.task,
                           size: 30,
                           color: Colors.white,
                         ),
-                        SizedBox(height: defaultPadding),
+                        const SizedBox(height: defaultPadding),
                         Text(
-                          "\$56.25",
-                          style: TextStyle(
+                          "${totalQuotesAccept ?? 0}",
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -1041,14 +1082,14 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                           color: Colors.white,
                         ),
                         const SizedBox(height: defaultPadding),
-                        const Text(
-                          "\$45557.58",
-                          style: TextStyle(
+                        Text(
+                          "${totalQuotesReject ?? 0}",
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
-                        ),
+                        )
                       ],
                     ),
                   ),
@@ -1068,6 +1109,43 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
       ),
     );
   }
+
+/*void _showCurrencyDropdown(BuildContext context, bool isSend) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return ListView(
+          children: [
+            _buildDaysOption('Today', isSend),
+            _buildDaysOption('This Week',isSend),
+            _buildDaysOption('Last Week',isSend),
+            _buildDaysOption('This Month',isSend),
+            _buildDaysOption('Last Month',isSend),
+          ],
+        );
+      },
+    );
+  }*/
+
+/*Widget _buildDaysOption(String currency, bool isSend) {
+    return ListTile(
+      title: Row(
+        children: [
+          const SizedBox(width: smallPadding),
+          Text(currency,style: const TextStyle(color: kPrimaryColor,fontSize: 14,fontWeight: FontWeight.w500),),
+        ],
+      ),
+      onTap: () {
+        setState(() {
+          if (isSend) {
+            selectedDays = currency;
+          }
+        });
+        Navigator.pop(context);
+      },
+    );
+  }*/
+
 }
 
 // Indicator Widget for Deposit, Debit, and Fee Debit

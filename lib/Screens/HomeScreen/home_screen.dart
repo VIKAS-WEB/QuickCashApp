@@ -6,7 +6,7 @@ import 'package:quickcash/Screens/DashboardScreen/Dashboard/dashboard_screen.dar
 import 'package:quickcash/Screens/HomeScreen/my_drawer_header.dart';
 import 'package:quickcash/Screens/InvoicesScreen/CategoriesScreen/categories_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ClientsScreen/ClientsScreen/clients_screen.dart';
-import 'package:quickcash/Screens/InvoicesScreen/InvoiceDashboardScreen/invoice_dashboard_screen.dart';
+import 'package:quickcash/Screens/InvoicesScreen/InvoiceDashboardScreen/invoiceDashboardScreen/invoice_dashboard_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/InvoiceTransactions/invoice_transactions_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/Invoices/invoices_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ManualInvoicePayment/manualInvoiceScreen/manual_invoice_screen.dart';
