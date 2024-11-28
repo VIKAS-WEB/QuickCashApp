@@ -88,7 +88,6 @@ class _AddClientsFormScreenState extends State<AddClientsFormScreen> {
               address.clear();
               note.clear();
             });
-            print("Response 1");
           } else if (response.message == "Email Address is already exists") {
             setState(() {
               isLoading = false;
@@ -143,7 +142,6 @@ class _AddClientsFormScreenState extends State<AddClientsFormScreen> {
               address.clear();
               note.clear();
             });
-            print("Response 2");
           } else if (response.message == "Email Address is already exists") {
             setState(() {
               isLoading = false;

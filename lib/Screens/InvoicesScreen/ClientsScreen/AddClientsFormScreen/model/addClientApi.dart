@@ -12,12 +12,12 @@ class AddClientApi {
     _dio.options.baseUrl = ApiConstants.baseUrl;
     _dio.options.headers['Authorization'] = 'Bearer ${AuthManager.getToken()}';
 
-    _dio.interceptors.add(LogInterceptor(
+    /*_dio.interceptors.add(LogInterceptor(
       request: true,
       requestBody: true,
       responseBody: true,
       responseHeader: true,
-    ));
+    ));*/
   }
 
   /// Compresses an image to reduce its size before upload
