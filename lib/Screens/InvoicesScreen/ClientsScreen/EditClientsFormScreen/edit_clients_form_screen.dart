@@ -112,29 +112,59 @@ class _EditClientsFormScreenState extends State<EditClientsFormScreen> {
       int postal = int.parse(postalCode.text);
 
       try {
-        final request = ClientUpdateRequest(
-          userId: AuthManager.getUserId(),
-          firstName: firstName.text,
-          lastName: lastName.text,
-          email: email.text,
-          mobile: mobileNumber,
-          postalCode: postal,
-          country: country.text,
-          state: state.text,
-          city: city.text,
-          address: address.text,
-          notes: note.text,
-        );
 
-        final response = await _clientUpdateApi.clientUpdate(request, widget.clientsID);
+        if(imagePath !=null){
+          final request = ClientUpdateRequest(
+            userId: AuthManager.getUserId(),
+            firstName: firstName.text,
+            lastName: lastName.text,
+            email: email.text,
+            mobile: mobileNumber,
+            postalCode: postal,
+            country: country.text,
+            state: state.text,
+            city: city.text,
+            address: address.text,
+            notes: note.text,
+            profilePhoto: imagePath !=null ? File(imagePath!) : null
+          );
 
-        CustomSnackBar.showSnackBar(context: context, message: response.message!, color: kGreenColor);
+          final response = await _clientUpdateApi.clientUpdate(request, widget.clientsID);
 
-        setState(() {
-          isLoading = false;
-          errorMessage = null;
-          mViewClientApi();
-        });
+          CustomSnackBar.showSnackBar(context: context, message: response.message!, color: kGreenColor);
+
+          setState(() {
+            isLoading = false;
+            errorMessage = null;
+            mViewClientApi();
+          });
+
+        }else{
+          final request = ClientUpdateRequest(
+            userId: AuthManager.getUserId(),
+            firstName: firstName.text,
+            lastName: lastName.text,
+            email: email.text,
+            mobile: mobileNumber,
+            postalCode: postal,
+            country: country.text,
+            state: state.text,
+            city: city.text,
+            address: address.text,
+            notes: note.text,
+          );
+
+          final response = await _clientUpdateApi.clientUpdate(request, widget.clientsID);
+
+          CustomSnackBar.showSnackBar(context: context, message: response.message!, color: kGreenColor);
+
+          setState(() {
+            isLoading = false;
+            errorMessage = null;
+            mViewClientApi();
+          });
+        }
+
       } catch (error) {
         setState(() {
           isLoading = false;

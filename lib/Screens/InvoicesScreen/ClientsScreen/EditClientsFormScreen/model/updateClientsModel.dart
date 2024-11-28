@@ -1,3 +1,5 @@
+import 'dart:io';
+
 class ClientUpdateRequest {
   final String userId;
   final String firstName;
@@ -10,6 +12,7 @@ class ClientUpdateRequest {
   final String city;
   final String address;
   final String notes;
+  final File? profilePhoto;
 
   ClientUpdateRequest({
     required this.userId,
@@ -23,6 +26,7 @@ class ClientUpdateRequest {
     required this.city,
     required this.address,
     required this.notes,
+    this.profilePhoto,
   });
 
   Map<String, dynamic> toJson() {

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 class AddClientRequest {
   final String userId;
   final String firstName;
@@ -10,6 +12,7 @@ class AddClientRequest {
   final String city;
   final String address;
   final String notes;
+  final File? profilePhoto;
 
   AddClientRequest({
     required this.userId,
@@ -23,6 +26,7 @@ class AddClientRequest {
     required this.city,
     required this.address,
     required this.notes,
+    this.profilePhoto,
   });
 
   Map<String, dynamic> toJson() {
