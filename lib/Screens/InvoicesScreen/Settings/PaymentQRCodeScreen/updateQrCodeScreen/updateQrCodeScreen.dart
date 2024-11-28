@@ -2,7 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:quickcash/Screens/InvoicesScreen/Settings/PaymentQRCodeScreen/updateQrCodeScreen/model/updateQrCodeApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/Settings/PaymentQRCodeScreen/updateQrCodeScreen/model/updateQrCodeModel.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/util/auth_manager.dart';
 
 import '../../../../../util/apiConstants.dart';
 import '../../../../../util/customSnackBar.dart';
@@ -21,6 +24,7 @@ class UpdatePaymentQRCodeScreen extends StatefulWidget{
 
 class _UpdatePaymentQRCodeScreenState extends State<UpdatePaymentQRCodeScreen>{
   final _formKey = GlobalKey<FormState>();
+  final QrCodeUpdateApi _qrCodeUpdateApi = QrCodeUpdateApi();
 
   final TextEditingController title = TextEditingController();
   String? selectedType = "yes";
@@ -39,6 +43,47 @@ class _UpdatePaymentQRCodeScreenState extends State<UpdatePaymentQRCodeScreen>{
   Future<void> mSetQrCodeDetails() async{
     title.text = widget.qrCodeTitle!;
     imageUrl = '${ApiConstants.baseQRCodeImageUrl}${widget.qrCodeImage}';
+  }
+
+  // Update Qrcode Details api ---------------------------
+  Future<void> mUpdateQrCode() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      setState(() {
+        isLoading = true;
+        errorMessage = null;
+      });
+
+      try{
+        final request = QrCodeUpdateRequest(userId: AuthManager.getUserId(), title: title.text, type: selectedType!);
+        final response = await _qrCodeUpdateApi.qrCodeUpdate(request, widget.qrCodeId);
+
+
+        if(response.message == "Payment QR Code details has been updated successfully"){
+          setState(() {
+            isLoading = false;
+            errorMessage = null;
+            CustomSnackBar.showSnackBar(context: context, message: "QrCode Data has been Updated!", color: kPrimaryColor);
+          });
+        }else{
+          setState(() {
+            isLoading = false;
+            errorMessage = null;
+            CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kPrimaryColor);
+          });
+        }
+
+
+      } catch (error) {
+        setState(() {
+          isLoading = false;
+          errorMessage = error.toString();
+          CustomSnackBar.showSnackBar(
+              context: context, message: errorMessage!, color: kRedColor);
+        });
+      }
+
+    }
   }
 
 
@@ -257,11 +302,7 @@ class _UpdatePaymentQRCodeScreenState extends State<UpdatePaymentQRCodeScreen>{
                       width: 180,
                       height: 50.0,
                       child: FloatingActionButton.extended(
-                        onPressed: () {
-                          if (_formKey.currentState?.validate() ?? false) {
-                            CustomSnackBar.showSnackBar(context: context, message: "Submitted", color: kPrimaryColor);
-                          }
-                        },
+                        onPressed: isLoading ? null : mUpdateQrCode,
                         label: const Text(
                           'Submit',
                           style: TextStyle(color: Colors.white, fontSize: 15),
