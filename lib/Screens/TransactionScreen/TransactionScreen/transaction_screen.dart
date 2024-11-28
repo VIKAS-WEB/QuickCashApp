@@ -196,9 +196,9 @@ class _TransactionScreenState extends State<TransactionScreen> {
                                           _getStatusColor(
                                               transaction.transactionStatus!))),
                                   child: Text(
-                                      "${transaction.transactionStatus}",
-                                      style:
-                                          const TextStyle(color: Colors.white)),
+                                    "${transaction.transactionStatus?[0].toUpperCase()}${transaction.transactionStatus?.substring(1)}",
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
                                 ),
                               ],
                             ),

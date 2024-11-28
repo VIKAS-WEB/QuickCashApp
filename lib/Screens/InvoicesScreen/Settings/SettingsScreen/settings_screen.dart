@@ -45,11 +45,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   void initState() {
-    mSettingsDetails();
+    mSettingsDetails("Yes");
     super.initState();
   }
 
-  Future<void> mSettingsDetails() async {
+  Future<void> mSettingsDetails(String s) async {
     setState(() {
       isLoading = true;
       errorMessage = null;
@@ -70,8 +70,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         logoUrl =
             '${ApiConstants.baseSettingsImageUrl}${AuthManager.getUserId()}/${response.logo}';
         settingsId = response.id!;
-
-        print('IDS: $settingsId');
 
         isLoading = false;
         errorMessage = null;
@@ -109,6 +107,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
          final response = await _settingsUpdateApi.updateSettingsApi(request, settingsId);
 
+         if(response.message == "Data has been saved !!!"){
+           setState(() {
+             isUpdateLoading = false;
+             errorMessage = null;
+             mSettingsDetails("No");
+             CustomSnackBar.showSnackBar(context: context, message: "Settings has been updated Successfully!", color: kGreenColor);
+           });
+         } else{
+           setState(() {
+             isUpdateLoading = false;
+             errorMessage = null;
+             CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kRedColor);
+           });
+         }
 
        }else{
          final request = UpdateSettingsRequest(
@@ -125,7 +137,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
          final response = await _settingsUpdateApi.updateSettingsApi(request, settingsId);
 
-         print(response.message);
+         if(response.message == "Data has been saved !!!"){
+           setState(() {
+             setState(() {
+               isLoading = false;
+               errorMessage = null;
+               mSettingsDetails("No");
+               CustomSnackBar.showSnackBar(context: context, message: "Settings has been updated Successfully!", color: kGreenColor);
+             });
+           });
+         } else{
+           setState(() {
+             isLoading = false;
+             errorMessage = null;
+             CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kRedColor);
+           });
+         }
 
        }
 

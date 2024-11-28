@@ -51,7 +51,7 @@ class SettingsUpdateApi {
       print("Payload size: ${payloadSize.toStringAsFixed(2)} KB");
 */
       final response = await _dio.patch(
-        '/nvoicesetting/update/$settingsId',
+        '/invoicesetting/update/$settingsId',
         data: formData,
       );
 

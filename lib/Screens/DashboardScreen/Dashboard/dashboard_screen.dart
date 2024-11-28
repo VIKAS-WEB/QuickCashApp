@@ -628,9 +628,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     style: const TextStyle(
                                         color: Colors.white, fontSize: 16)),
                                 Text(
-                                  transaction.transactionStatus ?? 'Unknown', // Fallback to 'Unknown' if null
+                                  (transaction.transactionStatus?.isNotEmpty ?? false)
+                                      ? '${transaction.transactionStatus![0].toUpperCase()}${transaction.transactionStatus!.substring(1)}'
+                                      : 'Unknown', // Fallback to 'Unknown' if null or empty
                                   style: const TextStyle(color: Colors.white),
-                                ),
+                                )
+
                               ],
                             ),
                             const SizedBox(height: 8),
