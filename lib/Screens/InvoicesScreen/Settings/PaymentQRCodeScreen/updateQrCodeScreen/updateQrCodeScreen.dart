@@ -163,6 +163,18 @@ class _UpdatePaymentQRCodeScreenState extends State<UpdatePaymentQRCodeScreen>{
                             fit: BoxFit.cover,
                             width: double.infinity,
                             height: 250,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const SizedBox(
+                                height: 250,
+                                width: double.infinity,
+
+                                child: Icon(
+                                  Icons.image_outlined,
+                                  color: kPrimaryColor,
+                                  size: 120, // Adjust the icon size as needed
+                                ),
+                              );
+                            },
                           ),
                         ),
                         Positioned(
@@ -202,7 +214,7 @@ class _UpdatePaymentQRCodeScreenState extends State<UpdatePaymentQRCodeScreen>{
                       ],
                     ),
                   )
-                  else if(isLoading)
+                  else
                     Card(
                       child: Stack(
                         children: [
@@ -294,6 +306,18 @@ class _UpdatePaymentQRCodeScreenState extends State<UpdatePaymentQRCodeScreen>{
                       const Text('No', style: TextStyle(color: kPrimaryColor)),
                     ],
                   ),
+
+                  const SizedBox(height: defaultPadding,),
+                  if (isLoading) const Center(
+                    child: CircularProgressIndicator(
+                      color: kPrimaryColor,
+                    ),
+                  ), // Show loading indicator
+                  if (errorMessage != null) // Show error message if there's an error
+                    Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+
+
+
                   const SizedBox(
                     height: 45.0,
                   ),

@@ -212,13 +212,33 @@ class _PaymentQRCodeScreen extends State<PaymentQRCodeScreen> {
                                     'Image:',
                                     style: TextStyle(color: Colors.white, fontSize: 16),
                                   ),
-                                  ClipOval(
-                                    child: Image.network('${ApiConstants.baseQRCodeImageUrl}${qrCodeDetails.image}',
-                                      width: 50,
-                                      height: 50,
-                                      fit: BoxFit.cover, // Ensure the image fills the circle
+                                  if(qrCodeDetails.image !=null)
+
+                                    ClipOval(
+                                      child: Image.network(
+                                        '${ApiConstants.baseQRCodeImageUrl}${qrCodeDetails.image}',
+                                        height: 50,
+                                        width: 50,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Container(
+                                            height: 50,
+                                            width: 50,
+                                            decoration: const BoxDecoration(
+                                              shape: BoxShape.circle, // Circular container
+                                              color: kPrimaryColor, // Background color of the circle
+                                            ),
+                                            child: const Icon(
+                                              Icons.image_outlined,
+                                              color: kWhiteColor,
+                                              size: 40, // Adjust the icon size as needed
+                                            ),
+                                          );
+                                        },
+                                      ),
                                     ),
-                                  ),
+
+
                                 ],
                               ),
                               const Divider(color: kPrimaryLightColor),

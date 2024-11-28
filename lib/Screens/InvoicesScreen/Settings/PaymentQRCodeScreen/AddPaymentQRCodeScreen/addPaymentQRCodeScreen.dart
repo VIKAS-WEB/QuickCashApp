@@ -2,7 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:quickcash/Screens/InvoicesScreen/Settings/PaymentQRCodeScreen/AddPaymentQRCodeScreen/model/addPaymentQrCodeApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/Settings/PaymentQRCodeScreen/updateQrCodeScreen/model/updateQrCodeModel.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/util/auth_manager.dart';
 
 import '../../../../../util/customSnackBar.dart';
 
@@ -14,12 +17,56 @@ class AddPaymentQRCodeScreen extends StatefulWidget{
 }
 
 class _AddPaymentQRCodeScreenState extends State<AddPaymentQRCodeScreen>{
+  final QrCodeAddApi _qrCodeAddApi = QrCodeAddApi();
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController title = TextEditingController();
   final TextEditingController taxRate = TextEditingController();
   String? selectedType = "yes";
   String? imagePath;
+
+  bool isLoading = false;
+  String? errorMessage;
+
+  Future<void> mAddPaymentQrCode() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      setState(() {
+        isLoading = true;
+        errorMessage = null;
+      });
+
+      try{
+        final request =  QrCodeUpdateRequest(userId: AuthManager.getUserId(), title: title.text, type: selectedType!);
+        final response = await _qrCodeAddApi.qrCodeAdd(request);
+
+        if(response.message == "QrCode details is added Successfully!!!"){
+          setState(() {
+            isLoading = false;
+            errorMessage = null;
+            title.clear();
+            CustomSnackBar.showSnackBar(context: context, message: "QrCode details is added Successfully!", color: kPrimaryColor);
+          });
+        }else{
+          setState(() {
+            isLoading = false;
+            errorMessage = null;
+            CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kPrimaryColor);
+          });
+        }
+
+      }catch (error) {
+        setState(() {
+          isLoading = false;
+          errorMessage = error.toString();
+          CustomSnackBar.showSnackBar(
+              context: context, message: errorMessage!, color: kRedColor);
+        });
+      }
+
+
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -169,6 +216,17 @@ class _AddPaymentQRCodeScreenState extends State<AddPaymentQRCodeScreen>{
                       const Text('No', style: TextStyle(color: kPrimaryColor)),
                     ],
                   ),
+
+                  const SizedBox(height: defaultPadding,),
+                  if (isLoading) const Center(
+                    child: CircularProgressIndicator(
+                      color: kPrimaryColor,
+                    ),
+                  ), // Show loading indicator
+                  if (errorMessage != null) // Show error message if there's an error
+                    Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+
+
                   const SizedBox(
                     height: 45.0,
                   ),
@@ -177,11 +235,7 @@ class _AddPaymentQRCodeScreenState extends State<AddPaymentQRCodeScreen>{
                       width: 180,
                       height: 50.0,
                       child: FloatingActionButton.extended(
-                        onPressed: () {
-                          if (_formKey.currentState?.validate() ?? false) {
-                            CustomSnackBar.showSnackBar(context: context, message: "Submitted", color: kPrimaryColor);
-                          }
-                        },
+                        onPressed: isLoading ? null : mAddPaymentQrCode,
                         label: const Text(
                           'Submit',
                           style: TextStyle(color: Colors.white, fontSize: 15),
