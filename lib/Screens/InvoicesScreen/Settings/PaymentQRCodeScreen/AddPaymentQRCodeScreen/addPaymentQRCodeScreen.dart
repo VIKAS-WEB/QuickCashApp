@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:quickcash/Screens/InvoicesScreen/Settings/PaymentQRCodeScreen/AddPaymentQRCodeScreen/model/addPaymentQrCodeApi.dart';
-import 'package:quickcash/Screens/InvoicesScreen/Settings/PaymentQRCodeScreen/updateQrCodeScreen/model/updateQrCodeModel.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/auth_manager.dart';
 
 import '../../../../../util/customSnackBar.dart';
+import 'model/QrCodeAddModel.dart';
 
 class AddPaymentQRCodeScreen extends StatefulWidget{
   const AddPaymentQRCodeScreen({super.key});
@@ -36,37 +36,52 @@ class _AddPaymentQRCodeScreenState extends State<AddPaymentQRCodeScreen>{
         errorMessage = null;
       });
 
-      try{
-        final request =  QrCodeUpdateRequest(userId: AuthManager.getUserId(), title: title.text, type: selectedType!);
+      try {
+        final request = QrCodeAddRequest(
+          userId: AuthManager.getUserId(),
+          title: title.text,
+          type: selectedType!,
+          qrCodeImage: imagePath != null ? File(imagePath!) : null,
+        );
         final response = await _qrCodeAddApi.qrCodeAdd(request);
 
-        if(response.message == "QrCode details is added Successfully!!!"){
+        if (response.message == "QrCode details is added Successfully!!!") {
           setState(() {
             isLoading = false;
             errorMessage = null;
             title.clear();
-            CustomSnackBar.showSnackBar(context: context, message: "QrCode details is added Successfully!", color: kPrimaryColor);
+            imagePath = null; // Reset the image path
+            CustomSnackBar.showSnackBar(
+              context: context,
+              message: "QrCode details is added Successfully!",
+              color: kPrimaryColor,
+            );
           });
-        }else{
+        } else {
           setState(() {
             isLoading = false;
             errorMessage = null;
-            CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kPrimaryColor);
+            CustomSnackBar.showSnackBar(
+              context: context,
+              message: "We are facing some issue!",
+              color: kPrimaryColor,
+            );
           });
         }
-
-      }catch (error) {
+      } catch (error) {
         setState(() {
           isLoading = false;
           errorMessage = error.toString();
           CustomSnackBar.showSnackBar(
-              context: context, message: errorMessage!, color: kRedColor);
+            context: context,
+            message: errorMessage!,
+            color: kRedColor,
+          );
         });
       }
-
-
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -223,8 +238,6 @@ class _AddPaymentQRCodeScreenState extends State<AddPaymentQRCodeScreen>{
                       color: kPrimaryColor,
                     ),
                   ), // Show loading indicator
-                  if (errorMessage != null) // Show error message if there's an error
-                    Text(errorMessage!, style: const TextStyle(color: Colors.red)),
 
 
                   const SizedBox(
