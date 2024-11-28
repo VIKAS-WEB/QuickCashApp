@@ -46,10 +46,8 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
 
   bool light = true;
 
-  final List<ChartData> paymentOverview = <ChartData>[
-    ChartData(x: 'Paid', y: 70),
-    ChartData(x: 'Unpaid', y: 27),
-  ];
+  List<ChartData> paymentOverview = [];
+
 
   final List<ChartData> invoiceOverview = <ChartData>[
     ChartData(x: 'Paid', y: 70),
@@ -75,14 +73,29 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
           totalInvoicePaid = response.data?.totalPaid;
           totalInvoiceUnpaid = response.data?.totalUnpaid;
           totalInvoiceOverdue = response.data?.totalOverdue;
+
+          // Update the paymentOverview list once data is available
+          paymentOverview = [
+            ChartData(x: 'Paid', y: double.tryParse(totalInvoicePaid ?? '0') ?? 0),
+            ChartData(x: 'Unpaid', y: totalInvoiceUnpaid ?? 0.0),
+          ];
+
           isLoading = false;
         });
-      }else{
+      } else {
         setState(() {
-          totalInvoice = "0.00" as double?;
+          totalInvoice = 0.00;
           totalInvoicePaid = "0.00";
-          totalInvoiceUnpaid = "0.00" as double?;
+          totalInvoiceUnpaid = 0.00;
           totalInvoiceOverdue = "0.00";
+
+          // Reset the paymentOverview list
+          paymentOverview = [
+            ChartData(x: 'Paid', y: 0.0),
+            ChartData(x: 'Unpaid', y: 0.0),
+          ];
+
+          isLoading = false;
         });
       }
 
@@ -93,6 +106,7 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
       });
     }
   }
+
 
   // Quotes Dashboard Api --------------
   Future<void> mQuotesDashboard() async {
@@ -591,7 +605,7 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
             ),
             Container(
               width: double.infinity,
-              height: 200,
+              height: 250,
               padding: const EdgeInsets.all(defaultPadding),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -625,25 +639,23 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                         SfCircularChart(
                           series: <CircularSeries<ChartData, String>>[
                             PieSeries<ChartData, String>(
-                                dataSource: paymentOverview,
-                                xValueMapper: (ChartData data, _) => data.x,
-                                yValueMapper: (ChartData data, _) => data.y,
-                                dataLabelMapper: (ChartData data, _) =>
-                                data.x,
-                                radius: '100%',
-                                explodeIndex: 1,
-                                explode: true,
-                                dataLabelSettings: const DataLabelSettings(
-                                    isVisible: true,
-                                    // Avoid labels intersection
-                                    labelIntersectAction:
-                                    LabelIntersectAction.shift,
-                                    labelPosition:
-                                    ChartDataLabelPosition.outside,
-                                    connectorLineSettings:
-                                    ConnectorLineSettings(
-                                        type: ConnectorType.curve,
-                                        length: '15%')))
+                              dataSource: paymentOverview,
+                              xValueMapper: (ChartData data, _) => data.x,
+                              yValueMapper: (ChartData data, _) => data.y,
+                              dataLabelMapper: (ChartData data, _) => data.x,
+                              radius: '60%',
+                              explodeIndex: 1,
+                              explode: true,
+                              dataLabelSettings: const DataLabelSettings(
+                                isVisible: true,
+                                labelIntersectAction: LabelIntersectAction.shift,
+                                labelPosition: ChartDataLabelPosition.outside,
+                                connectorLineSettings: ConnectorLineSettings(
+                                  type: ConnectorType.curve,
+                                  length: '5%',
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ],
