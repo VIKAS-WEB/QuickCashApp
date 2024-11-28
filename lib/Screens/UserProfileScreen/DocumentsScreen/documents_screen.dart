@@ -2,9 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:quickcash/Screens/UserProfileScreen/DocumentsScreen/documentsUpdateModel/documentsUpdateApi.dart';
+import 'package:quickcash/Screens/UserProfileScreen/DocumentsScreen/documentsUpdateModel/documentsUpdateModel.dart';
 import 'package:quickcash/Screens/UserProfileScreen/DocumentsScreen/model/documentsApi.dart';
+import 'package:quickcash/util/auth_manager.dart';
 import '../../../constants.dart';
 import '../../../util/apiConstants.dart';
+import '../../../util/customSnackBar.dart';
 
 class DocumentsScreen extends StatefulWidget {
   const DocumentsScreen({super.key});
@@ -16,6 +20,7 @@ class DocumentsScreen extends StatefulWidget {
 class _DocumentsScreenState extends State<DocumentsScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final DocumentsApi _documentsApi = DocumentsApi();
+  final DocumentUpdateApi _documentUpdateApi = DocumentUpdateApi();
 
   String selectedRole = 'Select ID Of Individual'; // Default value for dropdown
   String? imagePath;
@@ -25,6 +30,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   final TextEditingController _documentsNoController = TextEditingController();
 
   bool isLoading = false;
+  bool isUpdateLoading = false;
   String? errorMessage;
 
   // Map the API response values to display-friendly values for the dropdown
@@ -37,13 +43,15 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   @override
   void initState() {
     super.initState();
-    mDocumentsApi();
+    mDocumentsApi("Yes");
   }
 
-  Future<void> mDocumentsApi() async {
+  Future<void> mDocumentsApi(String s) async {
     setState(() {
-      isLoading = true;
-      errorMessage = null;
+      if (s == "Yes") {
+        isLoading = true;
+        errorMessage = null;
+      }
     });
 
     try {
@@ -80,6 +88,83 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
         isLoading = false;
         errorMessage = error.toString();
       });
+    }
+  }
+
+  Future<void> mUpdateDocument() async {
+    if (selectedRole == "Select ID Of Individual") {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please Select ID Of Individual')),
+      );
+    } else if (_formKey.currentState!.validate()) {
+      setState(() {
+        isUpdateLoading = true;
+      });
+
+      try {
+        if (imagePath != null) {
+          final request = UpdateDocumentRequest(
+              userId: AuthManager.getUserId(),
+              documentsType: selectedRole,
+              documentNo: _documentsNoController.text,
+              docImage: imagePath !=null ? File(imagePath!) : null);
+          final response = await _documentUpdateApi.updateDocumentApi(request);
+
+          if (response.message == "Profile updated successfully") {
+            setState(() {
+              isUpdateLoading = false;
+              mDocumentsApi("No");
+              CustomSnackBar.showSnackBar(
+                  context: context,
+                  message: "Documents Update Successfully!",
+                  color: kPrimaryColor);
+            });
+          } else {
+            setState(() {
+              isUpdateLoading = false;
+              CustomSnackBar.showSnackBar(
+                  context: context,
+                  message: "We are facing some issue!",
+                  color: kPrimaryColor);
+            });
+          }
+        } else {
+          final request = UpdateDocumentRequest(
+              userId: AuthManager.getUserId(),
+              documentsType: selectedRole,
+              documentNo: _documentsNoController.text);
+          final response = await _documentUpdateApi.updateDocumentApi(request);
+
+          if (response.message == "Profile updated successfully") {
+            setState(() {
+              isUpdateLoading = false;
+              mDocumentsApi("No");
+              CustomSnackBar.showSnackBar(
+                  context: context,
+                  message: "Documents Update Successfully!",
+                  color: kPrimaryColor);
+            });
+          } else {
+            setState(() {
+              isUpdateLoading = false;
+              CustomSnackBar.showSnackBar(
+                  context: context,
+                  message: "We are facing some issue!",
+                  color: kPrimaryColor);
+            });
+          }
+        }
+      } catch (error) {
+        setState(() {
+          isLoading = false;
+          errorMessage = error.toString();
+          CustomSnackBar.showSnackBar(
+            context: context,
+            message: errorMessage!,
+            color: kRedColor,
+          );
+        });
+      }
     }
   }
 
@@ -284,6 +369,16 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                       },
                     ),
 
+                    const SizedBox(
+                      height: defaultPadding,
+                    ),
+                    if (isUpdateLoading)
+                      const Center(
+                        child: CircularProgressIndicator(
+                          color: kPrimaryColor,
+                        ),
+                      ), // Show loading indicator
+
                     // Update Button
                     const SizedBox(height: 35),
                     Padding(
@@ -297,21 +392,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        onPressed: () {
-                          if (selectedRole == "Select ID Of Individual") {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content:
-                                      Text('Please Select ID Of Individual')),
-                            );
-                          } else if (_formKey.currentState!.validate()) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content:
-                                      Text('Form submitted successfully!')),
-                            );
-                          }
-                        },
+                        onPressed: isUpdateLoading ? null : mUpdateDocument,
                         child: const Text('Update',
                             style: TextStyle(color: Colors.white)),
                       ),
@@ -326,58 +407,3 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
     );
   }
 }
-
-/*
- Card(
-                      child: Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: imagePath != null
-                                ? Image.file(
-                              File(imagePath!),
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: 250,
-                            )
-                                : Image.network(
-                              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmN0el3AEK0rjTxhTGTBJ05JGJ7rc4_GSW6Q&s',
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: 250,
-                            ),
-                          ),
-                          Positioned(
-                            bottom: 8,
-                            right: 8,
-                            child: GestureDetector(
-                              onTap: () async {
-                                final ImagePicker picker = ImagePicker();
-                                final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-                                if (image != null) {
-                                  setState(() {
-                                    imagePath = image.path; // Store the image path
-                                  });
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Image selected')),
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('No image selected.')),
-                                  );
-                                }
-                              },
-                              child: const CircleAvatar(
-                                backgroundColor: Colors.white,
-                                child: Icon(
-                                  Icons.edit,
-                                  color: kPrimaryColor,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-* */
