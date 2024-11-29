@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:quickcash/constants.dart';
 
 class ConfirmBuyScreen extends StatefulWidget {
-  const ConfirmBuyScreen({super.key});
+  final String? mCryptoAmount;
+  final String? mCurrency;
+  final String? mCoinName;
+  final double? mFees;
+  final String? mYouGetAmount;
+  final double? mEstimateRates;
+  const ConfirmBuyScreen({super.key,this.mCryptoAmount, this.mCurrency, this.mCoinName, this.mFees, this.mYouGetAmount, this.mEstimateRates});
 
   @override
   State<ConfirmBuyScreen> createState() => _ConfirmBuyScreenState();
@@ -10,6 +16,22 @@ class ConfirmBuyScreen extends StatefulWidget {
 
 class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
   String? selectedTransferType;
+
+
+  @override
+  void initState() {
+    mPrintData();
+    super.initState();
+  }
+
+  Future<void> mPrintData() async {
+    print('Get Amount: ${widget.mYouGetAmount}');
+    print('Fees: ${widget.mFees}');
+    print('Coin Name: ${widget.mCoinName}');
+    print('Currency: ${widget.mCurrency}');
+    print('Estimated Rate: ${widget.mEstimateRates}');
+    print('Crypto Amount: ${widget.mCryptoAmount}');
+  }
 
   void _showTransferTypeDropDown(BuildContext context, bool isTransfer) {
     showModalBottomSheet(
