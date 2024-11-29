@@ -120,14 +120,15 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
         });
       }else{
         setState(() {
-          mCryptoSellCoinAvailable = "";
+          mCryptoSellCoinAvailable = "0";
           isLoading = false;
         });
       }
     }catch (error) {
       setState(() {
         isLoading = false;
-        CustomSnackBar.showSnackBar(context: context, message: "Something went wrong!", color: kPrimaryColor);
+        mCryptoSellCoinAvailable = "0";
+        CustomSnackBar.showSnackBar(context: context, message: "No of Coins not found", color: kPrimaryColor);
       });
     }
   }
