@@ -4,7 +4,6 @@ import 'package:quickcash/Screens/InvoicesScreen/InvoiceDashboardScreen/AddInvoi
 import 'package:quickcash/Screens/InvoicesScreen/InvoiceDashboardScreen/AddQuoteScreen/add_quote_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/InvoiceDashboardScreen/invoiceDashboardScreen/quotesModel/quotesDashboardApi.dart';
 import 'package:quickcash/constants.dart';
-import 'package:percent_indicator/percent_indicator.dart';
 import 'package:quickcash/util/customSnackBar.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
@@ -26,6 +25,9 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
   String? totalInvoicePaid;
   double? totalInvoiceUnpaid;
   String? totalInvoiceOverdue;
+  int? totalProductInvoice;
+  int? totalCategoryInvoice;
+  int? totalClientsInvoice;
 
   // Quotes
   int? totalQuotes;
@@ -62,16 +64,26 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
           totalInvoiceUnpaid = response.data?.totalUnpaid;
           totalInvoiceOverdue = response.data?.totalOverdue;
 
+
+          totalProductInvoice = response.data?.totalProducts;
+          totalCategoryInvoice = response.data?.totalCategory;
+          totalClientsInvoice = response.data?.totalClients;
+
+
           // Update the paymentOverview list once data is available
           paymentOverview = [
-            ChartData(x: 'Paid', y: double.tryParse(totalInvoicePaid ?? '0') ?? 0),
+            ChartData(
+                x: 'Paid', y: double.tryParse(totalInvoicePaid ?? '0') ?? 0),
             ChartData(x: 'Unpaid', y: totalInvoiceUnpaid ?? 0.0),
           ];
 
           invoiceOverview = [
-            ChartData(x: 'Paid', y: double.tryParse(totalInvoicePaid ?? '0') ?? 0),
+            ChartData(
+                x: 'Paid', y: double.tryParse(totalInvoicePaid ?? '0') ?? 0),
             ChartData(x: 'Unpaid', y: totalInvoiceUnpaid ?? 0.0),
-            ChartData(x: 'Overdue', y: double.tryParse(totalInvoiceOverdue ?? '0') ?? 0),
+            ChartData(
+                x: 'Overdue',
+                y: double.tryParse(totalInvoiceOverdue ?? '0') ?? 0),
           ];
 
           isLoading = false;
@@ -83,6 +95,10 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
           totalInvoiceUnpaid = 0.00;
           totalInvoiceOverdue = "0.00";
 
+          totalProductInvoice = 0;
+          totalCategoryInvoice = 0;
+          totalClientsInvoice = 0;
+
           // Reset the paymentOverview list
           paymentOverview = [
             ChartData(x: 'Paid', y: 0.0),
@@ -92,15 +108,16 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
           isLoading = false;
         });
       }
-
     } catch (error) {
       setState(() {
         isLoading = false;
-        CustomSnackBar.showSnackBar(context: context, message: "Something went wrong!", color: kPrimaryColor);
+        CustomSnackBar.showSnackBar(
+            context: context,
+            message: "Something went wrong!",
+            color: kPrimaryColor);
       });
     }
   }
-
 
   // Quotes Dashboard Api --------------
   Future<void> mQuotesDashboard() async {
@@ -108,31 +125,33 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
       isLoading = false;
     });
 
-    try{
+    try {
       final response = await _quotesDashboardApi.quotesDashboardApi();
 
-      if(response.message == "Dashboard Quote details are fetched successfully!!!"){
+      if (response.message ==
+          "Dashboard Quote details are fetched successfully!!!") {
         setState(() {
           totalQuotes = response.data?.totalQuote;
           totalQuotesConverted = response.data?.totalConverted;
           totalQuotesAccept = response.data?.totalAccept;
           totalQuotesReject = response.data?.totalReject;
         });
-      }else{
+      } else {
         totalQuotes = 0;
         totalQuotesConverted = 0;
         totalQuotesAccept = 0;
         totalQuotesReject = 0;
       }
-
-    }catch (error) {
+    } catch (error) {
       setState(() {
         isLoading = false;
-        CustomSnackBar.showSnackBar(context: context, message: "Something went wrong!", color: kPrimaryColor);
+        CustomSnackBar.showSnackBar(
+            context: context,
+            message: "Something went wrong!",
+            color: kPrimaryColor);
       });
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -145,80 +164,83 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
           style: TextStyle(color: Colors.white),
         ),
       ),
-      body:  isLoading
+      body: isLoading
           ? const Center(
-        child: CircularProgressIndicator(
-          color: kPrimaryColor,
-        ),
-      )
-          : SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(defaultPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              const SizedBox(height: smallPadding),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Switch(
-                    value: light,
-                    activeColor: Colors.orange,
-                    onChanged: (bool value) {
-                      setState(() {
-                        light = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(width: defaultPadding),
-                  Expanded(
-                    child: Text(
-                      light ? 'Invoice' : 'Quotes',
-                      style: const TextStyle(
-                          color: kPrimaryColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18.0),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 155,
-                    height: 45,
-                    child: FloatingActionButton.extended(
-                      onPressed: () {
-                        // Handle adding invoice or quote
-                        if (light) {
-                          // Navigate to Add Invoice Screen
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const AddInvoiceScreen()),
-                          );
-                        } else {
-                          // Navigate to Add Quotes Screen
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const AddQuoteScreen()),
-                          );
-                        }
-                      },
-                      label: Text(
-                        light ? 'New Invoice' : 'New Quotes',
-                        style: const TextStyle(color: Colors.white, fontSize: 15),
-                      ),
-                      icon: const Icon(Icons.add, color: Colors.white),
-                      backgroundColor: kPrimaryColor,
-                    ),
-                  ),
-                ],
+              child: CircularProgressIndicator(
+                color: kPrimaryColor,
               ),
-              const SizedBox(height: defaultPadding),
-              // Conditional widget to show Invoice or Quotes
-              light ? _buildInvoiceContent() : _buildQuotesContent(),
-            ],
-          ),
-        ),
-      ),
+            )
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(defaultPadding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    const SizedBox(height: smallPadding),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Switch(
+                          value: light,
+                          activeColor: Colors.orange,
+                          onChanged: (bool value) {
+                            setState(() {
+                              light = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(width: defaultPadding),
+                        Expanded(
+                          child: Text(
+                            light ? 'Invoice' : 'Quotes',
+                            style: const TextStyle(
+                                color: kPrimaryColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18.0),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 155,
+                          height: 45,
+                          child: FloatingActionButton.extended(
+                            onPressed: () {
+                              // Handle adding invoice or quote
+                              if (light) {
+                                // Navigate to Add Invoice Screen
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const AddInvoiceScreen()),
+                                );
+                              } else {
+                                // Navigate to Add Quotes Screen
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const AddQuoteScreen()),
+                                );
+                              }
+                            },
+                            label: Text(
+                              light ? 'New Invoice' : 'New Quotes',
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 15),
+                            ),
+                            icon: const Icon(Icons.add, color: Colors.white),
+                            backgroundColor: kPrimaryColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: defaultPadding),
+                    // Conditional widget to show Invoice or Quotes
+                    light ? _buildInvoiceContent() : _buildQuotesContent(),
+                  ],
+                ),
+              ),
+            ),
     );
   }
 
@@ -229,7 +251,6 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-
             const SizedBox(
               height: smallPadding,
             ),
@@ -280,7 +301,6 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         )
-
                       ],
                     ),
                   ),
@@ -480,8 +500,6 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                 ],
               ),
             ),
-
-
             const SizedBox(
               height: defaultPadding,
             ),
@@ -500,34 +518,58 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                   ),
                 ],
               ),
-              child: const Padding(
-                padding: EdgeInsets.all(defaultPadding),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IndicatorWidget(
-                      label: "Total Product",
-                      amount: 2,
-                      percentage: 0.20,
-                      color: Colors.teal,
-                      icon: Icons.print_rounded,
-                    ),
-                    IndicatorWidget(
-                      label: "Total Category",
-                      amount: 4,
-                      percentage: 0.30,
-                      color: Colors.orange,
-                      icon: Icons.category,
-                    ),
-                    IndicatorWidget(
-                      label: "Total Clients",
-                      amount: 5,
-                      percentage: 0.50,
-                      color: Colors.purple,
-                      icon: Icons.people_rounded,
-                    ),
-                  ],
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: smallPadding,),
+                      const Icon(
+                        Icons.local_print_shop,
+                        color: Colors.teal,
+                        size: 40, // Adjust the icon size as needed
+                      ),
+                      const SizedBox(height: 4,),
+                      const Text("Total Product",style: TextStyle(color: Colors.teal, fontWeight: FontWeight.w500),),
+                      Text("${totalProductInvoice ?? 0}",style: const TextStyle(color: Colors.teal,fontSize: 18, fontWeight: FontWeight.w500)),
+                      const SizedBox(height: smallPadding,),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: smallPadding,),
+                      const Icon(
+                        Icons.category,
+                        color: Colors.orange,
+                        size: 40, // Adjust the icon size as needed
+                      ),
+                      const SizedBox(height: 4,),
+                      const Text("Total Category",style: TextStyle(color: Colors.orange, fontWeight: FontWeight.w500)),
+                      Text("${totalCategoryInvoice ?? 0}",style: const TextStyle(color: Colors.orange,fontSize: 18, fontWeight: FontWeight.w500)),
+                      const SizedBox(height: smallPadding,),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: smallPadding,),
+                      const Icon(
+                        Icons.people_rounded,
+                        color: Colors.purple,
+                        size: 40, // Adjust the icon size as needed
+                      ),
+                      const SizedBox(height: 4,),
+                      const Text("Total Clients",style: TextStyle(color: Colors.purple, fontWeight: FontWeight.w500)),
+                      Text("${totalClientsInvoice ?? 0}",style: const TextStyle(color: Colors.purple,fontSize: 18, fontWeight: FontWeight.w500)),
+                      const SizedBox(height: smallPadding,),
+                    ],
+                  )
+                ],
               ),
             ),
 
@@ -579,7 +621,8 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                               explode: true,
                               dataLabelSettings: const DataLabelSettings(
                                 isVisible: true,
-                                labelIntersectAction: LabelIntersectAction.shift,
+                                labelIntersectAction:
+                                    LabelIntersectAction.shift,
                                 labelPosition: ChartDataLabelPosition.outside,
                                 connectorLineSettings: ConnectorLineSettings(
                                   type: ConnectorType.curve,
@@ -637,8 +680,7 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                                 dataSource: invoiceOverview,
                                 xValueMapper: (ChartData data, _) => data.x,
                                 yValueMapper: (ChartData data, _) => data.y,
-                                dataLabelMapper: (ChartData data, _) =>
-                                data.x,
+                                dataLabelMapper: (ChartData data, _) => data.x,
                                 radius: '60%',
                                 explodeIndex: 1,
                                 explode: true,
@@ -646,13 +688,13 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                                     isVisible: true,
                                     // Avoid labels intersection
                                     labelIntersectAction:
-                                    LabelIntersectAction.shift,
+                                        LabelIntersectAction.shift,
                                     labelPosition:
-                                    ChartDataLabelPosition.outside,
+                                        ChartDataLabelPosition.outside,
                                     connectorLineSettings:
-                                    ConnectorLineSettings(
-                                        type: ConnectorType.curve,
-                                        length: '5%')))
+                                        ConnectorLineSettings(
+                                            type: ConnectorType.curve,
+                                            length: '5%')))
                           ],
                         ),
                       ],
@@ -677,7 +719,6 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-
             const SizedBox(
               height: smallPadding,
             ),
@@ -797,7 +838,6 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
                             ),
                           ],
                         ),
-
                         const SizedBox(height: defaultPadding),
                         Text(
                           "${totalQuotesConverted ?? 0}",
@@ -947,46 +987,6 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
           ],
         ),
       ),
-    );
-  }
-}
-
-// Indicator Widget for Deposit, Debit, and Fee Debit
-class IndicatorWidget extends StatelessWidget {
-  final String label;
-  final double amount;
-  final double percentage;
-  final Color color;
-  final IconData icon;
-
-  const IndicatorWidget({
-    super.key,
-    required this.label,
-    required this.amount,
-    required this.percentage,
-    required this.color,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        CircularPercentIndicator(
-          radius: 50.0,
-          lineWidth: 12.0,
-          percent: percentage,
-          center: Icon(icon, size: 30, color: color),
-          progressColor: color,
-          backgroundColor: Colors.grey.shade300,
-          circularStrokeCap: CircularStrokeCap.round,
-        ),
-        const SizedBox(height: 8),
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-        Text(amount.toStringAsFixed(0),
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-      ],
     );
   }
 }
