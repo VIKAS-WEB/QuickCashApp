@@ -51,7 +51,6 @@ class _BuyAndSellScreenState extends State<BuyAndSellScreen> {
       setState(() {
         isLoading = false;
         errorMessage = error.toString();
-        print(error.toString());
       });
     }
   }

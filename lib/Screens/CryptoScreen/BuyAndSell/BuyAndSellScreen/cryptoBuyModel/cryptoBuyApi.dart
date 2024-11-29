@@ -1,35 +1,35 @@
 import 'package:dio/dio.dart';
 import 'package:quickcash/util/auth_manager.dart';
-import '../../../../util/apiConstants.dart';
-import 'addNewCoinModel.dart';
+import '../../../../../util/apiConstants.dart';
+import 'cryptoBuyModel.dart';
 
-class AddNewCoinApi {
+class CryptoBuyApi {
   final Dio _dio = Dio();
 
-  AddNewCoinApi() {
+  CryptoBuyApi() {
     _dio.options.baseUrl = ApiConstants.baseUrl;
     _dio.options.headers['Authorization'] = 'Bearer ${AuthManager.getToken()}';
 
 
-    /*_dio.interceptors.add(LogInterceptor(
+    _dio.interceptors.add(LogInterceptor(
       request: true,
       requestBody: true,
       responseBody: true,
       responseHeader: true,
-    ));*/
+    ));
   }
 
 
-  Future<AddNewCoinResponse> addNewCoin(AddNewCoinRequest request) async {
+  Future<CryptoBuyResponse> cryptoBuyApi(CryptoBuyRequest request) async {
     try {
       final response = await _dio.post(
-        '/walletaddressrequest/add',
+        '/crypto/fetch-calculation',
         data: request.toJson(),
       );
 
       // Check for a successful response
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return AddNewCoinResponse.fromJson(response.data);
+        return CryptoBuyResponse.fromJson(response.data);
       } else {
         throw Exception('Failed to Add Coin: ${response.statusMessage}');
       }

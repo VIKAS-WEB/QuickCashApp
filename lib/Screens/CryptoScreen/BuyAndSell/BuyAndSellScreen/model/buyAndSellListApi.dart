@@ -12,12 +12,12 @@ class CryptoListApi {
     _dio.options.baseUrl = ApiConstants.baseUrl;
 
 
-    _dio.interceptors.add(LogInterceptor(
+   /* _dio.interceptors.add(LogInterceptor(
       request: true,
       requestBody: true,
       responseBody: true,
       responseHeader: true,
-    ));
+    ));*/
   }
 
   Future<CryptoListResponse> cryptoListApi() async {
@@ -28,8 +28,6 @@ class CryptoListApi {
           'Authorization': 'Bearer ${AuthManager.getToken()}',
         }),
       );
-
-      print("Response Data: ${response.data}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return CryptoListResponse.fromJson(response.data);
