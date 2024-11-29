@@ -21,7 +21,6 @@ class CryptoBuyRequest {
   }
 }
 
-
 class CryptoBuyResponse {
   final int status;
   final String message;
@@ -45,26 +44,36 @@ class CryptoBuyResponse {
 class CryptoBuyData {
   final double rate;
   final double numberofCoins;
-  final int fees;
-  final int cryptoFees;
-  final int exchangeFees;
+  final double? fees;  // Made nullable to handle potential null values
+  final double? cryptoFees;  // Made nullable
+  final double? exchangeFees;  // Made nullable
 
   CryptoBuyData({
     required this.rate,
     required this.numberofCoins,
-    required this.fees,
-    required this.cryptoFees,
-    required this.exchangeFees,
+    this.fees,
+    this.cryptoFees,
+    this.exchangeFees,
   });
 
   factory CryptoBuyData.fromJson(Map<String, dynamic> json) {
     return CryptoBuyData(
       rate: json['rate'] as double,
       numberofCoins: json['numberofCoins'] as double,
-      fees: json['fees'] as int,
-      cryptoFees: json['cryptoFees'] as int,
-      exchangeFees: json['exchangeFees'] as int,
+      fees: _parseDouble(json['fees']),
+      cryptoFees: _parseDouble(json['cryptoFees']),
+      exchangeFees: _parseDouble(json['exchangeFees']),
     );
   }
-}
 
+  // Helper function to handle the type conversion for fees
+  static double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is int) {
+      return value.toDouble();
+    } else if (value is double) {
+      return value;
+    }
+    return null;  // Return null if the value is neither int nor double
+  }
+}

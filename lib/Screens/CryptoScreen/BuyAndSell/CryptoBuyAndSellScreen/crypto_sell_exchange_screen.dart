@@ -29,11 +29,11 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
   String? selectedCoinType;
   String? sideType;
 
-  double? rate;
-  double? numberOfCoins;
-  int? fees;
-  int? cryptoFees;
-  int? exchangeFees;
+  double? mEstimatedRate;
+  double? mNumberOfCoins;
+  double? fees;
+  double? mCryptoFees;
+  double? mExchangeFees;
 
   @override
   void initState() {
@@ -71,16 +71,29 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
         setState(() {
           isLoading = false;
 
-          rate = response.data.rate;
-          numberOfCoins = response.data.numberofCoins;
+          mEstimatedRate = response.data.rate;
+          mYouGet.text = response.data.numberofCoins.toString();
           fees = response.data.fees;
-          cryptoFees = response.data.cryptoFees;
-          exchangeFees = response.data.exchangeFees;
+          mCryptoFees = response.data.cryptoFees;
+          mExchangeFees = response.data.exchangeFees;
+
         });
 
-      }else{
+      }else if(response.message == "Make sure you have fill amount,currency and coin"){
+        isLoading = false;
+        mEstimatedRate = 0.0;
+        mNumberOfCoins = 0.0;
+        fees = 0.0;
+        mCryptoFees = 0.0;
+        mExchangeFees = 0.0;
+      } else{
         setState(() {
           isLoading = false;
+          mEstimatedRate = 0.0;
+          mNumberOfCoins = 0.0;
+          fees = 0.0;
+          mCryptoFees = 0.0;
+          mExchangeFees = 0.0;
           CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kPrimaryColor);
         });
       }
@@ -116,7 +129,7 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                 alignment: Alignment.center,
                 child: const Text(
                   "Exchange crypto manually from the comfort of your home, quickly, safely with minimal fees.",
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15, color: kPrimaryColor),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -162,8 +175,8 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                       onPressed: () {
                         setState(() {
                           isBuySelected = false;
-                          if(selectedCurrency != "Select Currency"){
-                            if(selectedCoinType != "Coin"){
+                          if(selectedCurrency !=null){
+                            if(selectedCoinType !=null){
                               if(mAmount.text.isNotEmpty){
                                 mCryptoBuySellCalculation();
                               }
@@ -250,8 +263,8 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                       setState(() {
                         selectedCurrency =
                             newValue; // Update the selected currency
-                        if(selectedCurrency != "Select Currency"){
-                          if(selectedCoinType != "Coin"){
+                        if(selectedCurrency !=null){
+                          if(selectedCoinType !=null){
                             if(mAmount.text.isNotEmpty){
                               mCryptoBuySellCalculation();
                             }
@@ -260,12 +273,10 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                       });
                     }
                   });
-                } else {
-                  // Handle empty currency list case
                 }
               },
               child: Material(
-                color: Colors.transparent, // Make the Material widget invisible
+                color: Colors.transparent,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 12.0, vertical: 15.0),
@@ -298,8 +309,8 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
               style: const TextStyle(color: kPrimaryColor),
               onChanged: (value){
                 setState(() {
-                  if(selectedCurrency != "Select Currency"){
-                    if(selectedCoinType != "Coin"){
+                  if(selectedCurrency !=null){
+                    if(selectedCoinType !=null){
                       if(mAmount.text.isNotEmpty){
                         mCryptoBuySellCalculation();
                       }
@@ -310,7 +321,6 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
               },
               decoration: InputDecoration(
                 labelText: "Amount",
-                hintText: "0",
                 labelStyle: const TextStyle(color: kPrimaryColor),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -322,55 +332,67 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
               ),
             ),
             const SizedBox(height: 20.0),
-            const Card(
+            Card(
               elevation: 4.0,
               color: kPrimaryLightColor,
-              margin: EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+              margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
               child: Padding(
-                padding: EdgeInsets.all(defaultPadding),
+                padding: const EdgeInsets.all(defaultPadding),
                 child: Column(
                   children: [
-                    SizedBox(height: smallPadding),
+                    const SizedBox(height: smallPadding),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Coins Available:",
+                        const Text("Crypto Fees:",
                             style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16,color: kPrimaryColor)),
-                        Text("0",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 17,color: kPrimaryColor)),
+                                fontWeight: FontWeight.bold, fontSize: 14,color: kPrimaryColor)),
+                        Text('${mCryptoFees?.toString() ?? '0'} $selectedCurrency ', // Fallback to '0' if mCryptoFees is null
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: kPrimaryColor,
+                          ),
+                        )
+
                       ],
                     ),
-                    SizedBox(height: smallPadding),
-                    Divider(color: Colors.white),
-                    SizedBox(height: smallPadding),
+                  mExchangeFees != 0
+                      ? Column(
+                    children: [
+                      const SizedBox(height: smallPadding),
+                      const Divider(color: Colors.white),
+                      const SizedBox(height: smallPadding),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text("Exchange Fees:",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 14, color: kPrimaryColor)),
+                          Text('${mExchangeFees?.toString() ?? '0'} $selectedCurrency',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 14, color: kPrimaryColor)),
+                        ],
+                      ),
+                    ],
+                  )
+                      : const SizedBox.shrink(),
+
+                  const SizedBox(height: smallPadding),
+                    const Divider(color: Colors.white),
+                    const SizedBox(height: smallPadding),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Exchange Fees:",
+                        const Text("Estimated Rate:",
                             style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16,color: kPrimaryColor)),
-                        Text("0",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 17,color: kPrimaryColor)),
+                                fontWeight: FontWeight.bold, fontSize: 14,color: kPrimaryColor)),
+                        Text(mEstimatedRate?.toString() ?? '0',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 14,color: kPrimaryColor)),
                       ],
                     ),
-                    SizedBox(height: smallPadding),
-                    Divider(color: Colors.white),
-                    SizedBox(height: smallPadding),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("Crypto Rate:",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16,color: kPrimaryColor)),
-                        Text("0.0000",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 17,color: kPrimaryColor)),
-                      ],
-                    ),
-                    SizedBox(height: smallPadding),
+                    const SizedBox(height: smallPadding),
                   ],
                 ),
               ),
@@ -452,26 +474,29 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                onPressed: (){
-
-                  /*if(!isLoading){
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const ConfirmBuyScreen()),
-                    );
-                  }*/
-
-                },  // Disable button since it's triggered by API call
+                // Disable button if mAmount is null
+                onPressed: mAmount.text.isEmpty ? null : () {
+                  // Your action when button is pressed
+                  /*if (mAmount != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ConfirmBuyScreen(),
+          ),
+        );
+      }*/
+                },
                 child: isLoading
                     ? const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(kPrimaryColor),
+                  valueColor: AlwaysStoppedAnimation<Color>(kWhiteColor),
                 )
-                    : const Text('Proceed',
+                    : const Text(
+                  'Proceed',
                   style: TextStyle(color: Colors.white, fontSize: 16),
                 ),
               ),
             ),
+
           ],
         ),
       ),
@@ -540,8 +565,8 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
               cursorColor: kPrimaryColor,
               style: const TextStyle(color: kPrimaryColor),
               onChanged: (value){
-                if(selectedCurrency != "Select Currency"){
-                  if(selectedCoinType != "Coin"){
+                if(selectedCurrency !=null){
+                  if(selectedCoinType !=null){
                     if(mAmount.text.isNotEmpty){
                       mCryptoBuySellCalculation();
                     }
@@ -602,7 +627,7 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Crypto Rate:",
+                        Text("Crypto Fees:",
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 16,color: kPrimaryColor)),
                         Text("0.0000",
@@ -677,8 +702,8 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                       setState(() {
                         selectedCurrency =
                             newValue; // Update the selected currency
-                        if(selectedCurrency != "Select Currency"){
-                          if(selectedCoinType != "Coin"){
+                        if(selectedCurrency !=null){
+                          if(selectedCoinType !=null){
                             if(mAmount.text.isNotEmpty){
                               mCryptoBuySellCalculation();
                             }
@@ -727,19 +752,24 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                onPressed: (){
-                 /* Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ConfirmBuyScreen()),
-                  );*/
-
-                },  // Disable button since it's triggered by API call
+                // Disable button if mAmount is null
+                onPressed: isLoading && mAmount.text.isEmpty && selectedCurrency !=null && selectedCoinType !=null ? null : () {
+                  // Your action when button is pressed
+                  /*if (mAmount != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ConfirmBuyScreen(),
+          ),
+        );
+      }*/
+                },
                 child: isLoading
                     ? const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(kPrimaryColor),
+                  valueColor: AlwaysStoppedAnimation<Color>(kWhiteColor),
                 )
-                    : const Text('Proceed',
+                    : const Text(
+                  'Proceed',
                   style: TextStyle(color: Colors.white, fontSize: 16),
                 ),
               ),
@@ -792,6 +822,13 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
       onTap: () {
         setState(() {
           selectedCoinType = type;
+          if(selectedCurrency !=null){
+            if(selectedCoinType !=null){
+              if(mAmount.text.isNotEmpty){
+                mCryptoBuySellCalculation();
+              }
+            }
+          }
         });
         Navigator.pop(context);
       },
