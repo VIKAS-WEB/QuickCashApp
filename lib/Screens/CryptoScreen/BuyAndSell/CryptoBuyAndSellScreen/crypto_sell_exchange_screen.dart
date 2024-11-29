@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/BuyAndSellScreen/cryptoBuyModel/cryptoBuyApi.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/BuyAndSellScreen/cryptoBuyModel/cryptoBuyModel.dart';
+import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/BuyAndSellScreen/cryptoSellFetchCoinModel/cryptoSellFetchCoinApi.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/customSnackBar.dart';
 
@@ -17,6 +18,7 @@ class CryptoBuyAnsSellScreen extends StatefulWidget {
 class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
   final CurrencyApi _currencyApi = CurrencyApi();
   final CryptoBuyApi _cryptoBuyApi = CryptoBuyApi();
+  final CryptoSellFetchCoinDataApi _cryptoSellFetchCoinDataApi = CryptoSellFetchCoinDataApi();
 
   final TextEditingController mAmount = TextEditingController();
   final TextEditingController mYouGet = TextEditingController();
@@ -27,13 +29,18 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
   bool isLoading = false;
   bool isBuySelected = true;
   String? selectedCoinType;
-  String? sideType;
+  String? sideType = "buy";
 
+  // Crypto Sell
   double? mEstimatedRate;
   double? mNumberOfCoins;
   double? fees;
   double? mCryptoFees;
   double? mExchangeFees;
+
+  // Crypto Buy
+  String? coinName;
+  String? mCryptoSellCoinAvailable = "0.0";
 
   @override
   void initState() {
@@ -56,13 +63,6 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
     });
 
     try{
-
-      if(isBuySelected == true){
-        sideType = "buy";
-      }else{
-        sideType = "sell";
-      }
-
       int amount = int.parse(mAmount.text);
       final request = CryptoBuyRequest(amount: amount, coinType: selectedCoinType!, currencyType: selectedCurrency!, sideType: sideType!);
       final response = await _cryptoBuyApi.cryptoBuyApi(request);
@@ -76,9 +76,7 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
           fees = response.data.fees;
           mCryptoFees = response.data.cryptoFees;
           mExchangeFees = response.data.exchangeFees;
-
         });
-
       }else if(response.message == "Make sure you have fill amount,currency and coin"){
         isLoading = false;
         mEstimatedRate = 0.0;
@@ -97,14 +95,41 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
           CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kPrimaryColor);
         });
       }
-
     }catch (error) {
       setState(() {
         isLoading = false;
         CustomSnackBar.showSnackBar(context: context, message: "Something went wrong!", color: kPrimaryColor);
       });
     }
+  }
 
+  // Crypto Sell Fetch Coin
+  Future<void> mCryptoSellFetchCoinData() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try{
+      coinName = '${selectedCoinType}_TEST';
+      final response = await _cryptoSellFetchCoinDataApi.cryptoSellFetchCoinDataApi(coinName!);
+
+      if(response.message == "crypto coins are fetched Successfully"){
+        setState(() {
+          isLoading = false;
+          mCryptoSellCoinAvailable = response.data;
+        });
+      }else{
+        setState(() {
+          mCryptoSellCoinAvailable = "";
+          isLoading = false;
+        });
+      }
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        CustomSnackBar.showSnackBar(context: context, message: "Something went wrong!", color: kPrimaryColor);
+      });
+    }
   }
 
 
@@ -175,13 +200,15 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                       onPressed: () {
                         setState(() {
                           isBuySelected = false;
-                          if(selectedCurrency !=null){
+                          mYouGet.clear();
+                          mAmount.clear();
+                         /* if(selectedCurrency !=null){
                             if(selectedCoinType !=null){
                               if(mAmount.text.isNotEmpty){
                                 mCryptoBuySellCalculation();
                               }
                             }
-                          }
+                          }*/
                         });
                       },
                       style: FilledButton.styleFrom(
@@ -581,36 +608,35 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                   borderSide: const BorderSide(),
                 ),
                 filled: true,
-                // Enable the filled property
-                fillColor: Colors.white, // Set the background color to white
+                fillColor: Colors.white,
               ),
             ),
 
             const SizedBox(height: 20.0),
-            const Card(
+            Card(
               elevation: 4.0,
               color: kPrimaryLightColor,
-              margin: EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+              margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
               child: Padding(
-                padding: EdgeInsets.all(defaultPadding),
+                padding: const EdgeInsets.all(defaultPadding),
                 child: Column(
                   children: [
-                    SizedBox(height: smallPadding),
+                    const SizedBox(height: smallPadding),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Coins Available:",
+                        const Text("Coins Available:",
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 16,color: kPrimaryColor)),
-                        Text("0",
-                            style: TextStyle(
+                        Text(mCryptoSellCoinAvailable!,
+                            style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 17,color: kPrimaryColor)),
                       ],
                     ),
-                    SizedBox(height: smallPadding),
-                    Divider(color: Colors.white),
-                    SizedBox(height: smallPadding),
-                    Row(
+                    const SizedBox(height: smallPadding),
+                    const Divider(color: Colors.white),
+                    const SizedBox(height: smallPadding),
+                    const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text("Exchange Fees:",
@@ -621,10 +647,10 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                                 fontWeight: FontWeight.bold, fontSize: 17,color: kPrimaryColor)),
                       ],
                     ),
-                    SizedBox(height: smallPadding),
-                    Divider(color: Colors.white),
-                    SizedBox(height: smallPadding),
-                    Row(
+                    const SizedBox(height: smallPadding),
+                    const Divider(color: Colors.white),
+                    const SizedBox(height: smallPadding),
+                    const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text("Crypto Fees:",
@@ -829,6 +855,9 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
               }
             }
           }
+
+          mCryptoSellFetchCoinData();
+
         });
         Navigator.pop(context);
       },
