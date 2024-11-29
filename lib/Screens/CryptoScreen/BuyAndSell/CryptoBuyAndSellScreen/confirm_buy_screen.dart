@@ -55,9 +55,10 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
     return ListTile(
       title: Row(
         children: [
-          Image.asset(logoPath, height: 24),
-          const SizedBox(width: 8.0),
-          Text(type),
+          const SizedBox(width: defaultPadding),
+          Image.asset(logoPath, height: 24,color: kPrimaryColor,),
+          const SizedBox(width: defaultPadding),
+          Text(type,style: const TextStyle(color: kPrimaryColor),),
         ],
       ),
       onTap: () {
@@ -236,15 +237,17 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
                       Row(
                         children: [
                           if (selectedTransferType != null)
+                            const SizedBox(width: smallPadding,),
                             Image.asset(
                               _getImageForTransferType(selectedTransferType!),
                               height: 24,
                               width: 24,
+                              color: kPrimaryColor,
                               errorBuilder: (context, error, stackTrace) {
                                 return const Icon(Icons.broken_image, color: Colors.red);
                               },
                             ),
-                          const SizedBox(width: 8.0),
+                          const SizedBox(width: defaultPadding),
                           Text(
                             selectedTransferType != null
                                 ? '$selectedTransferType ${_getFlagForTransferType(selectedTransferType!)}'
@@ -265,6 +268,7 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
                 textInputAction: TextInputAction.next,
                 cursorColor: kPrimaryColor,
                 style: const TextStyle(color: kPrimaryColor),
+                readOnly: true,
                 decoration: InputDecoration(
                   labelText: "Wallet Address",
                   labelStyle: const TextStyle(color: kPrimaryColor),
@@ -276,7 +280,8 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
                   // Enable the filled property
                   fillColor: Colors.white, // Set the background color to white
                 ),
-                initialValue: 'tb1qacjvqm3yskh5duzffrsyet4faxgntpclc6q4hc',
+                minLines: 1,
+                maxLines: 6,
               ),
 
               const SizedBox(height: 35.0),
