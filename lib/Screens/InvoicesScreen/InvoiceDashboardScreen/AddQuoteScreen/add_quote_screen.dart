@@ -4,9 +4,9 @@ import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/mo
 import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart'; //
 
+import '../../../../model/currencyApiModel/currencyApi.dart';
+import '../../../../model/currencyApiModel/currencyModel.dart';
 import '../../../../util/customSnackBar.dart';
-import '../../../CardsScreen/currencyApiModel/currencyApi.dart';
-import '../../../CardsScreen/currencyApiModel/currencyModel.dart';
 import '../../ClientsScreen/ClientsScreen/model/clientsApi.dart';
 import '../../ClientsScreen/ClientsScreen/model/clientsModel.dart';
 
