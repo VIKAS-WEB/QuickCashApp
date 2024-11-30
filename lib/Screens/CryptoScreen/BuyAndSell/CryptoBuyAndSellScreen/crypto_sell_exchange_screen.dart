@@ -599,7 +599,8 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                                   mCoinName: selectedCoinType,
                                   mFees: mCryptoFees,
                                   mYouGetAmount: mYouGet.text,
-                                  mEstimateRates: mEstimatedRate),
+                                  mEstimateRates: mEstimatedRate,
+                                  mCryptoType: "Crypto Buy"),
                             ),
                           );
                         }
@@ -929,7 +930,8 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                               mCoinName: selectedCoinType,
                               mFees: mSellCryptoFees,
                               mYouGetAmount: mYouGet.text,
-                              mEstimateRates: mEstimatedRate),
+                              mEstimateRates: mEstimatedRate,
+                              mCryptoType: "Crypto Sell"),
                             ),
                           );
                         }

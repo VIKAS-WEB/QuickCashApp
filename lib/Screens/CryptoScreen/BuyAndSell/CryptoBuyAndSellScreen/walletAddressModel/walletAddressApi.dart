@@ -1,34 +1,34 @@
 import 'package:dio/dio.dart';
+import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/walletAddressModel/walletAddressModel.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import '../../../../../util/apiConstants.dart';
-import 'cryptoSellFetchCoinModel.dart';
 
-class CryptoSellFetchCoinDataApi {
+class CryptoBuyWalletAddressApi {
   final Dio _dio = Dio();
 
-  CryptoSellFetchCoinDataApi() {
+  CryptoBuyWalletAddressApi() {
     _dio.options.baseUrl = ApiConstants.baseUrl;
 
 
-    /*_dio.interceptors.add(LogInterceptor(
+    _dio.interceptors.add(LogInterceptor(
       request: true,
       requestBody: true,
       responseBody: true,
       responseHeader: true,
-    ));*/
+    ));
   }
 
-  Future<CryptoSellResponse> cryptoSellFetchCoinDataApi(String coinType) async {
+  Future<CryptoBuyWalletAddressResponse> cryptoBuyWalletAddressApi(String coinType, String userEmailId) async {
     try {
       final response = await _dio.get(
-        '/crypto/fetch-coins/$coinType',
+        '/crypto/getWalletAddress/$coinType/$userEmailId',
         options: Options(headers: {
           'Authorization': 'Bearer ${AuthManager.getToken()}',
         }),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return CryptoSellResponse.fromJson(response.data);
+        return CryptoBuyWalletAddressResponse.fromJson(response.data);
       } else {
         throw Exception('Failed to fetch data: ${response.statusMessage}');
       }
