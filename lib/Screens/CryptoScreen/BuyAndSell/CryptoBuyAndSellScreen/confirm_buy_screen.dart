@@ -98,8 +98,6 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
     }
   }
 
-
-
   void _showTransferTypeDropDown(BuildContext context, bool isTransfer) {
     showModalBottomSheet(
       context: context,
@@ -161,8 +159,12 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
         child: Padding(
           padding: const EdgeInsets.all(defaultPadding),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+
+              const SizedBox(height: defaultPadding,),
+              Text("Confirm ${widget.mCryptoType}",style: const TextStyle(color: kPrimaryColor,fontWeight: FontWeight.bold,fontSize: 20),),
+              const SizedBox(height: largePadding,),
 
               isCryptoBuy ? mCryptoBuy() : mCryptoSell(),
             ],
