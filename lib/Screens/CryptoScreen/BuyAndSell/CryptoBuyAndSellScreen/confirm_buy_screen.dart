@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/cryptoBuyAddModel/cryptoBuyAddApi.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/cryptoBuyAddModel/cryptoBuyAddModel.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/cryptoTransactionGetDetails/cryptoTransactionGetDetailsApi.dart';
+import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/requestWalletAddressModel/requestWalletAddressApi.dart';
+import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/requestWalletAddressModel/requestWalletAddressModel.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/walletAddressModel/walletAddressApi.dart';
 import 'package:quickcash/Screens/HomeScreen/home_screen.dart';
 import 'package:quickcash/constants.dart';
@@ -37,12 +39,14 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
       CryptoBuyWalletAddressApi();
   final CryptoBuyAddApi _cryptoBuyAddApi = CryptoBuyAddApi();
   final CryptoTransactionGetDetailsApi _cryptoTransactionGetDetailsApi = CryptoTransactionGetDetailsApi();
+  final RequestWalletAddressApi _requestWalletAddressApi = RequestWalletAddressApi();
 
   final TextEditingController walletAddress = TextEditingController();
 
   String? selectedTransferType;
   bool isCryptoBuy = true;
   bool isLoading = false;
+  bool isWalletAddressRequest = false;
   bool isUpdateLoading = false;
 
   String? mAmount;
@@ -109,7 +113,12 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
           isLoading = false;
 
         });
-      } else {
+      }else if(response.message == "Wallet Address is not available please request wallet address"){
+        CustomSnackBar.showSnackBar(
+            context: context,
+            message: "Wallet Address is not available please request wallet address",
+            color: kPrimaryColor);
+      }else {
         setState(() {
           isLoading = false;
           CustomSnackBar.showSnackBar(
@@ -121,6 +130,7 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
     } catch (error) {
       setState(() {
         isLoading = false;
+        isWalletAddressRequest = true;
         CustomSnackBar.showSnackBar(
             context: context,
             message: "Wallet Address not found",
@@ -129,63 +139,114 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
     }
   }
 
+  // Request Wallet Address api ---
+  Future<void> mRequestWalletAddress() async{
+    setState(() {
+      isLoading = true;
+    });
+
+    try{
+      String coinName = '${mCoin}_TEST';
+      final request = RequestWalletAddressRequest(userId: AuthManager.getUserId(), coinType: coinName);
+      final response = await _requestWalletAddressApi.requestWalletAddressApi(request);
+
+      if(response.message == "Wallet Address data is added !!!"){
+        setState(() {
+          isLoading = false;
+          isWalletAddressRequest = false;
+          walletAddress.text = response.data;
+        });
+
+      }else{
+        setState(() {
+          isLoading = false;
+          CustomSnackBar.showSnackBar(
+              context: context,
+              message: "Please try after some time!",
+              color: kPrimaryColor);
+        });
+      }
+
+
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        isWalletAddressRequest = true;
+        CustomSnackBar.showSnackBar(
+            context: context,
+            message: "Something went wrong!",
+            color: kPrimaryColor);
+      });
+    }
+  }
+
   // Crypto Buy Add Api -
   Future<void> mCryptoBuyAddApi() async {
     if (selectedTransferType != null) {
-      setState(() {
-        isUpdateLoading = true;
-      });
+      if(walletAddress.text.isNotEmpty){
+        setState(() {
+          isUpdateLoading = true;
+        });
 
-      try {
-        int amount = int.parse(mAmount!);
-        int? fees = mFees?.toInt();
-        String coinType = '${mCoin}_TEST';
+        try {
+          int amount = int.parse(mAmount!);
+          int? fees = mFees?.toInt();
+          String coinType = '${mCoin}_TEST';
 
-        final request = CryptoBuyAddRequest(
-          userId: AuthManager.getUserId(),
-          amount: amount,
-          coinType: coinType,
-          currencyType: mCurrency ?? '',
-          fees: fees ?? 0,
-          noOfCoins: mGetAmount!,
-          paymentType: "Bank Transfer",
-          side: "buy",
-          status: "pending",
-          walletAddress: walletAddress.text,
-        );
+          final request = CryptoBuyAddRequest(
+            userId: AuthManager.getUserId(),
+            amount: amount,
+            coinType: coinType,
+            currencyType: mCurrency ?? '',
+            fees: fees ?? 0,
+            noOfCoins: mGetAmount!,
+            paymentType: "Bank Transfer",
+            side: "buy",
+            status: "pending",
+            walletAddress: walletAddress.text,
+          );
 
-        final response = await _cryptoBuyAddApi.cryptoBuyAddApi(request);
+          final response = await _cryptoBuyAddApi.cryptoBuyAddApi(request);
 
-        if (response.message == "Crypto Transactions successfully !!!") {
+          if (response.message == "Crypto Transactions successfully !!!") {
+            setState(() {
+              isUpdateLoading = false;
+              mCryptoSellAddTransactionId = response.data.id;
+
+              mTransactionDetails(response.data.id);
+            });
+          } else if (response.message == "All fields are mandatory") {
+            setState(() {
+              CustomSnackBar.showSnackBar(
+                  context: context,
+                  message: "All fields are mandatory",
+                  color: kPrimaryColor);
+              isUpdateLoading = false;
+            });
+          } else {
+            setState(() {
+              isUpdateLoading = false;
+            });
+          }
+        } catch (error) {
           setState(() {
             isUpdateLoading = false;
-            mCryptoSellAddTransactionId = response.data.id;
-
-            mTransactionDetails(response.data.id);
-          });
-        } else if (response.message == "All fields are mandatory") {
-          setState(() {
             CustomSnackBar.showSnackBar(
-                context: context,
-                message: "All fields are mandatory",
-                color: kPrimaryColor);
-            isUpdateLoading = false;
-          });
-        } else {
-          setState(() {
-            isUpdateLoading = false;
+              context: context,
+              message: "Something went wrong!",
+              color: kPrimaryColor,
+            );
           });
         }
-      } catch (error) {
-        setState(() {
-          isUpdateLoading = false;
-          CustomSnackBar.showSnackBar(
-            context: context,
-            message: "Something went wrong!",
-            color: kPrimaryColor,
-          );
-        });
+      }else{
+        CustomSnackBar.showSnackBar(
+          context: context,
+          message: "Please Request Wallet Address!",
+          color: kPrimaryColor,
+        );
       }
+
     } else {
       CustomSnackBar.showSnackBar(
         context: context,
@@ -487,6 +548,44 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
             minLines: 1,
             maxLines: 6,
           ),
+
+          const SizedBox(height: largePadding),
+          isWalletAddressRequest
+              ?Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              SizedBox(
+                width: 220,
+                child: FloatingActionButton.extended(
+                  onPressed: isLoading ? null : mRequestWalletAddress,
+                  backgroundColor: kPrimaryColor,
+                  label: const Text(
+                    'Request Wallet Address',
+                    style:
+                    TextStyle(color: kWhiteColor, fontSize: 15),
+                  ),
+                ),
+              ),
+            ],
+          ): Container(),
+          /*isWalletAddressRequest
+              ? Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 50),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: kPrimaryColor,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              onPressed: isUpdateLoading ? null : mCryptoBuyAddApi,
+              child: const Text('Request Wallet Address',
+                  style: TextStyle(color: Colors.white, fontSize: 16)),
+            ),
+          )
+              : Container(), // Or any other widget you want to display when condition is false
+*/
 
           const SizedBox(
             height: defaultPadding,
@@ -933,18 +1032,6 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
           ),
         ),
       ),
-      /*actions: [
-        TextButton(
-          onPressed: isLoading ? null : mCreateTicket,
-          child: const Text('Post Ticket'),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop(); // Close the dialog
-          },
-          child: const Text('Close'),
-        ),
-      ],*/
     );
   }
 }
