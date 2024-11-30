@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/cryptoBuyAddModel/cryptoBuyAddApi.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/cryptoBuyAddModel/cryptoBuyAddModel.dart';
+import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/cryptoTransactionGetDetails/cryptoTransactionGetDetailsApi.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/walletAddressModel/walletAddressApi.dart';
+import 'package:quickcash/Screens/HomeScreen/home_screen.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/auth_manager.dart';
 
@@ -15,15 +17,26 @@ class ConfirmBuyScreen extends StatefulWidget {
   final String? mYouGetAmount;
   final double? mEstimateRates;
   final String? mCryptoType;
-  const ConfirmBuyScreen({super.key,this.mCryptoAmount, this.mCurrency, this.mCoinName, this.mFees, this.mYouGetAmount, this.mEstimateRates, this.mCryptoType});
+
+  const ConfirmBuyScreen(
+      {super.key,
+      this.mCryptoAmount,
+      this.mCurrency,
+      this.mCoinName,
+      this.mFees,
+      this.mYouGetAmount,
+      this.mEstimateRates,
+      this.mCryptoType});
 
   @override
   State<ConfirmBuyScreen> createState() => _ConfirmBuyScreenState();
 }
 
 class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
-  final CryptoBuyWalletAddressApi _cryptoBuyWalletAddressApi = CryptoBuyWalletAddressApi();
+  final CryptoBuyWalletAddressApi _cryptoBuyWalletAddressApi =
+      CryptoBuyWalletAddressApi();
   final CryptoBuyAddApi _cryptoBuyAddApi = CryptoBuyAddApi();
+  final CryptoTransactionGetDetailsApi _cryptoTransactionGetDetailsApi = CryptoTransactionGetDetailsApi();
 
   final TextEditingController walletAddress = TextEditingController();
 
@@ -44,15 +57,14 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
   // Crypto Sell Add TransactionId
   String? mCryptoSellAddTransactionId;
 
-
   @override
   void initState() {
     mSetData();
 
-    if(widget.mCryptoType == "Crypto Buy"){
+    if (widget.mCryptoType == "Crypto Buy") {
       mWalletAddress();
       isCryptoBuy = true;
-    }else{
+    } else {
       isCryptoBuy = false;
     }
     super.initState();
@@ -68,15 +80,16 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
     mEstimateRate = widget.mEstimateRates;
 
     // Crypto Buy Calculation Total
-    double amountValue = (mAmount != null) ? double.tryParse(mAmount!) ?? 0.0 : 0.0;
+    double amountValue =
+        (mAmount != null) ? double.tryParse(mAmount!) ?? 0.0 : 0.0;
     double feesValue = mFees ?? 0.0;
     mTotalAmount = amountValue + feesValue;
 
     // Crypto Sell Calculate Total
-    double amountValueSell = (mAmount != null) ? double.tryParse(mAmount!) ?? 0.0 : 0.0;
+    double amountValueSell =
+        (mAmount != null) ? double.tryParse(mAmount!) ?? 0.0 : 0.0;
     double feesValueSell = mFees ?? 0.0;
     mTotalCryptoSellAmount = amountValueSell - feesValueSell;
-
   }
 
   // Wallet Address Api
@@ -85,25 +98,27 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
       isLoading = true;
     });
 
-    try{
+    try {
       String coinName = '${mCoin}_TEST';
-      final response = await _cryptoBuyWalletAddressApi.cryptoBuyWalletAddressApi(coinName, AuthManager.getUserEmail());
+      final response = await _cryptoBuyWalletAddressApi
+          .cryptoBuyWalletAddressApi(coinName, AuthManager.getUserEmail());
 
-      if(response.message == "Response"){
+      if (response.message == "Response") {
         setState(() {
           walletAddress.text = response.data.addresses.first.address;
           isLoading = false;
+
         });
-      }else{
-       setState(() {
-         isLoading = false;
-         CustomSnackBar.showSnackBar(
-             context: context,
-             message: "We are facing some issue!",
-             color: kPrimaryColor);
-       });
+      } else {
+        setState(() {
+          isLoading = false;
+          CustomSnackBar.showSnackBar(
+              context: context,
+              message: "We are facing some issue!",
+              color: kPrimaryColor);
+        });
       }
-    }catch (error) {
+    } catch (error) {
       setState(() {
         isLoading = false;
         CustomSnackBar.showSnackBar(
@@ -114,7 +129,6 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
     }
   }
 
-
   // Crypto Buy Add Api -
   Future<void> mCryptoBuyAddApi() async {
     if (selectedTransferType != null) {
@@ -123,7 +137,6 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
       });
 
       try {
-
         int amount = int.parse(mAmount!);
         int? fees = mFees?.toInt();
         String coinType = '${mCoin}_TEST';
@@ -146,11 +159,16 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
         if (response.message == "Crypto Transactions successfully !!!") {
           setState(() {
             isUpdateLoading = false;
-            mCryptoSellAddTransactionId =response.data.id;
+            mCryptoSellAddTransactionId = response.data.id;
+
+            mTransactionDetails(response.data.id);
           });
-        } else if(response.message == "All fields are mandatory") {
+        } else if (response.message == "All fields are mandatory") {
           setState(() {
-            CustomSnackBar.showSnackBar(context: context, message: "All fields are mandatory", color: kPrimaryColor);
+            CustomSnackBar.showSnackBar(
+                context: context,
+                message: "All fields are mandatory",
+                color: kPrimaryColor);
             isUpdateLoading = false;
           });
         } else {
@@ -178,6 +196,45 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
   }
 
 
+  // Crypto Transaction Details api ----
+  Future<void> mTransactionDetails(String id) async{
+    setState(() {
+      isLoading = true;
+    });
+
+    try{
+      final response = await _cryptoTransactionGetDetailsApi.cryptoTransactionGetDetailsApiApi(id);
+
+      if(response.message == "list are fetched Successfully"){
+        setState(() {
+          isLoading = false;
+          mPaymentSuccessDialog(context,mTotalAmount,mCurrency,mCoin,mGetAmount);
+        });
+
+      }else{
+        setState(() {
+          isLoading = false;
+          CustomSnackBar.showSnackBar(
+            context: context,
+            message: "We are facing some issue!",
+            color: kPrimaryColor,
+          );
+        });
+      }
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        CustomSnackBar.showSnackBar(
+          context: context,
+          message: "Something went wrong!",
+          color: kPrimaryColor,
+        );
+      });
+    }
+
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -192,26 +249,34 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
       ),
       body: isLoading
           ? const Center(
-        child: CircularProgressIndicator(
-          color: kPrimaryColor,
-        ),
-      )
+              child: CircularProgressIndicator(
+                color: kPrimaryColor,
+              ),
+            )
           : SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(defaultPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-
-              const SizedBox(height: defaultPadding,),
-              Text("Confirm ${widget.mCryptoType}",style: const TextStyle(color: kPrimaryColor,fontWeight: FontWeight.bold,fontSize: 20),),
-              const SizedBox(height: largePadding,),
-
-              isCryptoBuy ? mCryptoBuy() : mCryptoSell(),
-            ],
-          ),
-        ),
-      ),
+              child: Padding(
+                padding: const EdgeInsets.all(defaultPadding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(
+                      height: defaultPadding,
+                    ),
+                    Text(
+                      "Confirm ${widget.mCryptoType}",
+                      style: const TextStyle(
+                          color: kPrimaryColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20),
+                    ),
+                    const SizedBox(
+                      height: largePadding,
+                    ),
+                    isCryptoBuy ? mCryptoBuy() : mCryptoSell(),
+                  ],
+                ),
+              ),
+            ),
     );
   }
 
@@ -320,7 +385,9 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
             ),
           ),
 
-          const SizedBox(height: smallPadding,),
+          const SizedBox(
+            height: smallPadding,
+          ),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(defaultPadding),
@@ -334,20 +401,32 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
                   spreadRadius: 1,
                   offset: const Offset(0, 4),
                 ),
-
               ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Center(
-                  child: Text("You will get",style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold),),
+                  child: Text(
+                    "You will get",
+                    style: TextStyle(
+                        color: kPrimaryColor, fontWeight: FontWeight.bold),
+                  ),
                 ),
-
-                const SizedBox(height: defaultPadding,),
-                Text('${mGetAmount?.toString() ?? '0.0'} - $mCoin',style: const TextStyle(color: kPrimaryColor),),
-                const Divider(color: kPrimaryLightColor,),
-                Text("1 USD = ${mEstimateRate.toString()}",style: const TextStyle(color: kPrimaryColor),),
+                const SizedBox(
+                  height: defaultPadding,
+                ),
+                Text(
+                  '${mGetAmount?.toString() ?? '0.0'} - $mCoin',
+                  style: const TextStyle(color: kPrimaryColor),
+                ),
+                const Divider(
+                  color: kPrimaryLightColor,
+                ),
+                Text(
+                  "1 $mCurrency = ${mEstimateRate.toString()}",
+                  style: const TextStyle(color: kPrimaryColor),
+                ),
               ],
             ),
           ),
@@ -356,7 +435,8 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
           GestureDetector(
             onTap: () => _showTransferTypeDropDown(context, true),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 15.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 15.0),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: kPrimaryColor),
@@ -367,13 +447,15 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
                   Row(
                     children: [
                       if (selectedTransferType != null)
-                        const SizedBox(width: smallPadding,),
-
+                        const SizedBox(
+                          width: smallPadding,
+                        ),
                       Text(
                         selectedTransferType != null
                             ? '$selectedTransferType ${_getFlagForTransferType(selectedTransferType!)}'
                             : 'Transfer Type',
-                        style: const TextStyle(color: kPrimaryColor, fontSize: 16),
+                        style:
+                            const TextStyle(color: kPrimaryColor, fontSize: 16),
                       ),
                     ],
                   ),
@@ -406,12 +488,15 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
             maxLines: 6,
           ),
 
-          const SizedBox(height: defaultPadding,),
-          if (isUpdateLoading) const Center(
-            child: CircularProgressIndicator(
-              color: kPrimaryColor,
-            ),
-          ), // Show loading indicator
+          const SizedBox(
+            height: defaultPadding,
+          ),
+          if (isUpdateLoading)
+            const Center(
+              child: CircularProgressIndicator(
+                color: kPrimaryColor,
+              ),
+            ), // Show loading indicator
 
           const SizedBox(height: 35.0),
           Padding(
@@ -419,18 +504,17 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: kPrimaryColor,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 32, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              onPressed: isUpdateLoading ? null :mCryptoBuyAddApi,
+              onPressed: isUpdateLoading ? null : mCryptoBuyAddApi,
               child: const Text('Confirm & Buy',
                   style: TextStyle(color: Colors.white, fontSize: 16)),
             ),
           ),
-
         ],
       ),
     );
@@ -439,7 +523,6 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
   // Widget Crypto Sell ---------------
   Widget mCryptoSell() {
     return SingleChildScrollView(
-
       child: Column(
         children: [
           Container(
@@ -537,8 +620,9 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
               ],
             ),
           ),
-
-          const SizedBox(height: smallPadding,),
+          const SizedBox(
+            height: smallPadding,
+          ),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(defaultPadding),
@@ -552,33 +636,44 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
                   spreadRadius: 1,
                   offset: const Offset(0, 4),
                 ),
-
               ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const Center(
-                  child: Text("You will get",style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold),),
+                  child: Text(
+                    "You will get",
+                    style: TextStyle(
+                        color: kPrimaryColor, fontWeight: FontWeight.bold),
+                  ),
                 ),
-
-                const SizedBox(height: defaultPadding,),
-                const Text('Total Amount = Amount - Fees',style: TextStyle(color: kPrimaryColor),),
-               /* const Divider(color: kPrimaryLightColor,),*/
-                const SizedBox(height: smallPadding,),
-                Text("$mCurrency $mTotalCryptoSellAmount",style: const TextStyle(color: kPrimaryColor),),
+                const SizedBox(
+                  height: defaultPadding,
+                ),
+                const Text(
+                  'Total Amount = Amount - Fees',
+                  style: TextStyle(color: kPrimaryColor),
+                ),
+                /* const Divider(color: kPrimaryLightColor,),*/
+                const SizedBox(
+                  height: smallPadding,
+                ),
+                Text(
+                  "$mCurrency $mTotalCryptoSellAmount",
+                  style: const TextStyle(color: kPrimaryColor),
+                ),
               ],
             ),
           ),
-
           const SizedBox(height: 55.0),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 50),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: kPrimaryColor,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 32, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -618,9 +713,16 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
       title: Row(
         children: [
           const SizedBox(width: defaultPadding),
-          Image.asset(logoPath, height: 24,color: kPrimaryColor,),
+          Image.asset(
+            logoPath,
+            height: 24,
+            color: kPrimaryColor,
+          ),
           const SizedBox(width: defaultPadding),
-          Text(type,style: const TextStyle(color: kPrimaryColor),),
+          Text(
+            type,
+            style: const TextStyle(color: kPrimaryColor),
+          ),
         ],
       ),
       onTap: () {
@@ -642,8 +744,207 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
         return '';
     }
   }
-
 }
 
+Future<void> mPaymentSuccessDialog(BuildContext context, double? mTotalAmount, String? mCurrency, String? mCoin, String? mGetAmount) async {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return PaymentSuccessScreen(
+        totalAmount: mTotalAmount,
+          currency: mCurrency,
+          coinName: mCoin,
+          gettingCoin: mGetAmount,
+      );
+    },
+  );
+}
+
+class PaymentSuccessScreen extends StatefulWidget {
+  final double? totalAmount;
+  final String? currency;
+  final String? coinName;
+  final String? gettingCoin;
+
+  const PaymentSuccessScreen({super.key,this.totalAmount,this.currency,this.coinName,this.gettingCoin});
+
+  @override
+  State<PaymentSuccessScreen> createState() => _PaymentSuccessScreenState();
+}
+
+class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
+  double screenWidth = 600;
+  double screenHeight = 400;
+
+  @override
+  Widget build(BuildContext context) {
+    screenWidth = MediaQuery.of(context).size.width;
+    screenHeight = MediaQuery.of(context).size.height;
+    return AlertDialog(
+      content: SizedBox(
+        width: screenWidth,
+        height: screenHeight,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              const SizedBox(
+                height: 55,
+              ),
+              Image.asset(
+                "assets/images/payment_success.png",
+                fit: BoxFit.contain,
+                width: 110, // Set your desired width
+                height: 110, // Set your desired height
+              ),
+              const SizedBox(
+                height: 55,
+              ),
+              const Text(
+                "Thank You!",
+                style: TextStyle(
+                    color: kGreenColor,
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(
+                height: 4,
+              ),
+              const Text(
+                "Transaction Completed",
+                style: TextStyle(
+                    color: kPrimaryColor,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16),
+              ),
+              const SizedBox(
+                height: 35,
+              ),
+              const Text(
+                "Please wait for admin admin approval!",
+                style: TextStyle(color: Colors.black87, fontSize: 16),
+              ),
+              const SizedBox(height: largePadding,),
+              Container(
+                height: 90,
+                width: double.infinity,
+                padding: const EdgeInsets.all(defaultPadding),
+                decoration: BoxDecoration(
+                  color: kPrimaryLightColor,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+
+                    const Text("Total",style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.w500,fontSize: 16),),
+                    const SizedBox(height: 5,),
+                    Text("${widget.totalAmount} ${widget.currency}",style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold,fontSize: 16),maxLines: 5, // Limit the number of lines if needed
+                      overflow: TextOverflow.ellipsis,),
+
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: largePadding,),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(defaultPadding),
+                decoration: BoxDecoration(
+                  color: kPrimaryLightColor,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "Getting Coin",
+                      style: TextStyle(
+                          color: kPrimaryColor,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16),
+                    ),
+                    const SizedBox(height: 5),
+                    // Use TextOverflow and maxLines to prevent overflow
+                    Text(
+                      '${widget.gettingCoin?.toString() ?? '0.0'} - ${widget.coinName}',
+                      style: const TextStyle(
+                          color: kPrimaryColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16),
+                      maxLines: 5, // Limit the number of lines if needed
+                      overflow: TextOverflow.ellipsis, // Truncate text if it's too long
+                    ),
+                    const SizedBox(height: 4),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 65,),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 50),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: kPrimaryColor,
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HomeScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text('Home',
+                      style: TextStyle(color: Colors.white, fontSize: 16)),
+                ),
+              ),
 
 
+
+            ],
+          ),
+        ),
+      ),
+      /*actions: [
+        TextButton(
+          onPressed: isLoading ? null : mCreateTicket,
+          child: const Text('Post Ticket'),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(); // Close the dialog
+          },
+          child: const Text('Close'),
+        ),
+      ],*/
+    );
+  }
+}
