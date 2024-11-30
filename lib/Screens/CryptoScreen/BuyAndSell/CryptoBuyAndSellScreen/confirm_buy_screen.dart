@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/cryptoBuyAddModel/cryptoBuyAddApi.dart';
+import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/cryptoBuyAddModel/cryptoBuyAddModel.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/walletAddressModel/walletAddressApi.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/auth_manager.dart';
@@ -21,12 +23,14 @@ class ConfirmBuyScreen extends StatefulWidget {
 
 class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
   final CryptoBuyWalletAddressApi _cryptoBuyWalletAddressApi = CryptoBuyWalletAddressApi();
+  final CryptoBuyAddApi _cryptoBuyAddApi = CryptoBuyAddApi();
 
   final TextEditingController walletAddress = TextEditingController();
 
   String? selectedTransferType;
   bool isCryptoBuy = true;
   bool isLoading = false;
+  bool isUpdateLoading = false;
 
   String? mAmount;
   String? mCurrency;
@@ -37,10 +41,13 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
   double? mTotalAmount;
   double? mTotalCryptoSellAmount;
 
+  // Crypto Sell Add TransactionId
+  String? mCryptoSellAddTransactionId;
+
 
   @override
   void initState() {
-    mPrintData();
+    mSetData();
 
     if(widget.mCryptoType == "Crypto Buy"){
       mWalletAddress();
@@ -48,11 +55,11 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
     }else{
       isCryptoBuy = false;
     }
-
     super.initState();
   }
 
-  Future<void> mPrintData() async {
+  // Set Data
+  Future<void> mSetData() async {
     mAmount = widget.mCryptoAmount;
     mCurrency = widget.mCurrency;
     mCoin = widget.mCoinName;
@@ -60,17 +67,19 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
     mGetAmount = widget.mYouGetAmount;
     mEstimateRate = widget.mEstimateRates;
 
+    // Crypto Buy Calculation Total
     double amountValue = (mAmount != null) ? double.tryParse(mAmount!) ?? 0.0 : 0.0;
     double feesValue = mFees ?? 0.0;
     mTotalAmount = amountValue + feesValue;
 
-
+    // Crypto Sell Calculate Total
     double amountValueSell = (mAmount != null) ? double.tryParse(mAmount!) ?? 0.0 : 0.0;
     double feesValueSell = mFees ?? 0.0;
     mTotalCryptoSellAmount = amountValueSell - feesValueSell;
 
   }
 
+  // Wallet Address Api
   Future<void> mWalletAddress() async {
     setState(() {
       isLoading = true;
@@ -105,44 +114,69 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
     }
   }
 
-  void _showTransferTypeDropDown(BuildContext context, bool isTransfer) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return ListView(
-          children: [
-            const SizedBox(height: 25),
-            _buildTransferOptions(
-              'Bank Transfer',
-              'assets/icons/bank.png',
-              isTransfer,
-            ),
-          ],
+
+  // Crypto Buy Add Api -
+  Future<void> mCryptoBuyAddApi() async {
+    if (selectedTransferType != null) {
+      setState(() {
+        isUpdateLoading = true;
+      });
+
+      try {
+
+        int amount = int.parse(mAmount!);
+        int? fees = mFees?.toInt();
+        String coinType = '${mCoin}_TEST';
+
+        final request = CryptoBuyAddRequest(
+          userId: AuthManager.getUserId(),
+          amount: amount,
+          coinType: coinType,
+          currencyType: mCurrency ?? '',
+          fees: fees ?? 0,
+          noOfCoins: mGetAmount!,
+          paymentType: "Bank Transfer",
+          side: "buy",
+          status: "pending",
+          walletAddress: walletAddress.text,
         );
-      },
-    );
+
+        final response = await _cryptoBuyAddApi.cryptoBuyAddApi(request);
+
+        if (response.message == "Crypto Transactions successfully !!!") {
+          setState(() {
+            isUpdateLoading = false;
+            mCryptoSellAddTransactionId =response.data.id;
+          });
+        } else if(response.message == "All fields are mandatory") {
+          setState(() {
+            CustomSnackBar.showSnackBar(context: context, message: "All fields are mandatory", color: kPrimaryColor);
+            isUpdateLoading = false;
+          });
+        } else {
+          setState(() {
+            isUpdateLoading = false;
+          });
+        }
+      } catch (error) {
+        setState(() {
+          isUpdateLoading = false;
+          CustomSnackBar.showSnackBar(
+            context: context,
+            message: "Something went wrong!",
+            color: kPrimaryColor,
+          );
+        });
+      }
+    } else {
+      CustomSnackBar.showSnackBar(
+        context: context,
+        message: "Please Select Transfer Type!",
+        color: kPrimaryColor,
+      );
+    }
   }
 
-  Widget _buildTransferOptions(String type, String logoPath, bool isTransfer) {
-    return ListTile(
-      title: Row(
-        children: [
-          const SizedBox(width: defaultPadding),
-          Image.asset(logoPath, height: 24,color: kPrimaryColor,),
-          const SizedBox(width: defaultPadding),
-          Text(type,style: const TextStyle(color: kPrimaryColor),),
-        ],
-      ),
-      onTap: () {
-        setState(() {
-          if (isTransfer) {
-            selectedTransferType = type;
-          }
-        });
-        Navigator.pop(context);
-      },
-    );
-  }
 
 
   @override
@@ -184,7 +218,6 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
   // Widget Crypto Sell -----------
   Widget mCryptoBuy() {
     return SingleChildScrollView(
-      child: Padding(padding: const EdgeInsets.all(0),
       child: Column(
         children: [
           Container(
@@ -373,6 +406,13 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
             maxLines: 6,
           ),
 
+          const SizedBox(height: defaultPadding,),
+          if (isUpdateLoading) const Center(
+            child: CircularProgressIndicator(
+              color: kPrimaryColor,
+            ),
+          ), // Show loading indicator
+
           const SizedBox(height: 35.0),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 50),
@@ -385,23 +425,21 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              onPressed: () {
-                // Something ....
-              },
+              onPressed: isUpdateLoading ? null :mCryptoBuyAddApi,
               child: const Text('Confirm & Buy',
                   style: TextStyle(color: Colors.white, fontSize: 16)),
             ),
           ),
 
         ],
-      ),),
+      ),
     );
   }
 
   // Widget Crypto Sell ---------------
   Widget mCryptoSell() {
     return SingleChildScrollView(
-      child: Padding(padding: EdgeInsets.all(0),
+
       child: Column(
         children: [
           Container(
@@ -553,10 +591,48 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
             ),
           ),
         ],
-      ),),
+      ),
     );
   }
 
+  void _showTransferTypeDropDown(BuildContext context, bool isTransfer) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return ListView(
+          children: [
+            const SizedBox(height: 25),
+            _buildTransferOptions(
+              'Bank Transfer',
+              'assets/icons/bank.png',
+              isTransfer,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildTransferOptions(String type, String logoPath, bool isTransfer) {
+    return ListTile(
+      title: Row(
+        children: [
+          const SizedBox(width: defaultPadding),
+          Image.asset(logoPath, height: 24,color: kPrimaryColor,),
+          const SizedBox(width: defaultPadding),
+          Text(type,style: const TextStyle(color: kPrimaryColor),),
+        ],
+      ),
+      onTap: () {
+        setState(() {
+          if (isTransfer) {
+            selectedTransferType = type;
+          }
+        });
+        Navigator.pop(context);
+      },
+    );
+  }
 
   String _getFlagForTransferType(String transferType) {
     switch (transferType) {

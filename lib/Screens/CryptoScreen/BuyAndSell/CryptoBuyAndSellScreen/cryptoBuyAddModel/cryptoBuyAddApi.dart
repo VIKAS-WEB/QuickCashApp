@@ -1,35 +1,38 @@
 import 'package:dio/dio.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import '../../../../../util/apiConstants.dart';
-import 'cryptoSellFetchCoinPriceModel.dart';
+import 'cryptoBuyAddModel.dart';
 
-class CryptoSellFetchCoinPriceApi {
+class CryptoBuyAddApi {
   final Dio _dio = Dio();
 
-  CryptoSellFetchCoinPriceApi() {
+  CryptoBuyAddApi() {
     _dio.options.baseUrl = ApiConstants.baseUrl;
     _dio.options.headers['Authorization'] = 'Bearer ${AuthManager.getToken()}';
 
 
-     /*_dio.interceptors.add(LogInterceptor(
+     _dio.interceptors.add(LogInterceptor(
       request: true,
       requestBody: true,
       responseBody: true,
       responseHeader: true,
-    ));*/
+    ));
   }
 
 
-  Future<CryptoSellFetchCoinPriceResponse> cryptoSellFetchCoinPriceApi(CryptoSellFetchCoinPriceRequest request) async {
+  Future<CryptoBuyAddResponse> cryptoBuyAddApi(CryptoBuyAddRequest request) async {
     try {
       final response = await _dio.post(
-        '/crypto/fetch-symbolprice',
+        '/crypto/add',
         data: request.toJson(),
       );
 
       // Check for a successful response
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return CryptoSellFetchCoinPriceResponse.fromJson(response.data);
+        return CryptoBuyAddResponse.fromJson(response.data);
+      } else if(response.statusCode == 401){
+        return CryptoBuyAddResponse.fromJson(response.data);
+
       } else {
         throw Exception('Failed to fetch data: ${response.statusMessage}');
       }
