@@ -164,7 +164,7 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
       final request = CryptoSellFetchCoinPriceRequest(
           coinType: selectedCoinType!,
           currencyType: selectedCurrency!,
-          noOfCoins: mCryptoSellCoinAvailable!);
+          noOfCoins: mAmount.text);
       final response = await _cryptoSellFetchCoinPriceApi
           .cryptoSellFetchCoinPriceApi(request);
 

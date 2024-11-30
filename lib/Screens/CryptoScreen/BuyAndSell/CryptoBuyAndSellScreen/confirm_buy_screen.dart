@@ -35,6 +35,7 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
   String? mGetAmount;
   double? mEstimateRate;
   double? mTotalAmount;
+  double? mTotalCryptoSellAmount;
 
 
   @override
@@ -62,6 +63,12 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
     double amountValue = (mAmount != null) ? double.tryParse(mAmount!) ?? 0.0 : 0.0;
     double feesValue = mFees ?? 0.0;
     mTotalAmount = amountValue + feesValue;
+
+
+    double amountValueSell = (mAmount != null) ? double.tryParse(mAmount!) ?? 0.0 : 0.0;
+    double feesValueSell = mFees ?? 0.0;
+    mTotalCryptoSellAmount = amountValueSell - feesValueSell;
+
   }
 
   Future<void> mWalletAddress() async {
@@ -174,6 +181,7 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
     );
   }
 
+  // Widget Crypto Sell -----------
   Widget mCryptoBuy() {
     return SingleChildScrollView(
       child: Padding(padding: const EdgeInsets.all(0),
@@ -390,11 +398,161 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
     );
   }
 
+  // Widget Crypto Sell ---------------
   Widget mCryptoSell() {
     return SingleChildScrollView(
       child: Padding(padding: EdgeInsets.all(0),
       child: Column(
-        children: [],
+        children: [
+          Container(
+            padding: const EdgeInsets.all(defaultPadding),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "No of Coins:",
+                      style: TextStyle(color: kPrimaryColor),
+                    ),
+                    Text(
+                      "${mAmount!} $mCurrency",
+                      style: const TextStyle(color: kPrimaryColor),
+                    ),
+                  ],
+                ),
+                const Divider(
+                  color: kPrimaryLightColor,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Fees:",
+                      style: TextStyle(color: kPrimaryColor),
+                    ),
+                    Text(
+                      "${mFees!} $mCurrency",
+                      style: const TextStyle(color: kPrimaryColor),
+                    ),
+                  ],
+                ),
+                const Divider(
+                  color: kPrimaryLightColor,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Amount for ${mAmount!} $mCoin = $mGetAmount $mCurrency",
+                      style: const TextStyle(color: kPrimaryColor),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: smallPadding),
+          Center(
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Divider line
+                Container(
+                  height: 1,
+                  width: 250,
+                  color: kPrimaryLightColor,
+                ),
+                // Circular button
+                Material(
+                  elevation: 4.0,
+                  shape: const CircleBorder(),
+                  child: Container(
+                    width: 35,
+                    height: 35,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.arrow_downward,
+                        size: 20,
+                        color: kPrimaryColor,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: smallPadding,),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(defaultPadding),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 4),
+                ),
+
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Center(
+                  child: Text("You will get",style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold),),
+                ),
+
+                const SizedBox(height: defaultPadding,),
+                const Text('Total Amount = Amount - Fees',style: TextStyle(color: kPrimaryColor),),
+               /* const Divider(color: kPrimaryLightColor,),*/
+                const SizedBox(height: smallPadding,),
+                Text("$mCurrency $mTotalCryptoSellAmount",style: const TextStyle(color: kPrimaryColor),),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 55.0),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 50),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: kPrimaryColor,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              onPressed: () {
+                // Something ....
+              },
+              child: const Text('Confirm & Sell',
+                  style: TextStyle(color: Colors.white, fontSize: 16)),
+            ),
+          ),
+        ],
       ),),
     );
   }
