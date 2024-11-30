@@ -64,8 +64,8 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
     }
   }
 
-  // Crypto Buy and Sell Calculation Api -----------------
-  Future<void> mCryptoBuySellCalculation() async {
+  // Crypto Buy Calculation Api -----------------
+  Future<void> mCryptoBuyCalculation() async {
     setState(() {
       isLoading = true;
     });
@@ -237,6 +237,8 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                           mCryptoSellCoinAvailable = "0.0";
                           mSellCryptoFees = 0.0;
                           mSellExchangeFees = 0.0;
+                          selectedCoinType = null;
+                          selectedCurrency = null;
                         });
                       },
                       style: FilledButton.styleFrom(
@@ -273,6 +275,8 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                           mCryptoFees = 0.0;
                           mExchangeFees = 0.0;
                           mEstimatedRate = 0.0;
+                          selectedCoinType = null;
+                          selectedCurrency = null;
                         });
                       },
                       style: FilledButton.styleFrom(
@@ -351,17 +355,19 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                     },
                   ).then((String? newValue) {
                     if (newValue != null) {
-                      setState(() {
-                        selectedCurrency =
-                            newValue; // Update the selected currency
-                        if (selectedCurrency != null) {
-                          if (selectedCoinType != null) {
-                            if (mAmount.text.isNotEmpty) {
-                              mCryptoBuySellCalculation();
+                      if (isBuySelected == true) {
+                        setState(() {
+                          selectedCurrency =
+                              newValue; // Update the selected currency
+                          if (selectedCurrency != null) {
+                            if (selectedCoinType != null) {
+                              if (mAmount.text.isNotEmpty) {
+                                mCryptoBuyCalculation();
+                              }
                             }
                           }
-                        }
-                      });
+                        });
+                      }
                     }
                   });
                 }
@@ -403,7 +409,7 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                   if (selectedCurrency != null) {
                     if (selectedCoinType != null) {
                       if (mAmount.text.isNotEmpty) {
-                        mCryptoBuySellCalculation();
+                        mCryptoBuyCalculation();
                       }
                     }
                   }
@@ -584,25 +590,47 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                         selectedCoinType != null
                     ? null
                     : () {
-                        if (mAmount.text.isNotEmpty &&
-                            selectedCurrency != null &&
-                            selectedCoinType != null &&
-                            mCryptoFees != null &&
-                            mYouGet.text.isNotEmpty &&
-                            mEstimatedRate != null) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>  ConfirmBuyScreen(
-                                  mCryptoAmount: mAmount.text,
-                                  mCurrency: selectedCurrency,
-                                  mCoinName: selectedCoinType,
-                                  mFees: mCryptoFees,
-                                  mYouGetAmount: mYouGet.text,
-                                  mEstimateRates: mEstimatedRate,
-                                  mCryptoType: "Crypto Buy"),
-                            ),
-                          );
+                        if (selectedCurrency == null) {
+                          CustomSnackBar.showSnackBar(
+                              context: context,
+                              message: "Please Select Currency",
+                              color: kPrimaryColor);
+                        } else if (mAmount.text.isEmpty) {
+                          CustomSnackBar.showSnackBar(
+                              context: context,
+                              message: "Please Enter No of Coins",
+                              color: kPrimaryColor);
+                        } else if (selectedCoinType == null) {
+                          CustomSnackBar.showSnackBar(
+                              context: context,
+                              message: "Please Select Coins",
+                              color: kPrimaryColor);
+                        } else {
+                          if (mAmount.text.isNotEmpty &&
+                              selectedCurrency != null &&
+                              selectedCoinType != null &&
+                              mCryptoFees != null &&
+                              mYouGet.text.isNotEmpty &&
+                              mEstimatedRate != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ConfirmBuyScreen(
+                                    mCryptoAmount: mAmount.text,
+                                    mCurrency: selectedCurrency,
+                                    mCoinName: selectedCoinType,
+                                    mFees: mCryptoFees,
+                                    mYouGetAmount: mYouGet.text,
+                                    mEstimateRates: mEstimatedRate,
+                                    mCryptoType: "Crypto Buy"),
+                              ),
+                            );
+                          } else {
+                            CustomSnackBar.showSnackBar(
+                                context: context,
+                                message: "Please Enter Valid Details.",
+                                color: kPrimaryColor);
+                          }
                         }
                       },
                 child: isLoading
@@ -682,7 +710,7 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                 if (selectedCurrency != null) {
                   if (selectedCoinType != null) {
                     if (mAmount.text.isNotEmpty) {
-                      mCryptoBuySellCalculation();
+                      mCryptoSellFetchCoinPrice();
                     }
                   }
                 }
@@ -839,7 +867,7 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                           if (selectedCurrency != null) {
                             if (selectedCoinType != null) {
                               if (mAmount.text.isNotEmpty) {
-                                mCryptoBuySellCalculation();
+                                mCryptoBuyCalculation();
                               }
                             }
                           }
@@ -915,25 +943,47 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                         selectedCoinType != null
                     ? null
                     : () {
-                        if (mAmount.text.isNotEmpty &&
-                            selectedCurrency != null &&
-                            selectedCoinType != null &&
-                            mSellCryptoFees != null &&
-                            mYouGet.text.isNotEmpty &&
-                            mEstimatedRate != null) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ConfirmBuyScreen(
-                                  mCryptoAmount: mAmount.text,
-                                  mCurrency: selectedCurrency,
-                              mCoinName: selectedCoinType,
-                              mFees: mSellCryptoFees,
-                              mYouGetAmount: mYouGet.text,
-                              mEstimateRates: mEstimatedRate,
-                              mCryptoType: "Crypto Sell"),
-                            ),
-                          );
+                        if (selectedCoinType == null) {
+                          CustomSnackBar.showSnackBar(
+                              context: context,
+                              message: "Please Select Coins",
+                              color: kPrimaryColor);
+                        } else if (mAmount.text.isEmpty) {
+                          CustomSnackBar.showSnackBar(
+                              context: context,
+                              message: "Please Enter No of Coins",
+                              color: kPrimaryColor);
+                        } else if (selectedCurrency == null) {
+                          CustomSnackBar.showSnackBar(
+                              context: context,
+                              message: "Please Select Currency",
+                              color: kPrimaryColor);
+                        } else {
+                          if (mAmount.text.isNotEmpty &&
+                              selectedCurrency != null &&
+                              selectedCoinType != null &&
+                              mSellCryptoFees != null &&
+                              mYouGet.text.isNotEmpty &&
+                              mEstimatedRate != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ConfirmBuyScreen(
+                                    mCryptoAmount: mAmount.text,
+                                    mCurrency: selectedCurrency,
+                                    mCoinName: selectedCoinType,
+                                    mFees: mSellCryptoFees,
+                                    mYouGetAmount: mYouGet.text,
+                                    mEstimateRates: mEstimatedRate,
+                                    mCryptoType: "Crypto Sell"),
+                              ),
+                            );
+                          } else {
+                            CustomSnackBar.showSnackBar(
+                                context: context,
+                                message: "Please Enter a Valid Details",
+                                color: kPrimaryColor);
+                          }
                         }
                       },
                 child: isLoading
@@ -1004,7 +1054,7 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
           if (selectedCurrency != null) {
             if (selectedCoinType != null) {
               if (mAmount.text.isNotEmpty) {
-                mCryptoBuySellCalculation();
+                mCryptoBuyCalculation();
               }
             }
           }
