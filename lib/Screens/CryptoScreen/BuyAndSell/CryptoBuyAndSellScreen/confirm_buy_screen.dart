@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/cryptoBuyAddModel/cryptoBuyAddApi.dart';
-import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/cryptoBuyAddModel/cryptoBuyAddModel.dart';
-import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/cryptoTransactionGetDetails/cryptoTransactionGetDetailsApi.dart';
-import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/requestWalletAddressModel/requestWalletAddressApi.dart';
-import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/requestWalletAddressModel/requestWalletAddressModel.dart';
-import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/walletAddressModel/walletAddressApi.dart';
+import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/cryptoSellModel/cryptoSellModel/cryptoSellApi.dart';
+import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/cryptoSellModel/cryptoSellModel/cryptoSellModel.dart';
 import 'package:quickcash/Screens/HomeScreen/home_screen.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/auth_manager.dart';
 
 import '../../../../util/customSnackBar.dart';
+import 'cryptoBuyModel/cryptoBuyAddModel/cryptoBuyAddApi.dart';
+import 'cryptoBuyModel/cryptoBuyAddModel/cryptoBuyAddModel.dart';
+import 'cryptoBuyModel/cryptoTransactionGetDetails/cryptoTransactionGetDetailsApi.dart';
+import 'cryptoBuyModel/requestWalletAddressModel/requestWalletAddressApi.dart';
+import 'cryptoBuyModel/requestWalletAddressModel/requestWalletAddressModel.dart';
+import 'cryptoBuyModel/walletAddressModel/walletAddressApi.dart';
 
 class ConfirmBuyScreen extends StatefulWidget {
   final String? mCryptoAmount;
@@ -40,6 +42,7 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
   final CryptoBuyAddApi _cryptoBuyAddApi = CryptoBuyAddApi();
   final CryptoTransactionGetDetailsApi _cryptoTransactionGetDetailsApi = CryptoTransactionGetDetailsApi();
   final RequestWalletAddressApi _requestWalletAddressApi = RequestWalletAddressApi();
+  final CryptoSellAddApi _cryptoSellAddApi = CryptoSellAddApi();
 
   final TextEditingController walletAddress = TextEditingController();
 
@@ -181,6 +184,47 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
     }
   }
 
+  // Crypto Sell Add Api ----
+  Future<void> mCryptoSellAddApi() async{
+    setState(() {
+      isUpdateLoading = true;
+    });
+
+    try{
+      int? fees = mFees?.toInt();
+      String coinType = '${mCoin}_TEST';
+      final request = CryptoSellRequest(userId: AuthManager.getUserId(), amount: mAmount!, coinType: coinType, currencyType: mCurrency!, fees: fees ?? 0, noOfCoins: mGetAmount!, side: "sell", status: "pending");
+      final response = await _cryptoSellAddApi.cryptoSellAddApi(request);
+
+      if(response.message == "Crypto Transactions Successfully updated!!!"){
+        setState(() {
+          isUpdateLoading = false;
+          mTransactionDetails(response.data.id);
+        });
+      }else{
+        setState(() {
+          isUpdateLoading = false;
+          CustomSnackBar.showSnackBar(
+            context: context,
+            message: "We are facing some issue, Please try after some time",
+            color: kPrimaryColor,
+          );
+        });
+      }
+
+    }catch (error) {
+      setState(() {
+        isUpdateLoading = false;
+        CustomSnackBar.showSnackBar(
+          context: context,
+          message: "Something went wrong!",
+          color: kPrimaryColor,
+        );
+      });
+    }
+
+  }
+
   // Crypto Buy Add Api -
   Future<void> mCryptoBuyAddApi() async {
     if (selectedTransferType != null) {
@@ -286,6 +330,7 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
     }catch (error) {
       setState(() {
         isLoading = false;
+        print(error);
         CustomSnackBar.showSnackBar(
           context: context,
           message: "Something went wrong!",
@@ -568,24 +613,6 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
               ),
             ],
           ): Container(),
-          /*isWalletAddressRequest
-              ? Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 50),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: kPrimaryColor,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              onPressed: isUpdateLoading ? null : mCryptoBuyAddApi,
-              child: const Text('Request Wallet Address',
-                  style: TextStyle(color: Colors.white, fontSize: 16)),
-            ),
-          )
-              : Container(), // Or any other widget you want to display when condition is false
-*/
 
           const SizedBox(
             height: defaultPadding,
@@ -765,6 +792,18 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
               ],
             ),
           ),
+
+          const SizedBox(
+            height: defaultPadding,
+          ),
+          if (isUpdateLoading)
+            const Center(
+              child: CircularProgressIndicator(
+                color: kPrimaryColor,
+              ),
+            ), // Show loading indicator
+
+
           const SizedBox(height: 55.0),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 50),
@@ -777,9 +816,7 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              onPressed: () {
-                // Something ....
-              },
+              onPressed: isUpdateLoading ? null : mCryptoSellAddApi,
               child: const Text('Confirm & Sell',
                   style: TextStyle(color: Colors.white, fontSize: 16)),
             ),

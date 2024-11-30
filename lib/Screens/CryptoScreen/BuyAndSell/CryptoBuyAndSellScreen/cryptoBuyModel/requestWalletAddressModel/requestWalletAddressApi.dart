@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/requestWalletAddressModel/requestWalletAddressModel.dart';
+import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/cryptoBuyModel/requestWalletAddressModel/requestWalletAddressModel.dart';
 import 'package:quickcash/util/auth_manager.dart';
-import '../../../../../util/apiConstants.dart';
+import '../../../../../../util/apiConstants.dart';
 
 class RequestWalletAddressApi {
   final Dio _dio = Dio();

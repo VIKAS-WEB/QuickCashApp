@@ -36,7 +36,6 @@ class TransactionData {
   final String user;
   final int fee;
   final String coin;
-  final String walletAddress;
   final String currencyType;
   final double amount;
   final String noOfCoins;
@@ -51,7 +50,6 @@ class TransactionData {
     required this.user,
     required this.fee,
     required this.coin,
-    required this.walletAddress,
     required this.currencyType,
     required this.amount,
     required this.noOfCoins,
@@ -68,7 +66,6 @@ class TransactionData {
       user: json['user'],
       fee: json['fee'],
       coin: json['coin'],
-      walletAddress: json['walletAddress'],
       currencyType: json['currencyType'],
       amount: json['amount'].toDouble(),
       noOfCoins: json['noOfCoins'],
@@ -85,7 +82,6 @@ class TransactionData {
       'user': user,
       'fee': fee,
       'coin': coin,
-      'walletAddress': walletAddress,
       'currencyType': currencyType,
       'amount': amount,
       'noOfCoins': noOfCoins,

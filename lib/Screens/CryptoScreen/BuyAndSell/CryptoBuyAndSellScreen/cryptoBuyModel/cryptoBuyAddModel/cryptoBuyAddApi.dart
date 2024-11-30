@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:quickcash/util/auth_manager.dart';
-import '../../../../../util/apiConstants.dart';
+import '../../../../../../util/apiConstants.dart';
 import 'cryptoBuyAddModel.dart';
 
 class CryptoBuyAddApi {
