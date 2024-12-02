@@ -45,6 +45,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   double? investingAmount;
   double? earningAmount;
 
+  // Exchange ---
+  String? accountIdExchange;
+  String? countryExchange;
+  String? currencyExchange;
+  String? ibanExchange;
+  bool? statusExchange;
+  double? amountExchange;
+
   @override
   void initState() {
     super.initState();
@@ -166,25 +174,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       });
     }
   }
-
-/*  // Transaction Status Color
-  Color _getStatusColor(String? status) {
-    if (status == null) return kPrimaryColor;
-    switch (status.toLowerCase()) {  // Convert status to lowercase for consistency
-      case 'success':
-      case 'succeeded':
-        return Colors.green;
-      case 'failed':
-      case 'cancelled':
-        return Colors.red;
-      case 'pending':
-        return Colors.orange;
-      default:
-        return kPrimaryColor; // Fallback for unexpected status values
-    }
-  }*/
-
-
 
 
 // Function to format the date
@@ -318,112 +307,133 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 errorMessage == null &&
                 accountsListData.isNotEmpty)
 
-            SizedBox(
-              height: 170, // Set height for the horizontal list view
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: accountsListData.length,
-                itemBuilder: (context, index) {
-                  final accountsData = accountsListData[index];
-                  final isSelected = index == _selectedIndex;
+              SizedBox(
+                height: 170, // Set height for the horizontal list view
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: accountsListData.length,
+                  itemBuilder: (context, index) {
+                    final accountsData = accountsListData[index];
+                    final isSelected = index == _selectedIndex;
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: smallPadding),
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedIndex = index;
-                          mAccountListTransaction(accountsData.accountId, accountsData.currency);
-                        });
-                      },
-                      child: Card(
-                        elevation: 5,
-                        color: isSelected ? kPrimaryColor : Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(defaultPadding),
-                        ),
-                        child: Container(
-                          width: 320,
-                          padding: const EdgeInsets.all(defaultPadding),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  CountryFlag.fromCountryCode(
-                                    width: 35,
-                                    height: 35,
-                                    accountsData.country!,
-                                    shape: const Circle(),
-                                  ),
-                                  Text(
-                                    "${accountsData.currency}",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: isSelected ? Colors.white : kPrimaryColor,
+                   if(_selectedIndex == null){
+                     accountIdExchange = accountsData.accountId;
+                     countryExchange = accountsData.country;
+                     currencyExchange = accountsData.currency;
+                     ibanExchange = accountsData.iban;
+                     statusExchange = accountsData.status;
+                     amountExchange = accountsData.amount;
+                   }
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: smallPadding),
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            // Update the selected index
+                            _selectedIndex = index;
+
+                            // Send Data To Exchange Money
+                            accountIdExchange = accountsData.accountId;
+                            countryExchange = accountsData.country;
+                            currencyExchange = accountsData.currency;
+                            ibanExchange = accountsData.iban;
+                            statusExchange = accountsData.status;
+                            amountExchange = accountsData.amount;
+
+                            // Call the function with the updated account data
+                            mAccountListTransaction(accountsData.accountId, accountsData.currency);
+                          });
+                        },
+                        child: Card(
+                          elevation: 5,
+                          color: isSelected ? kPrimaryColor : Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(defaultPadding),
+                          ),
+                          child: Container(
+                            width: 320,
+                            padding: const EdgeInsets.all(defaultPadding),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    CountryFlag.fromCountryCode(
+                                      width: 35,
+                                      height: 35,
+                                      accountsData.country!,
+                                      shape: const Circle(),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(
-                                height: defaultPadding,
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "IBAN",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: isSelected ? Colors.white : kPrimaryColor,
+                                    Text(
+                                      "${accountsData.currency}",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: isSelected ? Colors.white : kPrimaryColor,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    "${accountsData.iban}",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: isSelected ? Colors.white : kPrimaryColor,
+                                  ],
+                                ),
+                                const SizedBox(
+                                  height: defaultPadding,
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "IBAN",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: isSelected ? Colors.white : kPrimaryColor,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(
-                                height: defaultPadding,
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "Balance",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: isSelected ? Colors.white : kPrimaryColor,
+                                    Text(
+                                      "${accountsData.iban}",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: isSelected ? Colors.white : kPrimaryColor,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    "${accountsData.amount}",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: isSelected ? Colors.white : kPrimaryColor,
+                                  ],
+                                ),
+                                const SizedBox(
+                                  height: defaultPadding,
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Balance",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: isSelected ? Colors.white : kPrimaryColor,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                                    Text(
+                                      "${accountsData.amount}",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: isSelected ? Colors.white : kPrimaryColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
+
 
             // The Accounts design ----------------
             Card(
@@ -465,7 +475,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               context,
                               MaterialPageRoute(
                                   builder: (context) =>
-                                      const ExchangeMoneyScreen()),
+                                      ExchangeMoneyScreen(accountId: accountIdExchange, country: countryExchange, currency: currencyExchange, iban: ibanExchange, status: statusExchange, amount: amountExchange)),
                             );
                           },
                           label: const Text(
