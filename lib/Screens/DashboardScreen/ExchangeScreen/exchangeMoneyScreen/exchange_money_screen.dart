@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import 'package:quickcash/util/customSnackBar.dart';
 import '../../Dashboard/AccountsList/accountsListModel.dart';
+import '../reviewExchangeMoneyScreen/review_exchange_money_screen.dart';
 
 class ExchangeMoneyScreen extends StatefulWidget {
   final String? accountId;
@@ -17,49 +18,46 @@ class ExchangeMoneyScreen extends StatefulWidget {
   final bool? status;
   final double? amount;
 
-  const ExchangeMoneyScreen(
-      {super.key,
-      this.accountId,
-      this.country,
-      this.currency,
-      this.iban,
-      this.status,
-      this.amount});
+  const ExchangeMoneyScreen({super.key,
+    this.accountId,
+    this.country,
+    this.currency,
+    this.iban,
+    this.status,
+    this.amount});
 
   @override
   State<ExchangeMoneyScreen> createState() => _ExchangeMoneyScreen();
 }
 
 class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
-
   final ExchangeMoneyApi _exchangeMoneyApi = ExchangeMoneyApi();
 
-  final TextEditingController mFromAmount = TextEditingController();
-  final TextEditingController mToAmount = TextEditingController();
+  final TextEditingController mFromAmountController = TextEditingController();
+  final TextEditingController mToAmountController = TextEditingController();
 
   bool isLoading = false;
 
-
+  bool isReviewOrder = false;
 
   // Default Account ---
-  String? mAccountId;
-  String? mCountry;
-  String? mCurrency;
-  String? mIban;
-  bool? mStatus;
-  double? mAmount;
-  String? mCurrencySymbol;
-  double? mTotalFees = 0.0;
+  String? mFromAccountId;
+  String? mFromCountry;
+  String? mFromCurrency;
+  String? mFromIban;
+  bool? mFromStatus;
+  double? mFromAmount;
+  String? mFromCurrencySymbol;
+  double? mFromTotalFees = 0.0;
 
   //Selected Account -----
-  String? selectedAccountId = '';
-  String? selectedCountry = '';
-  String? selectedCurrency = 'Select';
-  String? selectedIban = '';
-  bool? selectedStatus;
-  double? selectedAmount = 0.0;
-  String? selectedCurrencySymbol = '';
-
+  String? mToAccountId = '';
+  String? mToCountry = '';
+  String? mToCurrency = 'Select';
+  String? mToIban = '';
+  bool? mToStatus;
+  double? mToAmount = 0.0;
+  String? mToCurrencySymbol = '';
 
   @override
   void initState() {
@@ -69,31 +67,34 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
 
   Future<void> mSetDefaultAccountData() async {
     setState(() {
-      mAccountId = widget.accountId;
-      mCountry = widget.country;
-      mCurrency = widget.currency;
-      mIban = widget.iban;
-      mStatus = widget.status;
-      mAmount = widget.amount;
+      mFromAccountId = widget.accountId;
+      mFromCountry = widget.country;
+      mFromCurrency = widget.currency;
+      mFromIban = widget.iban;
+      mFromStatus = widget.status;
+      mFromAmount = widget.amount;
 
-      mCurrencySymbol = getCurrencySymbol(mCurrency!);
+      mFromCurrencySymbol = getCurrencySymbol(mFromCurrency!);
     });
   }
 
-  Future<void> mSetSelectedAccountData(mSelectedAccountId,mSelectedCountry,mSelectedCurrency,mSelectedIban,mSelectedStatus,mSelectedAmount) async{
+  Future<void> mSetSelectedAccountData(mSelectedAccountId,
+      mSelectedCountry,
+      mSelectedCurrency,
+      mSelectedIban,
+      mSelectedStatus,
+      mSelectedAmount) async {
     setState(() {
-      selectedAccountId = mSelectedAccountId;
-      selectedCountry = mSelectedCountry;
-      selectedCurrency = mSelectedCurrency;
-      selectedIban = mSelectedIban;
-      selectedStatus = mSelectedStatus;
-      selectedAmount = mSelectedAmount;
+      mToAccountId = mSelectedAccountId;
+      mToCountry = mSelectedCountry;
+      mToCurrency = mSelectedCurrency;
+      mToIban = mSelectedIban;
+      mToStatus = mSelectedStatus;
+      mToAmount = mSelectedAmount;
 
-      selectedCurrencySymbol = getCurrencySymbol(selectedCurrency!);
-
+      mToCurrencySymbol = getCurrencySymbol(mToCurrency!);
     });
   }
-
 
   String getCurrencySymbol(String currencyCode) {
     // Create a NumberFormat object for the specific currency
@@ -103,40 +104,48 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
     return format.currencySymbol;
   }
 
-
   // Exchange Money Api **************
   Future<void> mExchangeMoneyApi() async {
     setState(() {
       isLoading = true;
     });
 
-    try{
-      final request = ExchangeMoneyRequest(userId: AuthManager.getUserId(), amount: mFromAmount.text, fromCurrency: mCurrency!, toCurrency: selectedCurrency!);
+    try {
+      final request = ExchangeMoneyRequest(
+          userId: AuthManager.getUserId(),
+          amount: mFromAmountController.text,
+          fromCurrency: mFromCurrency!,
+          toCurrency: mToCurrency!);
       final response = await _exchangeMoneyApi.exchangeMoneyApi(request);
 
-      if(response.message == "Success"){
+      if (response.message == "Success") {
         setState(() {
           isLoading = false;
-          mTotalFees = response.data.totalFees;
-          mToAmount.text = response.data.rate.toString();
+          isReviewOrder = true;
+          mFromTotalFees = response.data.totalFees;
+          mToAmountController.text = response.data.rate.toString();
         });
-
-      }else{
+      } else {
         setState(() {
           isLoading = false;
-          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kPrimaryColor);
+          isReviewOrder = false;
+          CustomSnackBar.showSnackBar(
+              context: context,
+              message: "We are facing some issue!",
+              color: kPrimaryColor);
         });
       }
-
-    }catch (error) {
+    } catch (error) {
       setState(() {
         isLoading = false;
-        CustomSnackBar.showSnackBar(context: context, message: "Something went wrong!", color: kPrimaryColor);
+        isReviewOrder = false;
+        CustomSnackBar.showSnackBar(
+            context: context,
+            message: "Something went wrong!",
+            color: kPrimaryColor);
       });
     }
-
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -181,17 +190,17 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                                     CountryFlag.fromCountryCode(
                                       width: 35,
                                       height: 35,
-                                      mCountry!,
+                                      mFromCountry!,
                                       shape: const Circle(),
                                     ),
                                     const SizedBox(width: defaultPadding),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                        CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            '$mCurrency Account',
+                                            '$mFromCurrency Account',
                                             style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 16,
@@ -210,32 +219,35 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                           ),
                           const SizedBox(height: defaultPadding),
                           TextFormField(
-                            controller: mFromAmount,
+                            controller: mFromAmountController,
                             keyboardType: TextInputType.number,
                             textInputAction: TextInputAction.next,
                             cursorColor: kPrimaryColor,
                             style: const TextStyle(color: kPrimaryColor),
-                            onChanged: (value){
-
-
-
+                            onChanged: (value) {
                               setState(() {
-
-                                if(selectedCurrency != "Select"){
-                                  if(mFromAmount.text.isNotEmpty){
+                                if (mToCurrency != "Select") {
+                                  if (mFromAmountController.text.isNotEmpty) {
                                     mExchangeMoneyApi();
-                                  }else{
-                                    CustomSnackBar.showSnackBar(context: context, message: "Please enter a amount", color: kPrimaryColor);
+                                  } else {
+                                    isReviewOrder = false;
+                                    CustomSnackBar.showSnackBar(
+                                        context: context,
+                                        message: "Please enter a amount",
+                                        color: kPrimaryColor);
                                   }
-                                }else{
-                                  CustomSnackBar.showSnackBar(context: context, message: "Please select an exchange account", color: kPrimaryColor);
+                                } else {
+                                  CustomSnackBar.showSnackBar(
+                                      context: context,
+                                      message:
+                                      "Please select an exchange account",
+                                      color: kPrimaryColor);
                                 }
                               });
-
                             },
 
                             decoration: InputDecoration(
-                              prefixText: '$mCurrencySymbol ',
+                              prefixText: '$mFromCurrencySymbol ',
                               labelText: "Amount",
                               labelStyle: const TextStyle(color: kPrimaryColor),
                               border: OutlineInputBorder(
@@ -261,7 +273,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                                     fontWeight: FontWeight.bold),
                               ),
                               Text(
-                                "$mCurrencySymbol $mTotalFees",
+                                "$mFromCurrencySymbol $mFromTotalFees",
                                 style: const TextStyle(
                                     color: kPrimaryColor,
                                     fontWeight: FontWeight.bold),
@@ -279,7 +291,8 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                                     fontWeight: FontWeight.bold),
                               ),
                               Text(
-                                "$mCurrencySymbol ${mAmount?.toStringAsFixed(2)}",
+                                "$mFromCurrencySymbol ${mFromAmount
+                                    ?.toStringAsFixed(2)}",
                                 style: const TextStyle(
                                     color: kPrimaryColor,
                                     fontWeight: FontWeight.bold),
@@ -308,7 +321,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                     Material(
                       elevation: 6.0,
                       shape: const CircleBorder(),
-                      child:  Container(
+                      child: Container(
                         width: 50,
                         height: 50,
                         decoration: const BoxDecoration(
@@ -320,7 +333,8 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                           child: CircularProgressIndicator(
                             color: kPrimaryColor,
                           ),
-                        ): const Center(
+                        )
+                            : const Center(
                           child: Icon(
                             Icons.arrow_downward,
                             size: 30,
@@ -345,7 +359,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                         children: [
                           GestureDetector(
                             onTap: () {
-                              mGetAllAccountBottomSheet(context, mCurrency);
+                              mGetAllAccountBottomSheet(context, mFromCurrency);
                             },
                             child: Card(
                               elevation: 1.0,
@@ -359,17 +373,17 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                                     CountryFlag.fromCountryCode(
                                       width: 35,
                                       height: 35,
-                                      selectedCountry!,
+                                      mToCountry!,
                                       shape: const Circle(),
                                     ),
                                     const SizedBox(width: defaultPadding),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                        CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            '$selectedCurrency Account',
+                                            '$mToCurrency Account',
                                             style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 16,
@@ -388,14 +402,15 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                           ),
                           const SizedBox(height: defaultPadding),
                           TextFormField(
-                            controller: mToAmount,
+                            controller: mToAmountController,
                             keyboardType: TextInputType.number,
                             textInputAction: TextInputAction.next,
                             cursorColor: kPrimaryColor,
                             style: const TextStyle(color: kPrimaryColor),
                             decoration: InputDecoration(
-                              prefixText: '$selectedCurrencySymbol ',
-                              prefixStyle: const TextStyle(color: kPrimaryColor),
+                              prefixText: '$mToCurrencySymbol ',
+                              prefixStyle:
+                              const TextStyle(color: kPrimaryColor),
                               labelText: "Amount",
                               labelStyle: const TextStyle(color: kPrimaryColor),
                               border: OutlineInputBorder(
@@ -419,7 +434,8 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                                     fontWeight: FontWeight.bold),
                               ),
                               Text(
-                                "$selectedCurrencySymbol ${selectedAmount?.toStringAsFixed(3)}",
+                                "$mToCurrencySymbol ${mToAmount
+                                    ?.toStringAsFixed(3)}",
                                 style: const TextStyle(
                                     color: kPrimaryColor,
                                     fontWeight: FontWeight.bold),
@@ -436,7 +452,8 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
               const SizedBox(height: 30),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 50),
-                child: ElevatedButton(
+                child: isReviewOrder == true
+                    ? ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: kPrimaryColor,
                     padding: const EdgeInsets.symmetric(
@@ -446,16 +463,33 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                     ),
                   ),
                   onPressed: () {
-                    /*Navigator.push(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) =>
-                              const ReviewExchangeMoneyScreen()),
-                    );*/
+                        builder: (context) =>
+                        ReviewExchangeMoneyScreen(
+                          fromAccountId: mFromAccountId,
+                          fromCountry:mFromCountry,
+                          fromCurrency: mFromCurrency,
+                          fromIban: mFromIban,
+                          fromAmount: mFromAmount,
+                          fromCurrencySymbol: mFromCurrencySymbol,
+                          fromTotalFees: mFromTotalFees,
+                          toAccountId: mToAccountId,
+                          toCountry:mToCountry,
+                          toCurrency: mToCurrency,
+                          toIban: mToIban,
+                          toAmount: mToAmount,
+                          toCurrencySymbol: mToCurrencySymbol),),
+                    );
+
                   },
-                  child: const Text('Review Order',
-                      style: TextStyle(color: Colors.white, fontSize: 16)),
-                ),
+                  child: const Text(
+                    'Review Order',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                )
+                    : Container(), // Show an empty container (or something else) when isReviewOrder is true
               ),
             ],
           ),
@@ -488,14 +522,12 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
               ),
               child: AllAccountsBottomSheet(
                 currency: mCurrency,
-                onAccountSelected: (
-                    String accountId,
+                onAccountSelected: (String accountId,
                     String country,
                     String currency,
                     String iban,
                     bool status,
-                    double amount,
-                    ) async {
+                    double amount,) async {
                   await mSetSelectedAccountData(
                     accountId,
                     country,
@@ -512,15 +544,15 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
       },
     );
   }
-
 }
 
 class AllAccountsBottomSheet extends StatefulWidget {
   final String? currency;
-  final Function(String, String, String, String, bool, double) onAccountSelected; // Update with required parameters
+  final Function(String, String, String, String, bool, double)
+  onAccountSelected; // Update with required parameters
 
-
-  const AllAccountsBottomSheet({super.key, this.currency,required this.onAccountSelected});
+  const AllAccountsBottomSheet(
+      {super.key, this.currency, required this.onAccountSelected});
 
   @override
   State<AllAccountsBottomSheet> createState() => _AllAccountsBottomSheetState();
@@ -572,206 +604,210 @@ class _AllAccountsBottomSheetState extends State<AllAccountsBottomSheet> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Change Account',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: kPrimaryColor,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: kPrimaryColor),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: defaultPadding,
+            ),
             const Text(
-              'Change Account',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: kPrimaryColor,
-              ),
+              "Select your preferred account for currency exchange. Easily switch between different currencies to manage your transactions.",
+              style: TextStyle(color: kPrimaryColor),
+              textAlign: TextAlign.center,
             ),
-            IconButton(
-              icon: const Icon(Icons.close, color: kPrimaryColor),
-              onPressed: () {
-                Navigator.pop(context);
-              },
+            const SizedBox(
+              height: defaultPadding,
             ),
-          ],
-        ),
-        const SizedBox(
-          height: defaultPadding,
-        ),
-        const Text(
-          "Select your preferred account for currency exchange. Easily switch between different currencies to manage your transactions.",
-          style: TextStyle(color: kPrimaryColor),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(
-          height: defaultPadding,
-        ),
-        Expanded(
-            child: isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(
-                      color: kPrimaryColor,
-                    ),
-                  )
-                : SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height,
-                          child: isLoading
-                              ? const Center(
-                                  child:
-                                      CircularProgressIndicator(), // Show loading indicator
-                                )
-                              : ListView.builder(
-                                  itemCount: accountsListData.length,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemBuilder: (context, index) {
-                                    final accountsData =
-                                        accountsListData[index];
-                                    final isSelected = index == _selectedIndex;
+            Expanded(
+                child: isLoading
+                    ? const Center(
+                  child: CircularProgressIndicator(
+                    color: kPrimaryColor,
+                  ),
+                )
+                    : SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: MediaQuery
+                            .of(context)
+                            .size
+                            .height,
+                        child: isLoading
+                            ? const Center(
+                          child:
+                          CircularProgressIndicator(), // Show loading indicator
+                        )
+                            : ListView.builder(
+                          itemCount: accountsListData.length,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemBuilder: (context, index) {
+                            final accountsData =
+                            accountsListData[index];
+                            final isSelected = index == _selectedIndex;
 
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 5,
-                                          horizontal: smallPadding),
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            _selectedIndex = index;
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 5,
+                                  horizontal: smallPadding),
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _selectedIndex = index;
 
-                                            if (widget.currency != accountsData.currency) {
-                                              widget.onAccountSelected(
-                                                accountsData.accountId ?? '',
-                                                accountsData.country ?? '',
-                                                accountsData.currency ?? '',
-                                                accountsData.iban ?? '',
-                                                accountsData.status ?? false,
-                                                accountsData.amount ?? 0.0,
-                                              );
-                                              Navigator.pop(context);
-                                            } else {
-                                              CustomSnackBar.showSnackBar(
-                                                context: context,
-                                                message: "Please Select Another Account",
-                                                color: kPrimaryColor,
-                                              );
-                                            }
-                                          });
-                                        },
-
-                                        child: Card(
-                                          elevation: 5,
-                                          color: isSelected
-                                              ? kPrimaryColor
-                                              : Colors.white,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                                defaultPadding),
-                                          ),
-                                          child: Container(
-                                            padding: const EdgeInsets.all(
-                                                defaultPadding),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    CountryFlag.fromCountryCode(
-                                                      width: 35,
-                                                      height: 35,
-                                                      accountsData.country!,
-                                                      shape: const Circle(),
-                                                    ),
-                                                    Text(
-                                                      "${accountsData.currency}",
-                                                      style: TextStyle(
-                                                        fontSize: 18,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: isSelected
-                                                            ? Colors.white
-                                                            : kPrimaryColor,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(
-                                                    height: defaultPadding),
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    Text(
-                                                      "IBAN",
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: isSelected
-                                                            ? Colors.white
-                                                            : kPrimaryColor,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      "${accountsData.iban}",
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: isSelected
-                                                            ? Colors.white
-                                                            : kPrimaryColor,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(
-                                                    height: defaultPadding),
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    Text(
-                                                      "Balance",
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: isSelected
-                                                            ? Colors.white
-                                                            : kPrimaryColor,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      "${accountsData.amount}",
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: isSelected
-                                                            ? Colors.white
-                                                            : kPrimaryColor,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
+                                    if (widget.currency !=
+                                        accountsData.currency) {
+                                      widget.onAccountSelected(
+                                        accountsData.accountId ?? '',
+                                        accountsData.country ?? '',
+                                        accountsData.currency ?? '',
+                                        accountsData.iban ?? '',
+                                        accountsData.status ?? false,
+                                        accountsData.amount ?? 0.0,
+                                      );
+                                      Navigator.pop(context);
+                                    } else {
+                                      CustomSnackBar.showSnackBar(
+                                        context: context,
+                                        message:
+                                        "Please Select Another Account",
+                                        color: kPrimaryColor,
+                                      );
+                                    }
+                                  });
+                                },
+                                child: Card(
+                                  elevation: 5,
+                                  color: isSelected
+                                      ? kPrimaryColor
+                                      : Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        defaultPadding),
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(
+                                        defaultPadding),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment
+                                              .spaceBetween,
+                                          children: [
+                                            CountryFlag.fromCountryCode(
+                                              width: 35,
+                                              height: 35,
+                                              accountsData.country!,
+                                              shape: const Circle(),
                                             ),
-                                          ),
+                                            Text(
+                                              "${accountsData.currency}",
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight:
+                                                FontWeight.bold,
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : kPrimaryColor,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ),
-                                    );
-                                  },
+                                        const SizedBox(
+                                            height: defaultPadding),
+                                        Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment
+                                              .spaceBetween,
+                                          children: [
+                                            Text(
+                                              "IBAN",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight:
+                                                FontWeight.bold,
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : kPrimaryColor,
+                                              ),
+                                            ),
+                                            Text(
+                                              "${accountsData.iban}",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight:
+                                                FontWeight.bold,
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : kPrimaryColor,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(
+                                            height: defaultPadding),
+                                        Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment
+                                              .spaceBetween,
+                                          children: [
+                                            Text(
+                                              "Balance",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight:
+                                                FontWeight.bold,
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : kPrimaryColor,
+                                              ),
+                                            ),
+                                            Text(
+                                              "${accountsData.amount}",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight:
+                                                FontWeight.bold,
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : kPrimaryColor,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
+                              ),
+                            );
+                          },
                         ),
-                      ],
-                    ),
-                  )),
-      ],
-    ));
+                      ),
+                    ],
+                  ),
+                )),
+          ],
+        ));
   }
 }
