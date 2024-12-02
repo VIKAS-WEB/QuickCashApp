@@ -40,7 +40,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
 
   bool isReviewOrder = false;
 
-  // Default Account ---
+  // To  Account ---
   String? mFromAccountId;
   String? mFromCountry;
   String? mFromCurrency;
@@ -50,7 +50,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
   String? mFromCurrencySymbol;
   double? mFromTotalFees = 0.0;
 
-  //Selected Account -----
+  //From Account -----
   String? mToAccountId = '';
   String? mToCountry = '';
   String? mToCurrency = 'Select';
@@ -58,6 +58,8 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
   bool? mToStatus;
   double? mToAmount = 0.0;
   String? mToCurrencySymbol = '';
+  double? mFromRate;
+
 
   @override
   void initState() {
@@ -123,7 +125,8 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
           isLoading = false;
           isReviewOrder = true;
           mFromTotalFees = response.data.totalFees;
-          mToAmountController.text = response.data.rate.toString();
+          mToAmountController.text = response.data.convertedAmount.toString();
+          mFromRate = response.data.rate;
         });
       } else {
         setState(() {
@@ -475,12 +478,15 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                           fromAmount: mFromAmount,
                           fromCurrencySymbol: mFromCurrencySymbol,
                           fromTotalFees: mFromTotalFees,
+                          fromRate: mFromRate,
+                          fromExchangeAmount: mFromAmountController.text,
                           toAccountId: mToAccountId,
                           toCountry:mToCountry,
                           toCurrency: mToCurrency,
                           toIban: mToIban,
                           toAmount: mToAmount,
-                          toCurrencySymbol: mToCurrencySymbol),),
+                          toCurrencySymbol: mToCurrencySymbol,
+                          toExchangedAmount: mToAmountController.text),),
                     );
 
                   },

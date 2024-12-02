@@ -11,6 +11,8 @@ class ReviewExchangeMoneyScreen extends StatefulWidget {
   final double? fromAmount;
   final String? fromCurrencySymbol;
   final double? fromTotalFees;
+  final double? fromRate;
+  final String? fromExchangeAmount;
 
   // To Data
   final String? toAccountId;
@@ -19,6 +21,8 @@ class ReviewExchangeMoneyScreen extends StatefulWidget {
   final String? toIban;
   final double? toAmount;
   final String? toCurrencySymbol;
+  final String? toExchangedAmount;
+
 
   const ReviewExchangeMoneyScreen({super.key,
     this.fromAccountId,
@@ -28,12 +32,15 @@ class ReviewExchangeMoneyScreen extends StatefulWidget {
     this.fromAmount,
     this.fromCurrencySymbol,
     this.fromTotalFees,
+    this.fromRate,
+    this.fromExchangeAmount,
     this.toAccountId,
     this.toCountry,
     this.toCurrency,
     this.toIban,
     this.toAmount,
-    this.toCurrencySymbol});
+    this.toCurrencySymbol,
+    this.toExchangedAmount});
 
   @override
   State<ReviewExchangeMoneyScreen> createState() =>
@@ -50,6 +57,9 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
   double? mFromAmount;
   String? mFromCurrencySymbol;
   double? mFromTotalFees;
+  double? mFromRate;
+  String? mExchangeAmount;
+  double? mTotalCharge;
 
   // To Data
   String? mToAccountId;
@@ -58,6 +68,8 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
   String? mToIban;
   double? mToAmount;
   String? mToCurrencySymbol;
+  double? mToRate;
+  String? mToExchangedAmount;
 
   @override
   void initState() {
@@ -74,6 +86,14 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
     mFromAmount = widget.fromAmount;
     mFromCurrencySymbol = widget.fromCurrencySymbol;
     mFromTotalFees = widget.fromTotalFees;
+    mFromRate = widget.fromRate;
+    mExchangeAmount = widget.fromExchangeAmount;
+
+
+    if (mExchangeAmount != null && mFromTotalFees != null) {
+      double exchangeAmount = double.tryParse(mExchangeAmount!) ?? 0.0;  // Default to 0.0 if parse fails
+      mTotalCharge = exchangeAmount + (mFromTotalFees ?? 0.0);
+    }
 
     // To Data
     mToAccountId = widget.toAccountId;
@@ -82,9 +102,7 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
     mToIban = widget.toIban;
     mToAmount = widget.toAmount;
     mToCurrencySymbol = widget.toCurrencySymbol;
-
-    print('FromAccountId: $mFromAccountId, FromCountry: $mFromCountry, FromCurrency: $mFromCurrency, FromIban: $mFromIban, FromAmount: $mFromAmount, FromCurrencySymbol: $mFromCurrencySymbol, FromTotalFees: $mFromTotalFees');
-    print('ToAccountId: $mToAccountId, ToCountry: $mToCountry, ToCurrency: $mToCurrency, ToIban: $mToIban, ToAmount: $mToAmount, ToCurrencySymbol: $mToCurrencySymbol');
+    mToExchangedAmount = widget.toExchangedAmount;
   }
 
   @override
@@ -104,18 +122,18 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Card(
+              Card(
                 elevation: 4.0,
                 color: Colors.white,
-                margin: EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+                margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
                 child: Padding(
-                  padding: EdgeInsets.all(defaultPadding),
+                  padding: const EdgeInsets.all(defaultPadding),
                   child: Column(
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
+                          const Text(
                             "Exchange",
                             style: TextStyle(
                                 fontSize: 16,
@@ -123,25 +141,25 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
                                 color: kPrimaryColor),
                           ),
                           Text(
-                            "\$1.0",
-                            style: TextStyle(
+                            "$mFromCurrencySymbol $mExchangeAmount",
+                            style: const TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 8,
                       ),
-                      Divider(
+                      const Divider(
                         color: kPrimaryLightColor,
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 8,
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
+                          const Text(
                             "Rate",
                             style: TextStyle(
                                 fontSize: 16,
@@ -149,25 +167,25 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
                                 color: kPrimaryColor),
                           ),
                           Text(
-                            "\$1.0",
-                            style: TextStyle(
+                            "1$mFromCurrencySymbol = $mFromRate",
+                            style: const TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 8,
                       ),
-                      Divider(
+                      const Divider(
                         color: kPrimaryLightColor,
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 8,
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
+                          const Text(
                             "Fee",
                             style: TextStyle(
                                 fontSize: 16,
@@ -175,25 +193,25 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
                                 color: kPrimaryColor),
                           ),
                           Text(
-                            "\$1.0",
-                            style: TextStyle(
+                            "$mFromCurrencySymbol $mFromTotalFees",
+                            style: const TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 8,
                       ),
-                      Divider(
+                      const Divider(
                         color: kPrimaryLightColor,
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 8,
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
+                          const Text(
                             "Total Charge",
                             style: TextStyle(
                                 fontSize: 16,
@@ -201,25 +219,25 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
                                 color: kPrimaryColor),
                           ),
                           Text(
-                            "\$1.0",
-                            style: TextStyle(
+                            "$mFromCurrencySymbol $mTotalCharge",
+                            style: const TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 8,
                       ),
-                      Divider(
+                      const Divider(
                         color: kPrimaryLightColor,
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 8,
                       ),
-                      Row(
+                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
+                          const Text(
                             "Will get Exactly",
                             style: TextStyle(
                                 fontSize: 16,
@@ -227,8 +245,8 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
                                 color: kPrimaryColor),
                           ),
                           Text(
-                            "\$1.0",
-                            style: TextStyle(
+                            "$mToCurrencySymbol $mToExchangedAmount",
+                            style: const TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ],
