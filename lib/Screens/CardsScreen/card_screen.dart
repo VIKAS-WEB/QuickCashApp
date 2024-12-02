@@ -6,6 +6,7 @@ import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListApi.dart';
 import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListModel.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/auth_manager.dart';
+import 'package:quickcash/util/customSnackBar.dart';
 
 import '../../model/currencyApiModel/currencyApi.dart';
 import '../../model/currencyApiModel/currencyModel.dart';
@@ -191,39 +192,43 @@ class _AddCardBottomSheetState extends State<AddCardBottomSheet> {
   }
 
   Future<void> mAddCard() async {
-    setState(() {
-      isLoading = true;
-      errorMessage = null;
-    });
-
-    try{
-      final response = await _addCardApi.addCardApi(AuthManager.getUserId(), name.text, selectedCurrency.toString());
-
-      if(response.message == "Card is added Successfully!!!"){
+    if(selectedCurrency !=null){
+      if(name.text.isNotEmpty){
         setState(() {
-          isLoading = false;
-          name.clear();
-          Navigator.pop(context);
+          isLoading = true;
           errorMessage = null;
         });
-        widget.onCardAdded();
-      } else if(response.message == "Same Currency Account is already added in our record"){
-        setState(() {
-          isLoading = false;
-          errorMessage = 'Same Currency Account is already added in our record';
-        });
-      } else {
-        setState(() {
-          isLoading = false;
-          errorMessage = 'We are facing some issue!';
-        });
-      }
 
-    } catch (error) {
-      setState(() {
-        isLoading = false;
-        errorMessage = error.toString();
-      });
+        try{
+          final response = await _addCardApi.addCardApi(AuthManager.getUserId(), name.text, selectedCurrency.toString());
+
+          if(response.message == "Card is added Successfully!!!"){
+            setState(() {
+              isLoading = false;
+              name.clear();
+              Navigator.pop(context);
+              errorMessage = null;
+            });
+            widget.onCardAdded();
+          } else if(response.message == "Same Currency Account is already added in our record"){
+            setState(() {
+              isLoading = false;
+              errorMessage = 'Same Currency Account is already added in our record';
+            });
+          } else {
+            setState(() {
+              isLoading = false;
+              errorMessage = 'We are facing some issue!';
+            });
+          }
+
+        } catch (error) {
+          setState(() {
+            isLoading = false;
+            errorMessage = error.toString();
+          });
+        }
+      }
     }
   }
 
