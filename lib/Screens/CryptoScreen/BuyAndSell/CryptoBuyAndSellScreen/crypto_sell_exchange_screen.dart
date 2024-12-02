@@ -925,7 +925,114 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
               ),
             ),
             const SizedBox(height: 35.0),
+
             Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 50),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: kPrimaryColor,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                // Disable button if mAmount is null
+                onPressed: isLoading &&
+                    mAmount.text.isEmpty &&
+                    selectedCurrency != null &&
+                    selectedCoinType != null
+                    ? null
+                    : () {
+                  if (selectedCoinType == null) {
+                    CustomSnackBar.showSnackBar(
+                        context: context,
+                        message: "Please Select Coins",
+                        color: kPrimaryColor);
+                  } else if (mAmount.text.isEmpty) {
+                    CustomSnackBar.showSnackBar(
+                        context: context,
+                        message: "Please Enter No of Coins",
+                        color: kPrimaryColor);
+                  } else if (selectedCurrency == null) {
+                    CustomSnackBar.showSnackBar(
+                        context: context,
+                        message: "Please Select Currency",
+                        color: kPrimaryColor);
+                  } else {
+
+                    double availableCoins = double.tryParse(mCryptoSellCoinAvailable!) ?? 0;
+
+                    if (availableCoins < 0) {
+                      CustomSnackBar.showSnackBar(
+                        context: context,
+                        message: "Available coins are negative",
+                        color: kPrimaryColor,
+                      );
+                      return;
+                    }
+
+                    double enteredAmount = double.tryParse(mAmount.text) ?? 0;
+                    if (enteredAmount <= 0) {
+                      CustomSnackBar.showSnackBar(
+                        context: context,
+                        message: "Please Enter a Valid Coin Amount",
+                        color: kPrimaryColor,
+                      );
+                      return;
+                    }
+
+                    if (enteredAmount > availableCoins) {
+                      CustomSnackBar.showSnackBar(
+                        context: context,
+                        message: "You cannot sell more coins than are available.",
+                        color: kPrimaryColor,
+                      );
+                      return;
+                    }
+
+
+                    // If all checks pass, proceed to the next page
+                    if (mAmount.text.isNotEmpty &&
+                        selectedCurrency != null &&
+                        selectedCoinType != null &&
+                        mSellCryptoFees != null &&
+                        mYouGet.text.isNotEmpty &&
+                        mEstimatedRate != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ConfirmBuyScreen(
+                            mCryptoAmount: mAmount.text,
+                            mCurrency: selectedCurrency,
+                            mCoinName: selectedCoinType,
+                            mFees: mSellCryptoFees,
+                            mYouGetAmount: mYouGet.text,
+                            mEstimateRates: mEstimatedRate,
+                            mCryptoType: "Crypto Sell",
+                          ),
+                        ),
+                      );
+                    } else {
+                      CustomSnackBar.showSnackBar(
+                          context: context,
+                          message: "Please Enter Valid Details",
+                          color: kPrimaryColor);
+                    }
+                  }
+                },
+                child: isLoading
+                    ? const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(kWhiteColor),
+                )
+                    : const Text(
+                  'Proceed',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ),
+            ),
+
+
+            /*Padding(
               padding: const EdgeInsets.symmetric(horizontal: 50),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -959,6 +1066,13 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                               message: "Please Select Currency",
                               color: kPrimaryColor);
                         } else {
+
+                          if(mCryptoSellCoinAvailable! < 0){
+
+                          }
+
+
+
                           if (mAmount.text.isNotEmpty &&
                               selectedCurrency != null &&
                               selectedCoinType != null &&
@@ -995,7 +1109,7 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
                         style: TextStyle(color: Colors.white, fontSize: 16),
                       ),
               ),
-            ),
+            ),*/
           ],
         ),
       ),
