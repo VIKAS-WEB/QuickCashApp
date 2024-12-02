@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/cryptoSellModel/cryptoSellModel/cryptoSellApi.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/cryptoSellModel/cryptoSellModel/cryptoSellModel.dart';
-import 'package:quickcash/Screens/HomeScreen/home_screen.dart';
+import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/TransactionSuccessScreen/transactionSuccessScreen.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/auth_manager.dart';
 
@@ -114,7 +114,6 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
         setState(() {
           walletAddress.text = response.data.addresses.first.address;
           isLoading = false;
-
         });
       }else if(response.message == "Wallet Address is not available please request wallet address"){
         CustomSnackBar.showSnackBar(
@@ -170,8 +169,6 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
         });
       }
 
-
-
     }catch (error) {
       setState(() {
         isLoading = false;
@@ -199,7 +196,7 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
       if(response.message == "Crypto Transactions Successfully updated!!!"){
         setState(() {
           isUpdateLoading = false;
-          mTransactionDetails(response.data.id);
+          mTransactionDetails(response.data.id,"Crypto Sell");
         });
       }else{
         setState(() {
@@ -258,7 +255,7 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
               isUpdateLoading = false;
               mCryptoSellAddTransactionId = response.data.id;
 
-              mTransactionDetails(response.data.id);
+              mTransactionDetails(response.data.id,"Crypto Buy");
             });
           } else if (response.message == "All fields are mandatory") {
             setState(() {
@@ -302,7 +299,7 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
 
 
   // Crypto Transaction Details api ----
-  Future<void> mTransactionDetails(String id) async{
+  Future<void> mTransactionDetails(String id, String mCryptoType) async{
     setState(() {
       isLoading = true;
     });
@@ -313,7 +310,17 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
       if(response.message == "list are fetched Successfully"){
         setState(() {
           isLoading = false;
-          mPaymentSuccessDialog(context,mTotalAmount,mCurrency,mCoin,mGetAmount);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TransactionSuccessScreen(
+                  totalAmount: mTotalAmount,
+                  currency: mCurrency,
+                  coinName: mCoin,
+                  gettingCoin: mGetAmount,
+                  mCryptoType: mCryptoType),
+            ),
+          );
         });
 
       }else{
@@ -330,7 +337,6 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
     }catch (error) {
       setState(() {
         isLoading = false;
-        print(error);
         CustomSnackBar.showSnackBar(
           context: context,
           message: "Something went wrong!",
@@ -879,196 +885,5 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
       default:
         return '';
     }
-  }
-}
-
-Future<void> mPaymentSuccessDialog(BuildContext context, double? mTotalAmount, String? mCurrency, String? mCoin, String? mGetAmount) async {
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return PaymentSuccessScreen(
-        totalAmount: mTotalAmount,
-          currency: mCurrency,
-          coinName: mCoin,
-          gettingCoin: mGetAmount,
-      );
-    },
-  );
-}
-
-class PaymentSuccessScreen extends StatefulWidget {
-  final double? totalAmount;
-  final String? currency;
-  final String? coinName;
-  final String? gettingCoin;
-
-  const PaymentSuccessScreen({super.key,this.totalAmount,this.currency,this.coinName,this.gettingCoin});
-
-  @override
-  State<PaymentSuccessScreen> createState() => _PaymentSuccessScreenState();
-}
-
-class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
-  double screenWidth = 600;
-  double screenHeight = 400;
-
-  @override
-  Widget build(BuildContext context) {
-    screenWidth = MediaQuery.of(context).size.width;
-    screenHeight = MediaQuery.of(context).size.height;
-    return AlertDialog(
-      content: SizedBox(
-        width: screenWidth,
-        height: screenHeight,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              const SizedBox(
-                height: 55,
-              ),
-              Image.asset(
-                "assets/images/payment_success.png",
-                fit: BoxFit.contain,
-                width: 110, // Set your desired width
-                height: 110, // Set your desired height
-              ),
-              const SizedBox(
-                height: 55,
-              ),
-              const Text(
-                "Thank You!",
-                style: TextStyle(
-                    color: kGreenColor,
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(
-                height: 4,
-              ),
-              const Text(
-                "Transaction Completed",
-                style: TextStyle(
-                    color: kPrimaryColor,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 16),
-              ),
-              const SizedBox(
-                height: 35,
-              ),
-              const Text(
-                "Please wait for admin admin approval!",
-                style: TextStyle(color: Colors.black87, fontSize: 16),
-              ),
-              const SizedBox(height: largePadding,),
-              Container(
-                height: 90,
-                width: double.infinity,
-                padding: const EdgeInsets.all(defaultPadding),
-                decoration: BoxDecoration(
-                  color: kPrimaryLightColor,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                      spreadRadius: 1,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-
-                    const Text("Total",style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.w500,fontSize: 16),),
-                    const SizedBox(height: 5,),
-                    Text("${widget.totalAmount} ${widget.currency}",style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold,fontSize: 16),maxLines: 5, // Limit the number of lines if needed
-                      overflow: TextOverflow.ellipsis,),
-
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: largePadding,),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(defaultPadding),
-                decoration: BoxDecoration(
-                  color: kPrimaryLightColor,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                      spreadRadius: 1,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      "Getting Coin",
-                      style: TextStyle(
-                          color: kPrimaryColor,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16),
-                    ),
-                    const SizedBox(height: 5),
-                    // Use TextOverflow and maxLines to prevent overflow
-                    Text(
-                      '${widget.gettingCoin?.toString() ?? '0.0'} - ${widget.coinName}',
-                      style: const TextStyle(
-                          color: kPrimaryColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16),
-                      maxLines: 5, // Limit the number of lines if needed
-                      overflow: TextOverflow.ellipsis, // Truncate text if it's too long
-                    ),
-                    const SizedBox(height: 4),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 65,),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 50),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: kPrimaryColor,
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HomeScreen(),
-                      ),
-                    );
-                  },
-                  child: const Text('Home',
-                      style: TextStyle(color: Colors.white, fontSize: 16)),
-                ),
-              ),
-
-
-
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
