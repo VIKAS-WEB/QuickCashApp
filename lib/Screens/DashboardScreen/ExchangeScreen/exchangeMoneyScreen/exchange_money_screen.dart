@@ -1,11 +1,13 @@
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListApi.dart';
-import 'package:quickcash/Screens/DashboardScreen/ExchangeScreen/review_exchange_money_screen.dart';
+import 'package:quickcash/Screens/DashboardScreen/ExchangeScreen/exchangeMoneyScreen/exchangeMoneyModel/exchangeMoneyApi.dart';
+import 'package:quickcash/Screens/DashboardScreen/ExchangeScreen/exchangeMoneyScreen/exchangeMoneyModel/exchangeMoneyModel.dart';
 import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart';
+import 'package:quickcash/util/auth_manager.dart';
 import 'package:quickcash/util/customSnackBar.dart';
-import '../Dashboard/AccountsList/accountsListModel.dart';
+import '../../Dashboard/AccountsList/accountsListModel.dart';
 
 class ExchangeMoneyScreen extends StatefulWidget {
   final String? accountId;
@@ -29,6 +31,16 @@ class ExchangeMoneyScreen extends StatefulWidget {
 }
 
 class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
+
+  final ExchangeMoneyApi _exchangeMoneyApi = ExchangeMoneyApi();
+
+  final TextEditingController mFromAmount = TextEditingController();
+  final TextEditingController mToAmount = TextEditingController();
+
+  bool isLoading = false;
+
+
+
   // Default Account ---
   String? mAccountId;
   String? mCountry;
@@ -37,6 +49,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
   bool? mStatus;
   double? mAmount;
   String? mCurrencySymbol;
+  double? mTotalFees = 0.0;
 
   //Selected Account -----
   String? selectedAccountId = '';
@@ -46,6 +59,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
   bool? selectedStatus;
   double? selectedAmount = 0.0;
   String? selectedCurrencySymbol = '';
+
 
   @override
   void initState() {
@@ -88,6 +102,41 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
     // Extract the currency symbol
     return format.currencySymbol;
   }
+
+
+  // Exchange Money Api **************
+  Future<void> mExchangeMoneyApi() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try{
+      final request = ExchangeMoneyRequest(userId: AuthManager.getUserId(), amount: mFromAmount.text, fromCurrency: mCurrency!, toCurrency: selectedCurrency!);
+      final response = await _exchangeMoneyApi.exchangeMoneyApi(request);
+
+      if(response.message == "Success"){
+        setState(() {
+          isLoading = false;
+          mTotalFees = response.data.totalFees;
+          mToAmount.text = response.data.rate.toString();
+        });
+
+      }else{
+        setState(() {
+          isLoading = false;
+          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kPrimaryColor);
+        });
+      }
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        CustomSnackBar.showSnackBar(context: context, message: "Something went wrong!", color: kPrimaryColor);
+      });
+    }
+
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -161,10 +210,29 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                           ),
                           const SizedBox(height: defaultPadding),
                           TextFormField(
+                            controller: mFromAmount,
                             keyboardType: TextInputType.number,
                             textInputAction: TextInputAction.next,
                             cursorColor: kPrimaryColor,
                             style: const TextStyle(color: kPrimaryColor),
+                            onChanged: (value){
+
+
+
+                              setState(() {
+
+                                if(selectedCurrency != "Select"){
+                                  if(mFromAmount.text.isNotEmpty){
+                                    mExchangeMoneyApi();
+                                  }else{
+                                    CustomSnackBar.showSnackBar(context: context, message: "Please enter a amount", color: kPrimaryColor);
+                                  }
+                                }else{
+                                  CustomSnackBar.showSnackBar(context: context, message: "Please select an exchange account", color: kPrimaryColor);
+                                }
+                              });
+
+                            },
 
                             decoration: InputDecoration(
                               prefixText: '$mCurrencySymbol ',
@@ -193,7 +261,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                                     fontWeight: FontWeight.bold),
                               ),
                               Text(
-                                "$mCurrencySymbol 0",
+                                "$mCurrencySymbol $mTotalFees",
                                 style: const TextStyle(
                                     color: kPrimaryColor,
                                     fontWeight: FontWeight.bold),
@@ -240,14 +308,19 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                     Material(
                       elevation: 6.0,
                       shape: const CircleBorder(),
-                      child: Container(
+                      child:  Container(
                         width: 50,
                         height: 50,
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.white,
                         ),
-                        child: const Center(
+                        child: isLoading
+                            ? const Center(
+                          child: CircularProgressIndicator(
+                            color: kPrimaryColor,
+                          ),
+                        ): const Center(
                           child: Icon(
                             Icons.arrow_downward,
                             size: 30,
@@ -315,12 +388,14 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                           ),
                           const SizedBox(height: defaultPadding),
                           TextFormField(
+                            controller: mToAmount,
                             keyboardType: TextInputType.number,
                             textInputAction: TextInputAction.next,
                             cursorColor: kPrimaryColor,
                             style: const TextStyle(color: kPrimaryColor),
                             decoration: InputDecoration(
                               prefixText: '$selectedCurrencySymbol ',
+                              prefixStyle: const TextStyle(color: kPrimaryColor),
                               labelText: "Amount",
                               labelStyle: const TextStyle(color: kPrimaryColor),
                               border: OutlineInputBorder(
@@ -371,12 +446,12 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                     ),
                   ),
                   onPressed: () {
-                    Navigator.push(
+                    /*Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) =>
                               const ReviewExchangeMoneyScreen()),
-                    );
+                    );*/
                   },
                   child: const Text('Review Order',
                       style: TextStyle(color: Colors.white, fontSize: 16)),
