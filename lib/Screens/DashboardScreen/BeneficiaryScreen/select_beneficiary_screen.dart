@@ -45,7 +45,6 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                   padding: const EdgeInsets.all(defaultPadding),
                   child: Column(
                     children: [
-                      const SizedBox(height: defaultPadding),
                       TextFormField(
                         keyboardType: TextInputType.text,
                         textInputAction: TextInputAction.next,
@@ -58,6 +57,8 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                             borderRadius: BorderRadius.circular(12),
                             borderSide: const BorderSide(),
                           ),
+                          filled: true,
+                          fillColor: Colors.transparent,
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -82,6 +83,8 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                             borderRadius: BorderRadius.circular(12),
                             borderSide: const BorderSide(),
                           ),
+                          filled: true,
+                          fillColor: Colors.transparent,
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -106,6 +109,8 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                             borderRadius: BorderRadius.circular(12),
                             borderSide: const BorderSide(),
                           ),
+                          filled: true,
+                          fillColor: Colors.transparent,
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -130,6 +135,8 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                             borderRadius: BorderRadius.circular(12),
                             borderSide: const BorderSide(),
                           ),
+                          filled: true,
+                          fillColor: Colors.transparent,
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -154,6 +161,8 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                             borderRadius: BorderRadius.circular(12),
                             borderSide: const BorderSide(),
                           ),
+                          filled: true,
+                          fillColor: Colors.transparent,
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -179,6 +188,8 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                             borderRadius: BorderRadius.circular(12),
                             borderSide: const BorderSide(),
                           ),
+                          filled: true,
+                          fillColor: Colors.transparent,
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -207,6 +218,7 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                             borderRadius: BorderRadius.circular(12),
                             borderSide: const BorderSide(),
                           ),
+                          fillColor: Colors.transparent,
                         ),
                       ),
                       const SizedBox(height: defaultPadding),
@@ -221,6 +233,8 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                             borderRadius: BorderRadius.circular(12),
                             borderSide: const BorderSide(),
                           ),
+                          filled: true,
+                          fillColor: Colors.transparent,
                         ),
                         maxLines: 10,
                         minLines: 1,
