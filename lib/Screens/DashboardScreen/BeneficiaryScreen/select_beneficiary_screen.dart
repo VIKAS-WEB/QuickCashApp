@@ -2,10 +2,14 @@ import 'dart:async';
 
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:quickcash/Screens/DashboardScreen/BeneficiaryScreen/addBeneficiaryModel/addBeneficiaryApi.dart';
+import 'package:quickcash/Screens/DashboardScreen/BeneficiaryScreen/addBeneficiaryModel/addBeneficiaryModel.dart';
 import 'package:quickcash/Screens/DashboardScreen/BeneficiaryScreen/beneficiaryCurrencyModel/beneficiaryCurrencyApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/BeneficiaryScreen/beneficiaryCurrencyModel/beneficiaryCurrencyModel.dart';
+import 'package:quickcash/util/auth_manager.dart';
 
 import '../../../constants.dart';
+import '../../../util/customSnackBar.dart';
 
 class SelectBeneficiaryScreen extends StatefulWidget {
   const SelectBeneficiaryScreen({super.key});
@@ -17,21 +21,23 @@ class SelectBeneficiaryScreen extends StatefulWidget {
 class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   TextEditingController country = TextEditingController();
-  TextEditingController state = TextEditingController();
-  TextEditingController city = TextEditingController();
+  TextEditingController mFullName = TextEditingController();
+  TextEditingController mEmail = TextEditingController();
+  TextEditingController mMobileNo = TextEditingController();
+  TextEditingController mBankName = TextEditingController();
+  TextEditingController mIban = TextEditingController();
+  TextEditingController mBicCode = TextEditingController();
+  TextEditingController mAddress = TextEditingController();
 
   final BeneficiaryCurrencyApi _beneficiaryCurrencyApi = BeneficiaryCurrencyApi();
+  final AddBeneficiaryApi _addBeneficiaryApi = AddBeneficiaryApi();
   String? selectedCurrency;
   String? mCurrencyCode;
   List<BeneficiaryCurrencyData> currency = [];
 
   String? selectedCountry;
+  bool isLoading = false;
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      // Process payment here
-    }
-  }
 
   @override
   void initState() {
@@ -39,11 +45,65 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
     mGetCurrency();
   }
 
+  // Currency Api **********
   Future<void> mGetCurrency() async {
     final response = await _beneficiaryCurrencyApi.beneficiaryCurrencyApi();
 
     if (response.data.isNotEmpty) {
       currency = response.data;
+    }
+  }
+
+  // Add Beneficiary Api **************
+  Future<void> mAddBeneficiary() async {
+    if (_formKey.currentState!.validate()) {
+      if(selectedCountry !=null){
+        setState(() {
+          isLoading = true;
+        });
+
+        try{
+
+          final request = AddBeneficiaryRequest(userId: AuthManager.getUserId(), name: mFullName.text, email: mEmail.text, address: mAddress.text, mobile: mMobileNo.text, iban: mIban.text, bicCode: mBicCode.text, country: selectedCountry!, rType: "Individual", currency: mCurrencyCode!, status: true, bankName: mBankName.text);
+          final response = await _addBeneficiaryApi.addBeneficiaryApi(request);
+
+          if(response.message == "Receipient is added Successfully!!!"){
+            setState(() {
+              isLoading = false;
+              CustomSnackBar.showSnackBar(context: context, message: "Beneficiary is added Successfully", color: kPrimaryColor);
+              mFullName.clear();
+              mEmail.clear();
+              mMobileNo.clear();
+              mBankName.clear();
+              mIban.clear();
+              mBicCode.clear();
+              mAddress.clear();
+              selectedCountry = '';
+              selectedCurrency = '';
+              mCurrencyCode = '';
+            });
+
+          }else{
+            setState(() {
+              CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kPrimaryColor);
+              isLoading = false;
+            });
+          }
+
+
+        }catch (error) {
+          setState(() {
+            isLoading = false;
+            CustomSnackBar.showSnackBar(
+                context: context,
+                message: "Something went wrong!",
+                color: kPrimaryColor);
+          });
+        }
+
+      }else{
+        CustomSnackBar.showSnackBar(context: context, message: "Please Select Country", color: kPrimaryColor);
+      }
     }
   }
 
@@ -71,6 +131,7 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                   child: Column(
                     children: [
                       TextFormField(
+                        controller: mFullName,
                         keyboardType: TextInputType.text,
                         textInputAction: TextInputAction.next,
                         cursorColor: kPrimaryColor,
@@ -97,6 +158,7 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                       ),
                       const SizedBox(height: defaultPadding),
                       TextFormField(
+                        controller: mEmail,
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
                         cursorColor: kPrimaryColor,
@@ -123,6 +185,7 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                       ),
                       const SizedBox(height: defaultPadding),
                       TextFormField(
+                        controller: mMobileNo,
                         keyboardType: TextInputType.phone,
                         textInputAction: TextInputAction.next,
                         cursorColor: kPrimaryColor,
@@ -149,6 +212,7 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                       ),
                       const SizedBox(height: defaultPadding),
                       TextFormField(
+                        controller: mBankName,
                         keyboardType: TextInputType.text,
                         textInputAction: TextInputAction.next,
                         cursorColor: kPrimaryColor,
@@ -175,6 +239,7 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                       ),
                       const SizedBox(height: defaultPadding),
                       TextFormField(
+                        controller: mIban,
                         keyboardType: TextInputType.text,
                         textInputAction: TextInputAction.next,
                         cursorColor: kPrimaryColor,
@@ -202,6 +267,7 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                       ),
                       const SizedBox(height: defaultPadding),
                       TextFormField(
+                        controller: mBicCode,
                         keyboardType: TextInputType.text,
                         textInputAction: TextInputAction.next,
                         cursorColor: kPrimaryColor,
@@ -281,9 +347,7 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                                           title: Text(
                                             currencyItem.currencyName,
                                             style: const TextStyle(
-                                                color: kPrimaryColor,
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold),
+                                                color: kPrimaryColor,),
                                           ),
                                           onTap: () {
                                             Navigator.pop(context, currencyItem);
@@ -316,7 +380,7 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  selectedCurrency ?? "Select Currency", // Show selected currency name
+                                  selectedCurrency ?? "Select Currency",
                                   style: const TextStyle(
                                     color: kPrimaryColor,
                                   ),
@@ -331,9 +395,11 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
 
                       const SizedBox(height: defaultPadding),
                       TextFormField(
+                        controller: mAddress,
                         keyboardType: TextInputType.text,
                         cursorColor: kPrimaryColor,
                         textInputAction: TextInputAction.none,
+                        style: const TextStyle(color: kPrimaryColor),
                         decoration: InputDecoration(
                           labelText: 'Recipient Address',
                           labelStyle: const TextStyle(color: kPrimaryColor),
@@ -353,6 +419,15 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                           return null;
                         },
                       ),
+
+                      const SizedBox(height: largePadding,),
+                      if (isLoading) const Center(
+                        child: CircularProgressIndicator(
+                          color: kPrimaryColor,
+                        ),
+                      ), // Show loading indicator
+
+
                       const SizedBox(height: 35),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 50),
@@ -364,7 +439,7 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                               borderRadius: BorderRadius.circular(16),
                             ),
                           ),
-                          onPressed: _submitForm,
+                          onPressed: isLoading ? null : mAddBeneficiary,
                           child: const Text('Submit', style: TextStyle(color: Colors.white, fontSize: 16)),
                         ),
                       ),

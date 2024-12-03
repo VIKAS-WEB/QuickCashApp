@@ -9,7 +9,7 @@ class AddBeneficiaryRequest {
   final String country;
   final String rType;
   final String currency;
-  final String status;
+  final bool status;
   final String bankName;
 
   AddBeneficiaryRequest({

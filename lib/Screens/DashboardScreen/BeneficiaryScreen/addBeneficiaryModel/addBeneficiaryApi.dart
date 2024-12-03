@@ -11,12 +11,12 @@ class AddBeneficiaryApi {
     _dio.options.headers['Authorization'] = 'Bearer ${AuthManager.getToken()}';
 
 
-    /* _dio.interceptors.add(LogInterceptor(
+     _dio.interceptors.add(LogInterceptor(
       request: true,
       requestBody: true,
       responseBody: true,
       responseHeader: true,
-    ));*/
+    ));
   }
 
 
