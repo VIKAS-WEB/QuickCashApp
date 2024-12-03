@@ -68,17 +68,17 @@ class _AllAccountsScreenState extends State<AllAccountsScreen>{
         ),
       ),
       body: SingleChildScrollView(
-        child: isLoading
-            ? const Center(
-          child: CircularProgressIndicator(), // Show loading indicator
-        )
-            : Column(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
               height: MediaQuery.of(context).size.height,
 
-              child: ListView.builder(
+              child:  isLoading
+                  ? const Center(
+                child: CircularProgressIndicator(), // Show loading indicator
+              )
+                  : ListView.builder(
                 itemCount: accountsListData.length,
                 itemBuilder: (context, index) {
                   final accountsData = accountsListData[index];
@@ -111,8 +111,6 @@ class _AllAccountsScreenState extends State<AllAccountsScreen>{
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-
-
 
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

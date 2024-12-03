@@ -1,6 +1,11 @@
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
+import 'package:quickcash/Screens/DashboardScreen/ExchangeScreen/reviewExchangeMoneyScreen/addExchangeModel/addExchangeMoneyModel.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/util/auth_manager.dart';
+import '../../../../util/customSnackBar.dart';
+import '../../../HomeScreen/home_screen.dart';
+import 'addExchangeModel/addExchangeApi.dart';
 
 class ReviewExchangeMoneyScreen extends StatefulWidget {
   // From Data
@@ -48,6 +53,8 @@ class ReviewExchangeMoneyScreen extends StatefulWidget {
 }
 
 class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
+  final AddExchangeApi _addExchangeApi = AddExchangeApi();
+  bool isLoading = false;
 
   // From Data
   String? mFromAccountId;
@@ -103,6 +110,52 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
     mToAmount = widget.toAmount;
     mToCurrencySymbol = widget.toCurrencySymbol;
     mToExchangedAmount = widget.toExchangedAmount;
+  }
+
+
+  // Add Exchange api ************************
+  Future<void> mAddExchangeApi() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try{
+
+      String info = 'Convert $mFromCurrency to $mToCurrency';
+      String amountText = '$mToCurrencySymbol $mToExchangedAmount';
+
+      final request = AddExchangeRequest(userId: AuthManager.getUserId(), sourceAccount: mToAccountId!, transferAccount: mFromAccountId!, transType: "Exchange", fee: mFromTotalFees!, info: info, country: mToCountry!, fromAmount: mFromAmount!, amount: mToExchangedAmount!, amountText: amountText, fromAmountText: mFromAmount!.toStringAsFixed(2), fromCurrency: mFromCurrency!, toCurrency: mToCurrency!, status: "Success");
+      final response = await _addExchangeApi.addExchangeApi(request);
+
+      if(response.message == "Transaction is added Successfully!!!"){
+        setState(() {
+          isLoading = false;
+          CustomSnackBar.showSnackBar(context: context, message: "Exchange has been done Successfully", color: kPrimaryColor);
+          Navigator.of(context).pop();
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomeScreen(),
+            ),
+          );
+        });
+      }else{
+        setState(() {
+          isLoading = false;
+          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kPrimaryColor);
+        });
+      }
+
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        CustomSnackBar.showSnackBar(
+            context: context,
+            message: "Something went wrong!",
+            color: kPrimaryColor);
+      });
+    }
+
   }
 
   @override
@@ -328,6 +381,15 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
                   ),
                 ),
               ),
+
+              const SizedBox(height: largePadding,),
+              if (isLoading) const Center(
+                child: CircularProgressIndicator(
+                  color: kPrimaryColor,
+                ),
+              ), // Show loading indicator
+
+
               const SizedBox(height: 30),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 50),
@@ -340,9 +402,7 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  onPressed: () {
-                    //Something here
-                  },
+                  onPressed: isLoading ? null : mAddExchangeApi,
                   child: const Text('Exchange',
                       style: TextStyle(color: Colors.white, fontSize: 16)),
                 ),

@@ -126,7 +126,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
 
               const SizedBox(height: defaultPadding),
 
-              GestureDetector(
+            /*  GestureDetector(
                 onTap: () {
                   // Navigate to PayRecipientsScreen when tapped
                   Navigator.push(
@@ -217,7 +217,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                   ),
                 ),
               ),
-
+*/
             ],
           ),
         ),
