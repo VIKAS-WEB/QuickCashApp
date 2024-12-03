@@ -1,3 +1,4 @@
+import 'package:country_picker/country_picker.dart';
 import 'package:country_state_city_pro/country_state_city_pro.dart';
 import 'package:flutter/material.dart';
 
@@ -15,6 +16,8 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
   TextEditingController country = TextEditingController();
   TextEditingController state = TextEditingController();
   TextEditingController city = TextEditingController();
+
+  String? selectedCountry;
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
@@ -203,24 +206,44 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                         },
                       ),
                       const SizedBox(height: defaultPadding),
-                      CountryStateCityPicker(
-                        country: country,
-                        state: state,
-                        city: city,
-                        dialogColor: Colors.white,
-                        textFieldDecoration: InputDecoration(
-                          filled: true,
-                          counterStyle: const TextStyle(color: kPrimaryColor),
-                          labelStyle: const TextStyle(color: kPrimaryColor),
-                          hintStyle: const TextStyle(color: kPrimaryColor),
-                          suffixIcon: const Icon(Icons.arrow_drop_down, color: kPrimaryColor),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(),
+
+                      GestureDetector(
+                        onTap: () {
+                          showCountryPicker(
+                            context: context,
+                            onSelect: (Country country) {
+                              setState(() {
+                                selectedCountry = country.name; // Set the selected country
+                              });
+                              // ScaffoldMessenger.of(context).showSnackBar(
+                              //   SnackBar(content: Text('Selected Country: ${country.name}')),
+                              // );
+                            },
+                          );
+                        },
+                        child: TextFormField(
+                          textInputAction: TextInputAction.done,
+                          enabled: false, // Disable direct text entry
+                          controller: TextEditingController(text: selectedCountry),
+                          cursorColor: kPrimaryColor,
+                          style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.w500),
+                          decoration: InputDecoration(
+                            labelText: 'Country',
+                            hintText: selectedCountry ?? "Select Country",hintStyle: const TextStyle(color: kHintColor),
+                            labelStyle: const TextStyle(color: kPrimaryColor),
+                            suffixIcon: const Icon(Icons.arrow_drop_down, color: kPrimaryColor,),
+
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(),
+                            ),
+                            filled: true,
+                            fillColor: Colors.transparent,
                           ),
-                          fillColor: Colors.transparent,
+
                         ),
                       ),
+
                       const SizedBox(height: defaultPadding),
                       TextFormField(
                         keyboardType: TextInputType.text,
