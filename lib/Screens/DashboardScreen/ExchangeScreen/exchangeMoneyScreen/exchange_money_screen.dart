@@ -125,7 +125,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
           isLoading = false;
           isReviewOrder = true;
           mFromTotalFees = response.data.totalFees;
-          mToAmountController.text = response.data.convertedAmount.toString();
+          mToAmountController.text = response.data.convertedAmount.toStringAsFixed(2);
           mFromRate = response.data.rate;
         });
       } else {
@@ -234,6 +234,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                                     mExchangeMoneyApi();
                                   } else {
                                     isReviewOrder = false;
+                                    mToAmountController.clear();
                                     CustomSnackBar.showSnackBar(
                                         context: context,
                                         message: "Please enter a amount",
