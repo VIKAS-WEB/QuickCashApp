@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListModel.dart';
-import 'package:quickcash/Screens/DashboardScreen/ExchangeScreen/exchangeMoneyScreen/exchangeMoneyModel/exchangeMoneyModel.dart';
+import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/PayRecipientsScree/exchangeCurrencyModel/exchangeCurrencyApi.dart';
 import 'package:quickcash/constants.dart';
 
 import '../../../../util/auth_manager.dart';
 import '../../../../util/customSnackBar.dart';
-import '../../ExchangeScreen/exchangeMoneyScreen/exchangeMoneyModel/exchangeMoneyApi.dart';
+import 'exchangeCurrencyModel/exchangeCurrencyModel.dart';
 
 class PayRecipientsScreen extends StatefulWidget {
   const PayRecipientsScreen({super.key});
@@ -19,7 +19,7 @@ class PayRecipientsScreen extends StatefulWidget {
 
 class _PayRecipientsScreen extends State<PayRecipientsScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final ExchangeMoneyApi _exchangeMoneyApi = ExchangeMoneyApi();
+  final ExchangeCurrencyApi _exchangeCurrencyApi = ExchangeCurrencyApi();
 
   final TextEditingController mSendAmountController = TextEditingController();
   final TextEditingController mReceiveAmountController =
@@ -34,6 +34,8 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
   String? mSendCurrency = 'Select Currency';
   double? mSendCurrencyAmount = 0.0;
   String? mSendCurrencySymbol = '';
+  double? mTotalCharge = 0.0;
+  String? mTotalPayable = '0.0';
 
   // Receive Currency
   String? mReceiveCountry = '';
@@ -79,19 +81,19 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
     });
 
     try {
-      final request = ExchangeMoneyRequest(
+      final request = ExchangeCurrencyRequest(
           userId: AuthManager.getUserId(),
           amount: mSendAmountController.text,
           fromCurrency: mSendCurrency!,
           toCurrency: mReceiveCurrency!);
-      final response = await _exchangeMoneyApi.exchangeMoneyApi(request);
+      final response = await _exchangeCurrencyApi.exchangeCurrencyApi(request);
 
       if (response.message == "Success") {
         setState(() {
           isLoading = false;
-          // mFromTotalFees = response.data.totalFees;
-          mReceiveAmountController.text =
-              response.data.convertedAmount.toStringAsFixed(2);
+          mTotalCharge = response.data.totalFees;
+          mTotalPayable = response.data.totalCharge.toString();
+          mReceiveAmountController.text = response.data.convertedAmount.toStringAsFixed(2);
           // mFromRate = response.data.rate;
         });
       } else {
@@ -438,32 +440,32 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                         const SizedBox(height: defaultPadding),
                         const SizedBox(height: 30),
                         const Divider(),
-                        const Row(
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Charge',
+                            const Text('Charge',
                                 style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: kPrimaryColor)),
-                            Text('0',
-                                style: TextStyle(
+                            Text('$mSendCurrencySymbol $mTotalCharge',
+                                style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: kPrimaryColor)),
                           ],
                         ),
                         const Divider(),
-                        const Row(
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Payable',
+                            const Text('Payable',
                                 style: TextStyle(
                                     fontSize: 16,
                                     color: kPrimaryColor,
                                     fontWeight: FontWeight.bold)),
-                            Text('0',
-                                style: TextStyle(
+                            Text('$mSendCurrencySymbol $mTotalPayable',
+                                style: const TextStyle(
                                     fontSize: 16,
                                     color: kPrimaryColor,
                                     fontWeight: FontWeight.bold)),
