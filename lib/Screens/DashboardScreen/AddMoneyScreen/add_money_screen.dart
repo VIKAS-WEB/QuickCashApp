@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/model/currencyApiModel/currencyModel.dart';
+import 'package:quickcash/util/customSnackBar.dart';
+
+import '../../../model/currencyApiModel/currencyApi.dart';
 
 class AddMoneyScreen extends StatefulWidget {
   const AddMoneyScreen({super.key});
@@ -9,89 +13,29 @@ class AddMoneyScreen extends StatefulWidget {
 }
 
 class _AddMoneyScreen extends State<AddMoneyScreen> {
+  final CurrencyApi _currencyApi = CurrencyApi();
+
   String? selectedSendCurrency;
   String? selectedTransferType;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _amountController = TextEditingController();
 
-  void _showTransferTypeDropDown(BuildContext context, bool isTransfer) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return ListView(
-          children: [
-            const SizedBox(height: 25),
-            _buildTransferOptions(
-              'Stripe * Support Other Currencies',
-              'assets/icons/stripe.png',
-              isTransfer,
-            ),
-            _buildTransferOptions(
-              'UPI * Currently Support Only INR Currency',
-              'assets/icons/upi.png',
-              isTransfer,
-            ),
-          ],
-        );
-      },
-    );
+  List<CurrencyListsData> currency = [];
+
+  @override
+  void initState() {
+    super.initState();
+    mGetCurrency();
   }
 
-  void _showCurrencyDropdown(BuildContext context, bool isSend) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return ListView(
-          children: [
-            const SizedBox(height: 25),
-            _buildCurrencyOption('USD', '🇺🇸', isSend),
-            _buildCurrencyOption('EUR', '🇪🇺', isSend),
-            _buildCurrencyOption('GBP', '🇬🇧', isSend),
-          ],
-        );
-      },
-    );
+  Future<void> mGetCurrency() async {
+    final response = await _currencyApi.currencyApi();
+
+    if (response.currencyList != null && response.currencyList!.isNotEmpty) {
+      currency = response.currencyList!;
+    }
   }
 
-  Widget _buildCurrencyOption(String currency, String flagEmoji, bool isSend) {
-    return ListTile(
-      title: Row(
-        children: [
-          Text(flagEmoji, style: const TextStyle(fontSize: 24)),
-          const SizedBox(width: 8.0),
-          Text(currency),
-        ],
-      ),
-      onTap: () {
-        setState(() {
-          if (isSend) {
-            selectedSendCurrency = currency;
-          }
-        });
-        Navigator.pop(context);
-      },
-    );
-  }
-
-  Widget _buildTransferOptions(String type, String logoPath, bool isTransfer) {
-    return ListTile(
-      title: Row(
-        children: [
-          Image.asset(logoPath, height: 24),
-          const SizedBox(width: 8.0),
-          Text(type),
-        ],
-      ),
-      onTap: () {
-        setState(() {
-          if (isTransfer) {
-            selectedTransferType = type;
-          }
-        });
-        Navigator.pop(context);
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -114,27 +58,73 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
               children: [
                 const SizedBox(height: defaultPadding),
                 GestureDetector(
-                  onTap: () => _showCurrencyDropdown(context, true),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 15.0),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: kPrimaryColor),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          selectedSendCurrency != null
-                              ? '$selectedSendCurrency ${_getFlagForCurrency(selectedSendCurrency!)}'
-                              : 'Currency Type',
-                          style: const TextStyle(color: kPrimaryColor),
-                        ),
-                        const Icon(Icons.arrow_drop_down, color: kPrimaryColor),
-                      ],
+                  onTap: () {
+                    if (currency.isNotEmpty) {
+                      showDialog<String>(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text(
+                              'Select Currency',
+                              style: TextStyle(color: kPrimaryColor),
+                            ),
+                            content: SingleChildScrollView(
+                              child: ListBody(
+                                children:
+                                currency.map((CurrencyListsData currencyItem) {
+                                  return ListTile(
+                                    title: Text(
+                                      currencyItem.currencyCode!,
+                                      style: const TextStyle(
+                                          color: kPrimaryColor,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    onTap: () {
+                                      Navigator.pop(
+                                          context, currencyItem.currencyCode);
+                                    },
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          );
+                        },
+                      ).then((String? newValue) {
+                        if (newValue != null) {
+                          setState(() {
+                            selectedSendCurrency = newValue;
+                          });
+                        }
+                      });
+                    }
+                  },
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0, vertical: 15.0),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: kPrimaryColor),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            selectedSendCurrency ?? "Select Currency",
+                            style: const TextStyle(
+                                color: kPrimaryColor,
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          const Icon(Icons.arrow_drop_down, color: kPrimaryColor),
+                        ],
+                      ),
                     ),
                   ),
                 ),
+
                 const SizedBox(height: defaultPadding),
                 GestureDetector(
                   onTap: () => _showTransferTypeDropDown(context, true),
@@ -186,6 +176,8 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(),
                     ),
+                    filled: true,
+                    fillColor: Colors.transparent,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -238,18 +230,12 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                     ),
                     onPressed: () {
 
-
-
                       if (_formKey.currentState!.validate()) {
                         if (selectedSendCurrency == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please select a currency type')),
-                          );
+                          CustomSnackBar.showSnackBar(context: context, message: "Please select a currency", color: kPrimaryColor);
                           return;
                         } else if (selectedTransferType == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please select a transfer type')),
-                          );
+                          CustomSnackBar.showSnackBar(context: context, message: "Please select a transfer type", color: kPrimaryColor);
                           return;
                         }
                         // Perform the action to add money
@@ -266,18 +252,6 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
     );
   }
 
-  String _getFlagForCurrency(String currency) {
-    switch (currency) {
-      case 'USD':
-        return '🇺🇸';
-      case 'EUR':
-        return '🇪🇺';
-      case 'GBP':
-        return '🇬🇧';
-      default:
-        return '';
-    }
-  }
 
   String _getFlagForTransferType(String transferType) {
     switch (transferType) {
@@ -300,4 +274,48 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
         return 'assets/icons/default.png';
     }
   }
+
+  void _showTransferTypeDropDown(BuildContext context, bool isTransfer) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return ListView(
+          children: [
+            const SizedBox(height: 25),
+            _buildTransferOptions(
+              'Stripe * Support Other Currencies',
+              'assets/icons/stripe.png',
+              isTransfer,
+            ),
+            _buildTransferOptions(
+              'UPI * Currently Support Only INR Currency',
+              'assets/icons/upi.png',
+              isTransfer,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildTransferOptions(String type, String logoPath, bool isTransfer) {
+    return ListTile(
+      title: Row(
+        children: [
+          Image.asset(logoPath, height: 24),
+          const SizedBox(width: 8.0),
+          Text(type),
+        ],
+      ),
+      onTap: () {
+        setState(() {
+          if (isTransfer) {
+            selectedTransferType = type;
+          }
+        });
+        Navigator.pop(context);
+      },
+    );
+  }
+
 }
