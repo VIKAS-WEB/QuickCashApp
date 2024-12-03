@@ -1,4 +1,8 @@
+import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListApi.dart';
+import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListModel.dart';
 import 'package:quickcash/constants.dart';
 
 class PayRecipientsScreen extends StatefulWidget {
@@ -13,49 +17,49 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
   String? selectedSendCurrency;
   String? selectedReceiveCurrency;
 
-  void _showCurrencyDropdown(BuildContext context, bool isSend) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return ListView(
-          children: [
-            _buildCurrencyOption('USD', '🇺🇸', isSend),
-            _buildCurrencyOption('EUR', '🇪🇺', isSend),
-            _buildCurrencyOption('GBP', '🇬🇧', isSend),
-          ],
-        );
-      },
-    );
-  }
+  // Send Currency -----
+  String? mSendCountry = '';
+  String? mSendCurrency = 'Select Currency';
+  double? mSendCurrencyAmount = 0.0;
+  String? mSendCurrencySymbol = '';
 
-  Widget _buildCurrencyOption(String currency, String flagEmoji, bool isSend) {
-    return ListTile(
-      title: Row(
-        children: [
-          Text(flagEmoji, style: const TextStyle(fontSize: 24)),
-          const SizedBox(width: 8.0),
-          Text(currency),
-        ],
-      ),
-      onTap: () {
-        setState(() {
-          if (isSend) {
-            selectedSendCurrency = currency;
-          } else {
-            selectedReceiveCurrency = currency;
-          }
-        });
-        Navigator.pop(context);
-      },
-    );
-  }
+  // Receive Currency
+  String? mReceiveCountry = '';
+  String? mReceiveCurrency = 'Select Currency';
+  double? mReceiveCurrencyAmount = 0.0;
+  String? mReceiveCurrencySymbol = '';
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
-      // Process payment here
-      // You can access the form values using _formKey.currentState
-      // For example: _formKey.currentState!.save();
+
     }
+  }
+
+  // Send Currency Set
+  Future<void> mSelectedSendCurrency(
+      mSelectedSendCountry, mSelectedSendCurrency, mSelectedSendCurrencyAmount) async {
+    setState(() {
+      mSendCountry = mSelectedSendCountry;
+      mSendCurrency = mSelectedSendCurrency;
+      mSendCurrencyAmount = mSelectedSendCurrencyAmount;
+      mSendCurrencySymbol = getCurrencySymbol(mSendCurrency!);
+    });
+  }
+
+  // Receive Currency Set
+  Future<void> mSelectedReceiveCurrency(
+      mSelectedReceiveCountry, mSelectedReceiveCurrency, mSelectedReceiveCurrencyAmount) async {
+    setState(() {
+      mReceiveCountry = mSelectedReceiveCountry;
+      mReceiveCurrency = mSelectedReceiveCurrency;
+      mReceiveCurrencyAmount = mSelectedReceiveCurrencyAmount;
+      mReceiveCurrencySymbol = getCurrencySymbol(mSendCurrency!);
+    });
+  }
+
+  String getCurrencySymbol(String currencyCode) {
+    var format = NumberFormat.simpleCurrency(name: currencyCode);
+    return format.currencySymbol;
   }
 
   @override
@@ -81,7 +85,8 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                 Card(
                   elevation: 4.0,
                   color: Colors.white,
-                  margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
                   child: Padding(
                     padding: const EdgeInsets.all(defaultPadding),
                     child: Column(
@@ -89,110 +94,203 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                         const Center(
                           child: Text(
                             "Payment Information",
-                            style: TextStyle(color: kPrimaryColor, fontSize: 20),
+                            style: TextStyle(
+                                color: kPrimaryColor,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w500),
                             textAlign: TextAlign.center,
                           ),
                         ),
                         const Divider(),
                         const SizedBox(height: defaultPadding),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                decoration: InputDecoration(
-                                  labelText: 'Send',
-                                  labelStyle: const TextStyle(color: kPrimaryColor),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(),
+                        Card(
+                          elevation: 4.0,
+                          color: Colors.white,
+                          margin: const EdgeInsets.symmetric(
+                              vertical: 0, horizontal: 0),
+                          child: Padding(
+                            padding: const EdgeInsets.all(defaultPadding),
+                            child: Column(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    mSendCurrencyBottomSheet(context);
+                                  },
+                                  child: Card(
+                                    elevation: 1.0,
+                                    color: kPrimaryLightColor,
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 0, horizontal: 0),
+                                    child: Padding(
+                                      padding:
+                                          const EdgeInsets.all(defaultPadding),
+                                      child: Row(
+                                        children: [
+                                          CountryFlag.fromCountryCode(
+                                            width: 35,
+                                            height: 35,
+                                            mSendCountry!,
+                                            shape: const Circle(),
+                                          ),
+                                          const SizedBox(width: defaultPadding),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  '$mSendCurrency',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                    color: kPrimaryColor,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  '${mSendCurrencyAmount?.toStringAsFixed(2)}',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                    color: kPrimaryColor,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const Icon(Icons.arrow_drop_down,
+                                              color: kPrimaryColor),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                keyboardType: TextInputType.number,
-                                textInputAction: TextInputAction.next,
-                                cursorColor: kPrimaryColor,
-                                style: const TextStyle(color: kPrimaryColor),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter an amount';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 8.0),
-                            GestureDetector(
-                              onTap: () => _showCurrencyDropdown(context, true),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 15.0),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: kPrimaryColor),
+                                const SizedBox(
+                                  height: defaultPadding,
                                 ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      selectedSendCurrency != null
-                                          ? '$selectedSendCurrency ${_getFlagForCurrency(selectedSendCurrency!)}'
-                                          : 'Currency',
-                                      style: const TextStyle(color: kPrimaryColor),
+                                TextFormField(
+                                  decoration: InputDecoration(
+                                    labelText: 'Send',
+                                    labelStyle:
+                                        const TextStyle(color: kPrimaryColor),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: const BorderSide(),
                                     ),
-                                    const Icon(Icons.arrow_drop_down, color: kPrimaryColor),
-                                  ],
+                                    filled: true,
+                                    fillColor: Colors.transparent,
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                  textInputAction: TextInputAction.next,
+                                  cursorColor: kPrimaryColor,
+                                  style: const TextStyle(color: kPrimaryColor),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter sender amount';
+                                    }
+                                    return null;
+                                  },
+                                  maxLines: 2,
+                                  minLines: 1,
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-                        const SizedBox(height: defaultPadding),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                decoration: InputDecoration(
-                                  labelText: 'Recipient will receive',
-                                  labelStyle: const TextStyle(color: kPrimaryColor),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(),
+                        const SizedBox(
+                          height: defaultPadding,
+                        ),
+                        Card(
+                          elevation: 4.0,
+                          color: Colors.white,
+                          margin: const EdgeInsets.symmetric(
+                              vertical: 0, horizontal: 0),
+                          child: Padding(
+                            padding: const EdgeInsets.all(defaultPadding),
+                            child: Column(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    mReceiveCurrencyBottomSheet(context);
+                                  },
+                                  child: Card(
+                                    elevation: 1.0,
+                                    color: kPrimaryLightColor,
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 0, horizontal: 0),
+                                    child: Padding(
+                                      padding:
+                                          const EdgeInsets.all(defaultPadding),
+                                      child: Row(
+                                        children: [
+                                          CountryFlag.fromCountryCode(
+                                            width: 35,
+                                            height: 35,
+                                            mReceiveCountry!,
+                                            shape: const Circle(),
+                                          ),
+                                          const SizedBox(width: defaultPadding),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  '$mReceiveCurrency',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                    color: kPrimaryColor,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  '${mReceiveCurrencyAmount?.toStringAsFixed(2)}',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                    color: kPrimaryColor,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const Icon(Icons.arrow_drop_down,
+                                              color: kPrimaryColor),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                keyboardType: TextInputType.number,
-                                textInputAction: TextInputAction.next,
-                                cursorColor: kPrimaryColor,
-                                style: const TextStyle(color: kPrimaryColor),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter a receiving amount';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 8.0),
-                            GestureDetector(
-                              onTap: () => _showCurrencyDropdown(context, false),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 15.0),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: kPrimaryColor),
+                                const SizedBox(
+                                  height: defaultPadding,
                                 ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      selectedReceiveCurrency != null
-                                          ? '$selectedReceiveCurrency ${_getFlagForCurrency(selectedReceiveCurrency!)}'
-                                          : 'Currency',
-                                      style: const TextStyle(color: kPrimaryColor),
+                                TextFormField(
+                                  decoration: InputDecoration(
+                                    labelText: 'Recipient will receive',
+                                    labelStyle:
+                                        const TextStyle(color: kPrimaryColor),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: const BorderSide(),
                                     ),
-                                    const Icon(Icons.arrow_drop_down, color: kPrimaryColor),
-                                  ],
+                                    filled: true,
+                                    fillColor: Colors.transparent,
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                  textInputAction: TextInputAction.next,
+                                  cursorColor: kPrimaryColor,
+                                  style: const TextStyle(color: kPrimaryColor),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter a receiving amount';
+                                    }
+                                    return null;
+                                  },
+                                  maxLines: 2,
+                                  minLines: 1,
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                         const SizedBox(height: defaultPadding),
                         const SizedBox(height: 30),
@@ -200,16 +298,32 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                         const Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Charge', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPrimaryColor)),
-                            Text('0', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: kPrimaryColor)),
+                            Text('Charge',
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: kPrimaryColor)),
+                            Text('0',
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: kPrimaryColor)),
                           ],
                         ),
                         const Divider(),
                         const Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Payable', style: TextStyle(fontSize: 16, color: kPrimaryColor, fontWeight: FontWeight.bold)),
-                            Text('0', style: TextStyle(fontSize: 16, color: kPrimaryColor, fontWeight: FontWeight.bold)),
+                            Text('Payable',
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    color: kPrimaryColor,
+                                    fontWeight: FontWeight.bold)),
+                            Text('0',
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    color: kPrimaryColor,
+                                    fontWeight: FontWeight.bold)),
                           ],
                         ),
                         const SizedBox(height: defaultPadding)
@@ -221,7 +335,8 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                 Card(
                   elevation: 4.0,
                   color: Colors.white,
-                  margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
                   child: Padding(
                     padding: const EdgeInsets.all(defaultPadding),
                     child: Column(
@@ -239,6 +354,8 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                               borderRadius: BorderRadius.circular(12),
                               borderSide: const BorderSide(),
                             ),
+                            filled: true,
+                            fillColor: Colors.transparent,
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -260,12 +377,15 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                               borderRadius: BorderRadius.circular(12),
                               borderSide: const BorderSide(),
                             ),
+                            filled: true,
+                            fillColor: Colors.transparent,
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter your email';
                             }
-                            if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                            if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+                                .hasMatch(value)) {
                               return 'Please enter a valid email';
                             }
                             return null;
@@ -284,6 +404,8 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                               borderRadius: BorderRadius.circular(12),
                               borderSide: const BorderSide(),
                             ),
+                            filled: true,
+                            fillColor: Colors.transparent,
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -305,6 +427,8 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                               borderRadius: BorderRadius.circular(12),
                               borderSide: const BorderSide(),
                             ),
+                            filled: true,
+                            fillColor: Colors.transparent,
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -326,6 +450,8 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                               borderRadius: BorderRadius.circular(12),
                               borderSide: const BorderSide(),
                             ),
+                            filled: true,
+                            fillColor: Colors.transparent,
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -347,6 +473,8 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                               borderRadius: BorderRadius.circular(12),
                               borderSide: const BorderSide(),
                             ),
+                            filled: true,
+                            fillColor: Colors.transparent,
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -368,6 +496,8 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                               borderRadius: BorderRadius.circular(12),
                               borderSide: const BorderSide(),
                             ),
+                            filled: true,
+                            fillColor: Colors.transparent,
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -382,13 +512,16 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: kPrimaryColor,
-                              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 32, vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
                             onPressed: _submitForm,
-                            child: const Text('Make Payment', style: TextStyle(color: Colors.white, fontSize: 16)),
+                            child: const Text('Make Payment',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 16)),
                           ),
                         ),
                         const SizedBox(height: defaultPadding),
@@ -404,16 +537,506 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
     );
   }
 
-  String _getFlagForCurrency(String currency) {
-    switch (currency) {
-      case 'USD':
-        return '🇺🇸';
-      case 'EUR':
-        return '🇪🇺';
-      case 'GBP':
-        return '🇬🇧';
-      default:
-        return '';
+  // Send Currency Bottom Sheet
+  void mSendCurrencyBottomSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Wrap(
+          children: [
+            Container(
+              height: 600,
+              padding: const EdgeInsets.all(defaultPadding),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: SendCurrencyBottomSheet(
+                onSendCurrencySelected: (
+                  String country,
+                  String currency,
+                  double amount,
+                ) async {
+                  await mSelectedSendCurrency(
+                    country,
+                    currency,
+                    amount,
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Receive Currency Bottom Sheet
+  void mReceiveCurrencyBottomSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Wrap(
+          children: [
+            Container(
+              height: 600,
+              padding: const EdgeInsets.all(defaultPadding),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: ReceiveCurrencyBottomSheet(
+                onReceiveCurrencySelected: (
+                    String country,
+                    String currency,
+                    double amount,
+                    ) async {
+                  await mSelectedReceiveCurrency(
+                    country,
+                    currency,
+                    amount,
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+// Send Currency Code
+class SendCurrencyBottomSheet extends StatefulWidget {
+  final Function(String, String, double) onSendCurrencySelected;
+
+  const SendCurrencyBottomSheet({super.key, required this.onSendCurrencySelected});
+
+  @override
+  State<SendCurrencyBottomSheet> createState() => _SendCurrencyBottomSheetState();
+}
+
+class _SendCurrencyBottomSheetState extends State<SendCurrencyBottomSheet> {
+  final AccountsListApi _accountsListApi = AccountsListApi();
+  List<AccountsListsData> accountsListData = [];
+  bool isLoading = false;
+  String? errorMessage;
+  int? _selectedIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    mAccounts();
+  }
+
+  // Accounts List Api ---------------
+  Future<void> mAccounts() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final response = await _accountsListApi.accountsListApi();
+
+      if (response.accountsList != null && response.accountsList!.isNotEmpty) {
+        setState(() {
+          accountsListData = response.accountsList!;
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Account Found';
+        });
+      }
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Select Currency',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: kPrimaryColor,
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close, color: kPrimaryColor),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+        const SizedBox(
+          height: defaultPadding,
+        ),
+        Expanded(
+            child: isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: kPrimaryColor,
+                    ),
+                  )
+                : SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height,
+                          child: isLoading
+                              ? const Center(
+                                  child:
+                                      CircularProgressIndicator(), // Show loading indicator
+                                )
+                              : ListView.builder(
+                                  itemCount: accountsListData.length,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemBuilder: (context, index) {
+                                    final accountsData =
+                                        accountsListData[index];
+                                    final isSelected = index == _selectedIndex;
+
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 5,
+                                          horizontal: smallPadding),
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            _selectedIndex = index;
+
+                                            widget.onSendCurrencySelected(
+                                              accountsData.country ?? '',
+                                              accountsData.currency ?? '',
+                                              accountsData.amount ?? 0.0,
+                                            );
+                                            Navigator.pop(context);
+                                          });
+                                        },
+                                        child: Card(
+                                          elevation: 5,
+                                          color: isSelected
+                                              ? kPrimaryColor
+                                              : Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                                defaultPadding),
+                                          ),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(
+                                                defaultPadding),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    CountryFlag.fromCountryCode(
+                                                      width: 35,
+                                                      height: 35,
+                                                      accountsData.country!,
+                                                      shape: const Circle(),
+                                                    ),
+                                                    Text(
+                                                      "${accountsData.currency}",
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: isSelected
+                                                            ? Colors.white
+                                                            : kPrimaryColor,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(
+                                                    height: defaultPadding),
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                      "Balance",
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: isSelected
+                                                            ? Colors.white
+                                                            : kPrimaryColor,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      "${accountsData.amount?.toStringAsFixed(2)}",
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: isSelected
+                                                            ? Colors.white
+                                                            : kPrimaryColor,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
+                    ),
+                  )),
+      ],
+    ));
+  }
+}
+
+// Receive Currency Code
+class ReceiveCurrencyBottomSheet extends StatefulWidget {
+  final Function(String, String, double) onReceiveCurrencySelected;
+
+  const ReceiveCurrencyBottomSheet({super.key, required this.onReceiveCurrencySelected});
+
+  @override
+  State<ReceiveCurrencyBottomSheet> createState() => _ReceiveCurrencyBottomSheetState();
+}
+
+class _ReceiveCurrencyBottomSheetState extends State<ReceiveCurrencyBottomSheet> {
+  final AccountsListApi _accountsListApi = AccountsListApi();
+  List<AccountsListsData> accountsListData = [];
+  bool isLoading = false;
+  String? errorMessage;
+  int? _selectedIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    mAccounts();
+  }
+
+  // Accounts List Api ---------------
+  Future<void> mAccounts() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final response = await _accountsListApi.accountsListApi();
+
+      if (response.accountsList != null && response.accountsList!.isNotEmpty) {
+        setState(() {
+          accountsListData = response.accountsList!;
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Account Found';
+        });
+      }
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Select Currency',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: kPrimaryColor,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: kPrimaryColor),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: defaultPadding,
+            ),
+            Expanded(
+                child: isLoading
+                    ? const Center(
+                  child: CircularProgressIndicator(
+                    color: kPrimaryColor,
+                  ),
+                )
+                    : SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height,
+                        child: isLoading
+                            ? const Center(
+                          child:
+                          CircularProgressIndicator(), // Show loading indicator
+                        )
+                            : ListView.builder(
+                          itemCount: accountsListData.length,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemBuilder: (context, index) {
+                            final accountsData =
+                            accountsListData[index];
+                            final isSelected = index == _selectedIndex;
+
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 5,
+                                  horizontal: smallPadding),
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _selectedIndex = index;
+
+                                    widget.onReceiveCurrencySelected(
+                                      accountsData.country ?? '',
+                                      accountsData.currency ?? '',
+                                      accountsData.amount ?? 0.0,
+                                    );
+                                    Navigator.pop(context);
+                                  });
+                                },
+                                child: Card(
+                                  elevation: 5,
+                                  color: isSelected
+                                      ? kPrimaryColor
+                                      : Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        defaultPadding),
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(
+                                        defaultPadding),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment
+                                              .spaceBetween,
+                                          children: [
+                                            CountryFlag.fromCountryCode(
+                                              width: 35,
+                                              height: 35,
+                                              accountsData.country!,
+                                              shape: const Circle(),
+                                            ),
+                                            Text(
+                                              "${accountsData.currency}",
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight:
+                                                FontWeight.bold,
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : kPrimaryColor,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(
+                                            height: defaultPadding),
+                                        Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment
+                                              .spaceBetween,
+                                          children: [
+                                            Text(
+                                              "Balance",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight:
+                                                FontWeight.bold,
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : kPrimaryColor,
+                                              ),
+                                            ),
+                                            Text(
+                                              "${accountsData.amount?.toStringAsFixed(2)}",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight:
+                                                FontWeight.bold,
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : kPrimaryColor,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+          ],
+        ));
   }
 }

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/DashboardScreen/BeneficiaryScreen/show_beneficiary.dart';
-import 'package:quickcash/Screens/DashboardScreen/ExchangeScreen/exchangeMoneyScreen/exchange_money_screen.dart';
-import 'package:quickcash/Screens/DashboardScreen/MyAccountsScreen/my_accounts_screen.dart';
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/PayRecipientsScree/pay_recipients_screen.dart';
 import 'package:quickcash/constants.dart';
 
