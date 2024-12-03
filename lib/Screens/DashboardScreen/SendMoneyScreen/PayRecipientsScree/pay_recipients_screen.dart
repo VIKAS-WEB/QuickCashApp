@@ -4,10 +4,13 @@ import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListModel.dart';
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/PayRecipientsScree/exchangeCurrencyModel/exchangeCurrencyApi.dart';
+import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/PayRecipientsScree/makePaymentModel/makePaymentApi.dart';
+import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/PayRecipientsScree/makePaymentModel/makePaymentModel.dart';
 import 'package:quickcash/constants.dart';
 
 import '../../../../util/auth_manager.dart';
 import '../../../../util/customSnackBar.dart';
+import '../../../HomeScreen/home_screen.dart';
 import 'exchangeCurrencyModel/exchangeCurrencyModel.dart';
 
 class PayRecipientsScreen extends StatefulWidget {
@@ -20,14 +23,24 @@ class PayRecipientsScreen extends StatefulWidget {
 class _PayRecipientsScreen extends State<PayRecipientsScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final ExchangeCurrencyApi _exchangeCurrencyApi = ExchangeCurrencyApi();
+  final RecipientMakePaymentApi _recipientMakePaymentApi = RecipientMakePaymentApi();
 
   final TextEditingController mSendAmountController = TextEditingController();
-  final TextEditingController mReceiveAmountController =
-      TextEditingController();
+  final TextEditingController mReceiveAmountController = TextEditingController();
+  
+  
+  final TextEditingController mFullName = TextEditingController();
+  final TextEditingController mEmail = TextEditingController();
+  final TextEditingController mMobileNo = TextEditingController();
+  final TextEditingController mBankName = TextEditingController();
+  final TextEditingController mIban = TextEditingController();
+  final TextEditingController mBicCode = TextEditingController();
+  final TextEditingController mAddress = TextEditingController();
 
   String? selectedSendCurrency;
   String? selectedReceiveCurrency;
   bool isLoading = false;
+  bool isAddLoading = false;
 
   // Send Currency -----
   String? mSendCountry = '';
@@ -43,9 +56,6 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
   double? mReceiveCurrencyAmount = 0.0;
   String? mReceiveCurrencySymbol = '';
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {}
-  }
 
   // Send Currency Set
   Future<void> mSelectedSendCurrency(mSelectedSendCountry,
@@ -65,7 +75,7 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
       mReceiveCountry = mSelectedReceiveCountry;
       mReceiveCurrency = mSelectedReceiveCurrency;
       mReceiveCurrencyAmount = mSelectedReceiveCurrencyAmount;
-      mReceiveCurrencySymbol = getCurrencySymbol(mSendCurrency!);
+      mReceiveCurrencySymbol = getCurrencySymbol(mReceiveCurrency!);
     });
   }
 
@@ -94,7 +104,6 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
           mTotalCharge = response.data.totalFees;
           mTotalPayable = response.data.totalCharge.toString();
           mReceiveAmountController.text = response.data.convertedAmount.toStringAsFixed(2);
-          // mFromRate = response.data.rate;
         });
       } else {
         setState(() {
@@ -108,11 +117,66 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
     } catch (error) {
       setState(() {
         isLoading = false;
-        /*CustomSnackBar.showSnackBar(
-            context: context,
-            message: "Something went wrong!",
-            color: kPrimaryColor);*/
       });
+    }
+  }
+  
+  Future<void> mMakePayment() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        isAddLoading = true;
+      });
+
+      try {
+        String amountText = '$mSendCurrencySymbol ${mSendAmountController
+            .text}';
+        String conversionAmountText = '$mReceiveCurrencySymbol ${mReceiveAmountController
+            .text}';
+
+        final request = RecipientMakePaymentRequest(
+            userId: AuthManager.getUserId(),
+            iban: mIban.text,
+            bicCode: mBicCode.text,
+            fee: mTotalCharge.toString(),
+            amount: mSendAmountController.text,
+            conversionAmount: mReceiveAmountController.text,
+            conversionAmountText: conversionAmountText,
+            amountText: amountText,
+            fromCurrency: mSendCurrency!,
+            toCurrency: mReceiveCurrency!,
+            status: "pending",
+            name: mFullName.text,
+            email: mEmail.text,
+            address: mAddress.text,
+            mobile: mMobileNo.text,
+            bankName: mBankName.text);
+        final response = await _recipientMakePaymentApi.makePaymentApi(request);
+
+        if(response.message == "Receipient is added Successfully!!!"){
+          setState(() {
+            isAddLoading = false;
+            CustomSnackBar.showSnackBar(context: context, message: "Recipient is added Successfully ", color: kPrimaryColor);
+            Navigator.of(context).pop();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomeScreen(),
+              ),
+            );
+          });
+        }else{
+          setState(() {
+            isAddLoading = false;
+            CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue", color: kPrimaryColor);
+          });
+        }
+
+      } catch (error) {
+        setState(() {
+          isAddLoading = false;
+          CustomSnackBar.showSnackBar(context: context, message: "Something went wrong!", color: kPrimaryColor);
+        });
+      }
     }
   }
 
@@ -488,6 +552,7 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                       children: [
                         const SizedBox(height: defaultPadding),
                         TextFormField(
+                          controller: mFullName,
                           keyboardType: TextInputType.text,
                           textInputAction: TextInputAction.next,
                           cursorColor: kPrimaryColor,
@@ -511,6 +576,7 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                         ),
                         const SizedBox(height: defaultPadding),
                         TextFormField(
+                          controller: mEmail,
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
                           cursorColor: kPrimaryColor,
@@ -538,6 +604,7 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                         ),
                         const SizedBox(height: defaultPadding),
                         TextFormField(
+                          controller: mMobileNo,
                           keyboardType: TextInputType.phone,
                           textInputAction: TextInputAction.next,
                           cursorColor: kPrimaryColor,
@@ -561,6 +628,7 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                         ),
                         const SizedBox(height: defaultPadding),
                         TextFormField(
+                          controller: mBankName,
                           keyboardType: TextInputType.text,
                           textInputAction: TextInputAction.next,
                           cursorColor: kPrimaryColor,
@@ -584,6 +652,7 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                         ),
                         const SizedBox(height: defaultPadding),
                         TextFormField(
+                          controller: mIban,
                           keyboardType: TextInputType.text,
                           textInputAction: TextInputAction.next,
                           cursorColor: kPrimaryColor,
@@ -607,6 +676,7 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                         ),
                         const SizedBox(height: defaultPadding),
                         TextFormField(
+                          controller: mBicCode,
                           keyboardType: TextInputType.text,
                           textInputAction: TextInputAction.next,
                           cursorColor: kPrimaryColor,
@@ -630,6 +700,7 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                         ),
                         const SizedBox(height: defaultPadding),
                         TextFormField(
+                          controller: mAddress,
                           keyboardType: TextInputType.text,
                           textInputAction: TextInputAction.next,
                           cursorColor: kPrimaryColor,
@@ -651,6 +722,15 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                             return null;
                           },
                         ),
+
+                        const SizedBox(height: largePadding,),
+                        if (isAddLoading) const Center(
+                          child: CircularProgressIndicator(
+                            color: kPrimaryColor,
+                          ),
+                        ), // Show loading indicator
+
+
                         const SizedBox(height: 35),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 50),
@@ -663,7 +743,7 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            onPressed: _submitForm,
+                            onPressed: isAddLoading ? null : mMakePayment,
                             child: const Text('Make Payment',
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 16)),
