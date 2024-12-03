@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:quickcash/Screens/DashboardScreen/BeneficiaryScreen/beneficiaryCurrencyModel/beneficiaryCurrencyApi.dart';
+import 'package:quickcash/Screens/DashboardScreen/BeneficiaryScreen/beneficiaryCurrencyModel/beneficiaryCurrencyModel.dart';
 
 import '../../../constants.dart';
 
@@ -16,11 +20,30 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
   TextEditingController state = TextEditingController();
   TextEditingController city = TextEditingController();
 
+  final BeneficiaryCurrencyApi _beneficiaryCurrencyApi = BeneficiaryCurrencyApi();
+  String? selectedCurrency;
+  String? mCurrencyCode;
+  List<BeneficiaryCurrencyData> currency = [];
+
   String? selectedCountry;
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
       // Process payment here
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    mGetCurrency();
+  }
+
+  Future<void> mGetCurrency() async {
+    final response = await _beneficiaryCurrencyApi.beneficiaryCurrencyApi();
+
+    if (response.data.isNotEmpty) {
+      currency = response.data;
     }
   }
 
@@ -205,7 +228,6 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                         },
                       ),
                       const SizedBox(height: defaultPadding),
-
                       GestureDetector(
                         onTap: () {
                           showCountryPicker(
@@ -214,9 +236,6 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                               setState(() {
                                 selectedCountry = country.name; // Set the selected country
                               });
-                              // ScaffoldMessenger.of(context).showSnackBar(
-                              //   SnackBar(content: Text('Selected Country: ${country.name}')),
-                              // );
                             },
                           );
                         },
@@ -225,7 +244,7 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
                           enabled: false, // Disable direct text entry
                           controller: TextEditingController(text: selectedCountry),
                           cursorColor: kPrimaryColor,
-                          style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.w500),
+                          style: const TextStyle(color: kPrimaryColor,),
                           decoration: InputDecoration(
                             labelText: 'Country',
                             hintText: selectedCountry ?? "Select Country",hintStyle: const TextStyle(color: kHintColor),
@@ -242,6 +261,73 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
 
                         ),
                       ),
+
+                      const SizedBox(height: defaultPadding,),
+                      GestureDetector(
+                        onTap: () {
+                          if (currency.isNotEmpty) {
+                            showDialog<BeneficiaryCurrencyData>(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text(
+                                    'Select Currency',
+                                    style: TextStyle(color: kPrimaryColor),
+                                  ),
+                                  content: SingleChildScrollView(
+                                    child: ListBody(
+                                      children: currency.map((BeneficiaryCurrencyData currencyItem) {
+                                        return ListTile(
+                                          title: Text(
+                                            currencyItem.currencyName,
+                                            style: const TextStyle(
+                                                color: kPrimaryColor,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          onTap: () {
+                                            Navigator.pop(context, currencyItem);
+                                          },
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ).then((BeneficiaryCurrencyData? selectedItem) {
+                              if (selectedItem != null) {
+                                setState(() {
+                                  selectedCurrency = selectedItem.currencyName;
+                                  mCurrencyCode = selectedItem.currencyCode;
+                                });
+                              }
+                            });
+                          }
+                        },
+                        child: Material(
+                          color: Colors.transparent,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 15.0),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: kPrimaryColor),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  selectedCurrency ?? "Select Currency", // Show selected currency name
+                                  style: const TextStyle(
+                                    color: kPrimaryColor,
+                                  ),
+                                ),
+                                const Icon(Icons.arrow_drop_down, color: kPrimaryColor),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+
 
                       const SizedBox(height: defaultPadding),
                       TextFormField(
