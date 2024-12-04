@@ -110,7 +110,7 @@ class _ShowBeneficiaryScreen extends State<ShowBeneficiaryScreen> {
                        onTap: () {
                          Navigator.push(
                            context,
-                           MaterialPageRoute(builder: (context) => const UpdateRecipientScreen()),
+                           MaterialPageRoute(builder: (context) =>  UpdateRecipientScreen(mRecipientId: recipients.id)),
                          );
                        },
                        child: Card(
