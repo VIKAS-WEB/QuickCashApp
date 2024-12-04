@@ -13,15 +13,17 @@ import '../../../../util/customSnackBar.dart';
 
 class UpdateRecipientScreen extends StatefulWidget {
   final String? mRecipientId;
+
   const UpdateRecipientScreen({super.key, this.mRecipientId});
 
   @override
   State<UpdateRecipientScreen> createState() => _UpdateRecipientScreenState();
 }
 
-class _UpdateRecipientScreenState extends State<UpdateRecipientScreen>{
+class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
   final RecipientsDetailsApi _recipientsDetailsApi = RecipientsDetailsApi();
-  final RecipientExchangeMoneyApi _recipientExchangeMoneyApi = RecipientExchangeMoneyApi();
+  final RecipientExchangeMoneyApi _recipientExchangeMoneyApi =
+      RecipientExchangeMoneyApi();
 
   TextEditingController mIbanController = TextEditingController();
   TextEditingController mBicCodeController = TextEditingController();
@@ -48,7 +50,8 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen>{
   String? mTotalAmount = "0.0";
   double? mGetTotalAmount = 0.0;
 
-  Future<void> mSetSelectedAccountData(mSelectedAccountId,
+  Future<void> mSetSelectedAccountData(
+      mSelectedAccountId,
       mSelectedCountry,
       mSelectedCurrency,
       mSelectedIban,
@@ -78,10 +81,11 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen>{
       isLoading = true;
     });
 
-    try{
-      final response = await _recipientsDetailsApi.recipientsDetailsApi(widget.mRecipientId!);
+    try {
+      final response = await _recipientsDetailsApi
+          .recipientsDetailsApi(widget.mRecipientId!);
 
-      if(response.message == "Reciepient list is Successfully fetched"){
+      if (response.message == "Reciepient list is Successfully fetched") {
         setState(() {
           isLoading = false;
           mIbanController.text = response.recipientDetails!.first.iban!;
@@ -89,16 +93,21 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen>{
           mCurrencyController.text = response.recipientDetails!.first.currency!;
           mFromCurrency = response.recipientDetails!.first.currency!;
         });
-      }else{
+      } else {
         setState(() {
-          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kPrimaryColor);
+          CustomSnackBar.showSnackBar(
+              context: context,
+              message: "We are facing some issue!",
+              color: kPrimaryColor);
         });
       }
-
-    }catch (error) {
+    } catch (error) {
       setState(() {
         isLoading = false;
-        CustomSnackBar.showSnackBar(context: context, message: "Something went wrong!", color: kPrimaryColor);
+        CustomSnackBar.showSnackBar(
+            context: context,
+            message: "Something went wrong!",
+            color: kPrimaryColor);
       });
     }
   }
@@ -106,7 +115,7 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen>{
   // Exchange Money Api **************
   Future<void> mExchangeMoneyApi() async {
     setState(() {
-     // isLoading = true;
+      // isLoading = true;
     });
 
     try {
@@ -115,7 +124,8 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen>{
           amount: mAmountController.text,
           fromCurrency: mFromCurrency!,
           toCurrency: mToCurrency!);
-      final response = await _recipientExchangeMoneyApi.recipientExchangeMoneyApi(request);
+      final response =
+          await _recipientExchangeMoneyApi.recipientExchangeMoneyApi(request);
 
       if (response.message == "Success") {
         setState(() {
@@ -123,8 +133,10 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen>{
           isSubmit = true;
           mFees = response.data.totalFees;
           mTotalAmount = response.data.totalCharge.toString();
-          mGetTotalAmount = response.data.convertedAmount;
-          print('Get Total Amount: ${response.data.convertedAmount.toStringAsFixed(2)}');
+
+          double amount = double.parse(mAmountController.text);
+          double rate = response.data.rate;
+          mGetTotalAmount = amount / rate;
         });
       } else {
         setState(() {
@@ -144,13 +156,11 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen>{
     }
   }
 
-
   // Update Recipients Details Api ************
   Future<void> mUpdateRecipient() async {
     setState(() {
       isSubmitLoading = false;
     });
-
   }
 
   // Currency Symbol *********
@@ -165,281 +175,300 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen>{
       appBar: AppBar(
         backgroundColor: kPrimaryColor,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text("Beneficiary Account Details", style: TextStyle(color: Colors.white),),
+        title: const Text(
+          "Beneficiary Account Details",
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: isLoading
           ? const Center(
-        child: CircularProgressIndicator(
-          color: kPrimaryColor,
-        ),
-      )
-          : SingleChildScrollView(
-        child: Padding(padding: const EdgeInsets.all(defaultPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: defaultPadding),
-            TextFormField(
-              controller: mIbanController,
-              keyboardType: TextInputType.text,
-              textInputAction: TextInputAction.next,
-              cursorColor: kPrimaryColor,
-              readOnly: true,
-              style: const TextStyle(color: kPrimaryColor),
-              decoration: InputDecoration(
-                labelText: "IBAN / Account Number",
-                labelStyle: const TextStyle(color: kPrimaryColor),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(),
-                ),
-                filled: true,
-                fillColor: Colors.transparent,
-              ),
-            ),
-            const SizedBox(height: defaultPadding),
-            TextFormField(
-              controller: mBicCodeController,
-              keyboardType: TextInputType.text,
-              textInputAction: TextInputAction.next,
-              cursorColor: kPrimaryColor,
-              readOnly: true,
-              style: const TextStyle(color: kPrimaryColor),
-              decoration: InputDecoration(
-                labelText: "Routing/IFSC/BIC/SwiftCode",
-                labelStyle: const TextStyle(color: kPrimaryColor),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(),
-                ),
-                filled: true,
-                fillColor: Colors.transparent,
-              ),
-            ),
-
-            const SizedBox(height: defaultPadding),
-
-            TextFormField(
-              controller: mCurrencyController,
-              keyboardType: TextInputType.text,
-              textInputAction: TextInputAction.next,
-              cursorColor: kPrimaryColor,
-              style: const TextStyle(color: kPrimaryColor),
-              readOnly: true,
-              decoration: InputDecoration(
-                labelText: "Currency",
-                labelStyle: const TextStyle(color: kPrimaryColor),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(),
-                ),
-                filled: true,
-                fillColor: Colors.transparent,
-              ),
-            ),
-            const SizedBox(height: largePadding),
-
-            GestureDetector(
-              onTap: () {
-                mGetAllAccountBottomSheet(context);
-              },
-              child: Card(
-                elevation: 1.0,
-                color: kPrimaryLightColor,
-                margin: const EdgeInsets.symmetric(
-                    vertical: 0, horizontal: 0),
-                child: Padding(
-                  padding: const EdgeInsets.all(defaultPadding),
-                  child: Row(
-                    children: [
-                      CountryFlag.fromCountryCode(
-                        width: 55,
-                        height: 55,
-                        mToCountry!,
-                        shape: const RoundedRectangle(smallPadding),
-                      ),
-                      const SizedBox(width: defaultPadding),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '$mToCurrency Account',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                color: kPrimaryColor,
-                              ),
-                            ),
-                            Text(
-                              '$mToIban',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 13,
-                                color: kPrimaryColor,
-                              ),
-                            ),
-                            Text('${mToCurrencySymbol!} ${mToAmount!.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 12,
-                                color: kPrimaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Icon(Icons.navigate_next_rounded,
-                          color: kPrimaryColor),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: largePadding,),
-            TextFormField(
-              controller: mAmountController,
-              keyboardType: TextInputType.phone,
-              textInputAction: TextInputAction.next,
-              cursorColor: kPrimaryColor,
-              style: const TextStyle(color: kPrimaryColor),
-              decoration: InputDecoration(
-                labelText: "Enter Amount",
-                labelStyle: const TextStyle(color: kPrimaryColor),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(),
-                ),
-                filled: true,
-                fillColor: Colors.transparent,
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter amount';
-                }
-                return null;
-              },
-              onChanged: (value){
-                if(mToCurrency != "Select"){
-                   if(mAmountController.text.isNotEmpty){
-                     setState(() {
-                       mExchangeMoneyApi();
-                     });
-
-                }else{
-                  CustomSnackBar.showSnackBar(context: context, message: "Please enter an amount", color: kPrimaryColor);
-                 setState(() {
-                   mFees = 0.0;
-                   mTotalAmount = '0.0';
-                   mGetTotalAmount = 0.0;
-                 });
-                }
-                }else{
-                  CustomSnackBar.showSnackBar(context: context, message: "Please select an account", color: kPrimaryColor);
-                }
-
-
-              },
-            ),
-
-            const SizedBox(height: 45),
-            Padding(padding: const EdgeInsets.all(defaultPadding),
-             child: Column(
-               children: [
-                 Row(
-                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                   children: [
-                     const Text(
-                       "Fee:",
-                       style: TextStyle(
-                           color: kPrimaryColor,
-                           fontWeight: FontWeight.bold),
-                     ),
-                     Text(
-                       "$mToCurrencySymbol ${mFees!.toStringAsFixed(2)}",
-                       style: const TextStyle(
-                           color: kPrimaryColor,
-                           fontWeight: FontWeight.bold),
-                     )
-                   ],
-                 ),
-                 const Divider(),
-                 Row(
-                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                   children: [
-                     const Text(
-                       "Total Amount:",
-                       style: TextStyle(
-                           color: kPrimaryColor,
-                           fontWeight: FontWeight.bold),
-                     ),
-                     Text(
-                       "$mToCurrencySymbol $mTotalAmount",
-                       style: const TextStyle(
-                           color: kPrimaryColor,
-                           fontWeight: FontWeight.bold),
-                     )
-                   ],
-                 ),
-                 const SizedBox(height: 8.0),
-                 const Divider(),
-                 Row(
-                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                   children: [
-                     const Text(
-                       "Get Total Amount:",
-                       style: TextStyle(
-                           color: kPrimaryColor,
-                           fontWeight: FontWeight.bold),
-                     ),
-                     Text(
-                       "$mToCurrencySymbol $mGetTotalAmount",
-                       style: const TextStyle(
-                           color: kPrimaryColor,
-                           fontWeight: FontWeight.bold),
-                     )
-                   ],
-                 ),
-               ],
-             ),
-            ),
-
-            const SizedBox(height: largePadding,),
-            if (isSubmitLoading) const Center(
               child: CircularProgressIndicator(
                 color: kPrimaryColor,
               ),
-            ), // Show loading indicator
+            )
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(defaultPadding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: defaultPadding),
+                    TextFormField(
+                      controller: mIbanController,
+                      keyboardType: TextInputType.text,
+                      textInputAction: TextInputAction.next,
+                      cursorColor: kPrimaryColor,
+                      readOnly: true,
+                      style: const TextStyle(color: kPrimaryColor),
+                      decoration: InputDecoration(
+                        labelText: "IBAN / Account Number",
+                        labelStyle: const TextStyle(color: kPrimaryColor),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(),
+                        ),
+                        filled: true,
+                        fillColor: Colors.transparent,
+                      ),
+                    ),
+                    const SizedBox(height: defaultPadding),
+                    TextFormField(
+                      controller: mBicCodeController,
+                      keyboardType: TextInputType.text,
+                      textInputAction: TextInputAction.next,
+                      cursorColor: kPrimaryColor,
+                      readOnly: true,
+                      style: const TextStyle(color: kPrimaryColor),
+                      decoration: InputDecoration(
+                        labelText: "Routing/IFSC/BIC/SwiftCode",
+                        labelStyle: const TextStyle(color: kPrimaryColor),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(),
+                        ),
+                        filled: true,
+                        fillColor: Colors.transparent,
+                      ),
+                    ),
 
+                    const SizedBox(height: defaultPadding),
 
-            const SizedBox(height: 30),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 50),
-              child: isSubmit == true
-                  ? ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: kPrimaryColor,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 32, vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                    TextFormField(
+                      controller: mCurrencyController,
+                      keyboardType: TextInputType.text,
+                      textInputAction: TextInputAction.next,
+                      cursorColor: kPrimaryColor,
+                      style: const TextStyle(color: kPrimaryColor),
+                      readOnly: true,
+                      decoration: InputDecoration(
+                        labelText: "Currency",
+                        labelStyle: const TextStyle(color: kPrimaryColor),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(),
+                        ),
+                        filled: true,
+                        fillColor: Colors.transparent,
+                      ),
+                    ),
+                    const SizedBox(height: largePadding),
+
+                    GestureDetector(
+                      onTap: () {
+                        mGetAllAccountBottomSheet(context);
+                      },
+                      child: Card(
+                        elevation: 1.0,
+                        color: kPrimaryLightColor,
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 0, horizontal: 0),
+                        child: Padding(
+                          padding: const EdgeInsets.all(defaultPadding),
+                          child: Row(
+                            children: [
+                              CountryFlag.fromCountryCode(
+                                width: 55,
+                                height: 55,
+                                mToCountry!,
+                                shape: const RoundedRectangle(smallPadding),
+                              ),
+                              const SizedBox(width: defaultPadding),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '$mToCurrency Account',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                        color: kPrimaryColor,
+                                      ),
+                                    ),
+                                    Text(
+                                      '$mToIban',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 13,
+                                        color: kPrimaryColor,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${mToCurrencySymbol!} ${mToAmount!.toStringAsFixed(2)}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 12,
+                                        color: kPrimaryColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.navigate_next_rounded,
+                                  color: kPrimaryColor),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: largePadding,
+                    ),
+                    TextFormField(
+                      controller: mAmountController,
+                      keyboardType: TextInputType.phone,
+                      textInputAction: TextInputAction.next,
+                      cursorColor: kPrimaryColor,
+                      style: const TextStyle(color: kPrimaryColor),
+                      decoration: InputDecoration(
+                        labelText: "Enter Amount",
+                        labelStyle: const TextStyle(color: kPrimaryColor),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(),
+                        ),
+                        filled: true,
+                        fillColor: Colors.transparent,
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter amount';
+                        }
+                        return null;
+                      },
+                      onChanged: (value) {
+                        if (mToCurrency != "Select") {
+                          if (mAmountController.text.isNotEmpty) {
+                            if (double.parse(mAmountController.text) <=
+                                mToAmount!) {
+                              mExchangeMoneyApi();
+                            } else {
+                              CustomSnackBar.showSnackBar(
+                                  context: context,
+                                  message: "Please enter a valid amount",
+                                  color: kPrimaryColor);
+                            }
+                          } else {
+                            CustomSnackBar.showSnackBar(
+                                context: context,
+                                message: "Please enter an amount",
+                                color: kPrimaryColor);
+                            setState(() {
+                              mFees = 0.0;
+                              mTotalAmount = '0.0';
+                              mGetTotalAmount = 0.0;
+                            });
+                          }
+                        } else {
+                          CustomSnackBar.showSnackBar(
+                              context: context,
+                              message: "Please select an account",
+                              color: kPrimaryColor);
+                        }
+                      },
+                    ),
+
+                    const SizedBox(height: 45),
+                    Padding(
+                      padding: const EdgeInsets.all(defaultPadding),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Fee:",
+                                style: TextStyle(
+                                    color: kPrimaryColor,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                "$mToCurrencySymbol ${mFees!.toStringAsFixed(2)}",
+                                style: const TextStyle(
+                                    color: kPrimaryColor,
+                                    fontWeight: FontWeight.bold),
+                              )
+                            ],
+                          ),
+                          const Divider(),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Total Amount:",
+                                style: TextStyle(
+                                    color: kPrimaryColor,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                "$mToCurrencySymbol $mTotalAmount",
+                                style: const TextStyle(
+                                    color: kPrimaryColor,
+                                    fontWeight: FontWeight.bold),
+                              )
+                            ],
+                          ),
+                          const SizedBox(height: 8.0),
+                          const Divider(),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Get Total Amount:",
+                                style: TextStyle(
+                                    color: kPrimaryColor,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                "$mToCurrencySymbol $mGetTotalAmount",
+                                style: const TextStyle(
+                                    color: kPrimaryColor,
+                                    fontWeight: FontWeight.bold),
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(
+                      height: largePadding,
+                    ),
+                    if (isSubmitLoading)
+                      const Center(
+                        child: CircularProgressIndicator(
+                          color: kPrimaryColor,
+                        ),
+                      ), // Show loading indicator
+
+                    const SizedBox(height: 30),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 50),
+                      child: isSubmit == true
+                          ? ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: kPrimaryColor,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 32, vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              onPressed: () {
+                                //
+                              },
+                              child: const Text(
+                                'Submit',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 16),
+                              ),
+                            )
+                          : Container(), // Show an empty container (or something else) when isReviewOrder is true
+                    ),
+                  ],
                 ),
-                onPressed: () {
-                  //
-                },
-                child: const Text(
-                  'Submit',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                ),
-              )
-                  : Container(), // Show an empty container (or something else) when isReviewOrder is true
+              ),
             ),
-
-          ],
-        ),),
-      ),
     );
   }
 
@@ -466,12 +495,14 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen>{
                 ],
               ),
               child: AllAccountsBottomSheet(
-                onAccountSelected: (String accountId,
-                    String country,
-                    String currency,
-                    String iban,
-                    bool status,
-                    double amount,) async {
+                onAccountSelected: (
+                  String accountId,
+                  String country,
+                  String currency,
+                  String iban,
+                  bool status,
+                  double amount,
+                ) async {
                   await mSetSelectedAccountData(
                     accountId,
                     country,
@@ -492,10 +523,9 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen>{
 
 class AllAccountsBottomSheet extends StatefulWidget {
   final Function(String, String, String, String, bool, double)
-  onAccountSelected; // Update with required parameters
+      onAccountSelected; // Update with required parameters
 
-  const AllAccountsBottomSheet(
-      {super.key,required this.onAccountSelected});
+  const AllAccountsBottomSheet({super.key, required this.onAccountSelected});
 
   @override
   State<AllAccountsBottomSheet> createState() => _AllAccountsBottomSheetState();
@@ -547,193 +577,189 @@ class _AllAccountsBottomSheetState extends State<AllAccountsBottomSheet> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Select Account',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: kPrimaryColor,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, color: kPrimaryColor),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
+            const Text(
+              'Select Account',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: kPrimaryColor,
+              ),
             ),
-            const SizedBox(
-              height: defaultPadding,
+            IconButton(
+              icon: const Icon(Icons.close, color: kPrimaryColor),
+              onPressed: () {
+                Navigator.pop(context);
+              },
             ),
-
-            Expanded(
-                child: isLoading
-                    ? const Center(
-                  child: CircularProgressIndicator(
-                    color: kPrimaryColor,
-                  ),
-                )
-                    : SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: MediaQuery
-                            .of(context)
-                            .size
-                            .height,
-                        child: isLoading
-                            ? const Center(
-                          child:
-                          CircularProgressIndicator(), // Show loading indicator
-                        )
-                            : ListView.builder(
-                          itemCount: accountsListData.length,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemBuilder: (context, index) {
-                            final accountsData =
-                            accountsListData[index];
-                            final isSelected = index == _selectedIndex;
-
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 5,
-                                  horizontal: smallPadding),
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _selectedIndex = index;
-
-                                    widget.onAccountSelected(
-                                      accountsData.accountId ?? '',
-                                      accountsData.country ?? '',
-                                      accountsData.currency ?? '',
-                                      accountsData.iban ?? '',
-                                      accountsData.status ?? false,
-                                      accountsData.amount ?? 0.0,
-                                    );
-                                    Navigator.pop(context);
-                                  });
-                                },
-                                child: Card(
-                                  elevation: 5,
-                                  color: isSelected
-                                      ? kPrimaryColor
-                                      : Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                        defaultPadding),
-                                  ),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(
-                                        defaultPadding),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                          MainAxisAlignment
-                                              .spaceBetween,
-                                          children: [
-                                            CountryFlag.fromCountryCode(
-                                              width: 35,
-                                              height: 35,
-                                              accountsData.country!,
-                                              shape: const Circle(),
-                                            ),
-                                            Text(
-                                              "${accountsData.currency}",
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight:
-                                                FontWeight.bold,
-                                                color: isSelected
-                                                    ? Colors.white
-                                                    : kPrimaryColor,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(
-                                            height: defaultPadding),
-                                        Row(
-                                          mainAxisAlignment:
-                                          MainAxisAlignment
-                                              .spaceBetween,
-                                          children: [
-                                            Text(
-                                              "IBAN",
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight:
-                                                FontWeight.bold,
-                                                color: isSelected
-                                                    ? Colors.white
-                                                    : kPrimaryColor,
-                                              ),
-                                            ),
-                                            Text(
-                                              "${accountsData.iban}",
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight:
-                                                FontWeight.bold,
-                                                color: isSelected
-                                                    ? Colors.white
-                                                    : kPrimaryColor,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(
-                                            height: defaultPadding),
-                                        Row(
-                                          mainAxisAlignment:
-                                          MainAxisAlignment
-                                              .spaceBetween,
-                                          children: [
-                                            Text(
-                                              "Balance",
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight:
-                                                FontWeight.bold,
-                                                color: isSelected
-                                                    ? Colors.white
-                                                    : kPrimaryColor,
-                                              ),
-                                            ),
-                                            Text(
-                                              "${accountsData.amount}",
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight:
-                                                FontWeight.bold,
-                                                color: isSelected
-                                                    ? Colors.white
-                                                    : kPrimaryColor,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                )),
           ],
-        ));
+        ),
+        const SizedBox(
+          height: defaultPadding,
+        ),
+        Expanded(
+            child: isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: kPrimaryColor,
+                    ),
+                  )
+                : SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height,
+                          child: isLoading
+                              ? const Center(
+                                  child:
+                                      CircularProgressIndicator(), // Show loading indicator
+                                )
+                              : ListView.builder(
+                                  itemCount: accountsListData.length,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemBuilder: (context, index) {
+                                    final accountsData =
+                                        accountsListData[index];
+                                    final isSelected = index == _selectedIndex;
+
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 5,
+                                          horizontal: smallPadding),
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            _selectedIndex = index;
+
+                                            widget.onAccountSelected(
+                                              accountsData.accountId ?? '',
+                                              accountsData.country ?? '',
+                                              accountsData.currency ?? '',
+                                              accountsData.iban ?? '',
+                                              accountsData.status ?? false,
+                                              accountsData.amount ?? 0.0,
+                                            );
+                                            Navigator.pop(context);
+                                          });
+                                        },
+                                        child: Card(
+                                          elevation: 5,
+                                          color: isSelected
+                                              ? kPrimaryColor
+                                              : Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                                defaultPadding),
+                                          ),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(
+                                                defaultPadding),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    CountryFlag.fromCountryCode(
+                                                      width: 35,
+                                                      height: 35,
+                                                      accountsData.country!,
+                                                      shape: const Circle(),
+                                                    ),
+                                                    Text(
+                                                      "${accountsData.currency}",
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: isSelected
+                                                            ? Colors.white
+                                                            : kPrimaryColor,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(
+                                                    height: defaultPadding),
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                      "IBAN",
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: isSelected
+                                                            ? Colors.white
+                                                            : kPrimaryColor,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      "${accountsData.iban}",
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: isSelected
+                                                            ? Colors.white
+                                                            : kPrimaryColor,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(
+                                                    height: defaultPadding),
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                      "Balance",
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: isSelected
+                                                            ? Colors.white
+                                                            : kPrimaryColor,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      "${accountsData.amount}",
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: isSelected
+                                                            ? Colors.white
+                                                            : kPrimaryColor,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
+                    ),
+                  )),
+      ],
+    ));
   }
 }
