@@ -23,6 +23,7 @@ import 'package:quickcash/Screens/UserProfileScreen/profile_main_screen.dart';
 import 'package:quickcash/constants.dart';
 
 import '../../util/auth_manager.dart';
+import '../KYCScreen/kycHomeScreen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -123,53 +124,70 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // Positioned widgets for menu and logout icons
             Positioned(
-              top: 40, // Adjust this value as needed
-              left: 10, // Adjust this value as needed
+              top: 40,
+              left: 10,
               child: Builder(
                 builder: (context) => IconButton(
                   icon: const Icon(Icons.menu),
                   onPressed: () {
-                    // Open the drawer using the Builder's context
                     Scaffold.of(context).openDrawer();
                   },
-                  color: kPrimaryColor, // Customize the color if needed
-                  iconSize: 30, // Customize the size if needed
+                  color: kPrimaryColor,
+                  iconSize: 30,
                 ),
               ),
             ),
 
+
             Positioned(
-              top: 40, // Align the logout button at the same height as the menu icon
-              right: 10, // Adjust this value to move it to the right side
+              top: 40,
+              right: 60,
+              child: IconButton(
+                icon: const Icon(Icons.person_off_rounded),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const KycHomeScreen(),
+                    ),
+                  );
+                },
+                color: kPrimaryColor,
+                iconSize: 30,
+              ),
+            ),
+
+            // Logout button
+            Positioned(
+              top: 40,
+              right: 10,
               child: IconButton(
                 icon: const Icon(Icons.logout),
                 onPressed: () {
-                  // Handle logout functionality here
                   mLogoutDialog();
-                  // print("Logout button pressed");
                 },
-                color: kPrimaryColor, // Customize the color if needed
-                iconSize: 30, // Customize the size if needed
+                color: kPrimaryColor,
+                iconSize: 30,
               ),
             ),
 
             // Centered text between the icons
-            const Positioned(
-              top: 50, // Align with the icons vertically
-              left: 50, // Start positioning the text from the left side
-              right: 50, // Give some space on the right side for text
+            /*const Positioned(
+              top: 50,
+              left: 50,
+              right: 50,
               child: Center(
                 child: Text(
-                  'Dashboard', // Replace with your desired text
+                  'Dashboard',
                   style: TextStyle(
-                    fontSize: 20, // Customize text size
-                    fontWeight: FontWeight.bold, // Customize text weight
-                    color: kPrimaryColor, // Customize text color
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: kPrimaryColor,
                   ),
-                  textAlign: TextAlign.center, // Center the text horizontally
+                  textAlign: TextAlign.center,
                 ),
               ),
-            ),
+            ),*/
           ],
         ),
         drawer: Drawer(
@@ -183,7 +201,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-
 
     );
   }

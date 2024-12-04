@@ -280,6 +280,97 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     height: largePadding,
                   ),
 
+                 // if(AuthManager.getKycStatus() == "complete")
+                  /*Padding(padding: const EdgeInsets.all(defaultPadding),
+                  child: Card(
+                    elevation: 4.0,
+                    color: Colors.white,
+                    margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+                    child: Padding(
+                      padding: const EdgeInsets.all(defaultPadding),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: largePadding,),
+                          Center(
+                            child: Image.asset(
+                              'assets/images/kyc.png',
+                              width: 200, // Set the width
+                              height: 150, // Set the height
+                            ),
+                          ),
+
+                          const SizedBox(height: largePadding,),
+                          const Text(
+                            'Kyc is Pending',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26, color: kPrimaryColor),
+                          ),
+
+                          const SizedBox(height: smallPadding,),
+                          const Text(
+                            'Click here to complete the KYC',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+
+                          const SizedBox(height: 35),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 50),
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: kPrimaryColor,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 32, vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              onPressed: (){
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const KycHomeScreen(),
+                                  ),
+                                );
+                              },
+                              child: const Text('Click Now',
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16)),
+                            ),
+                          ),
+                          const SizedBox(height: 35),
+
+                        ],
+                      ),
+
+                    *//*  child: Row(
+                        children: [
+                          Icon(
+                            Icons.person,
+                            size: 60,
+                            color: kPrimaryColor,
+                          ),
+                          SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Recipient',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                ),
+                                Text(
+                                  'Pay a recipient\'s bank account',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(Icons.navigate_next_rounded, color: kPrimaryColor),
+                        ],
+                      ),*//*
+                    ),
+                  ),)*/
+
+
                   if (AuthManager.getKycStatus() != "Pending")
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
