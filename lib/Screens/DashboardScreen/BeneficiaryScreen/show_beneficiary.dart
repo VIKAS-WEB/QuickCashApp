@@ -114,8 +114,8 @@ class _ShowBeneficiaryScreen extends State<ShowBeneficiaryScreen> {
                          );
                        },
                        child: Card(
-                         elevation: 1.0,
-                         color: kPrimaryLightColor,
+                         elevation: 4.0,
+                         color: Colors.white,
                          margin: const EdgeInsets.symmetric(
                              vertical: 0, horizontal: 0),
                          child: Padding(
@@ -125,7 +125,7 @@ class _ShowBeneficiaryScreen extends State<ShowBeneficiaryScreen> {
                              children: [
                                const Icon(
                                  Icons.badge,    // Example of a Material icon
-                                 size: 50.0,   // Icon size
+                                 size: 60.0,   // Icon size
                                  color: kPrimaryColor,  // Icon color
                                ),
                                const SizedBox(width: defaultPadding),
@@ -138,16 +138,13 @@ class _ShowBeneficiaryScreen extends State<ShowBeneficiaryScreen> {
                                        '${recipients.name}',
                                        style: const TextStyle(
                                          fontWeight: FontWeight.bold,
-                                         fontSize: 14,
-                                         color: kPrimaryColor,
+                                         fontSize: 16,
                                        ),
                                      ),
                                      Text(
                                        '${recipients.iban}',
                                        style: const TextStyle(
-                                         fontWeight: FontWeight.bold,
-                                         fontSize: 14,
-                                         color: kPrimaryColor,
+                                         color: Colors.grey,
                                        ),
                                      ),
                                    ],
