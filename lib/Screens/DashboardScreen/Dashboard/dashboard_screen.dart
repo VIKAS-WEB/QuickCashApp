@@ -10,11 +10,13 @@ import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/account
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/TransactionList/transactionListApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/ExchangeScreen/exchangeMoneyScreen/exchange_money_screen.dart';
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/send_money_screen.dart';
+import 'package:quickcash/Screens/KYCScreen/KYCStatusModel/kycStatusApi.dart';
 import 'package:quickcash/Screens/TransactionScreen/TransactionDetailsScreen/transaction_details_screen.dart';
 import 'package:quickcash/components/background.dart';
 import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:quickcash/util/auth_manager.dart';
+import 'package:quickcash/util/customSnackBar.dart';
 
 import '../../LoginScreen/login_screen.dart';
 import 'RevenueList/revenueListApi.dart';
@@ -33,6 +35,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final AccountListTransactionApi _accountListTransactionApi =
       AccountListTransactionApi();
   final RevenueListApi _revenueListApi = RevenueListApi();
+  final KycStatusApi _kycStatusApi = KycStatusApi();
 
   List<AccountsListsData> accountsListData = [];
   List<TransactionListDetails> transactionList = [];
@@ -57,9 +60,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    mAccounts();
-    mRevenueList();
-    mTransactionList();
+    if (AuthManager.getKycStatus() == "completed") {
+      mAccounts();
+      mRevenueList();
+      mTransactionList();
+    } else {
+      mKycStatus();
+    }
+  }
+
+  Future<void> mKycStatus() async {
+    setState(() {});
+    try {
+      final response = await _kycStatusApi.kycStatusApi();
+
+      if (response.message == "kyc data are fetched Successfully") {
+        setState(() {
+          AuthManager.saveKycStatus(
+              response.kycStatusDetails!.first.kycStatus!);
+          if (AuthManager.getKycStatus() == "completed") {
+            mAccounts();
+            mRevenueList();
+            mTransactionList();
+          }
+        });
+      } else {
+        setState(() {
+          CustomSnackBar.showSnackBar(
+              context: context,
+              message: "We are facing some issue, Please try after some time!",
+              color: kPrimaryColor);
+        });
+      }
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
   }
 
   // Accounts List Api ---------------
@@ -198,23 +236,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
             title: const Text("Login Again"),
             content: const Text("Token has been expired, Please Login Again!"),
             actions: <Widget>[
-              /*TextButton(
-            onPressed: () => Navigator.of(context).pop(false), // No, return false
-            child: const Text("No"),
-          ),*/
               TextButton(
                 onPressed: () async {
                   // Log the user out
                   AuthManager
-                      .logout(); // Make sure to call logout function here
-                  // Pop the dialog and return true (indicating a successful logout)
+                      .logout();
                   Navigator.of(context).pop(true);
-                  // Navigate to the login screen
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
-                            const LoginScreen()), // replace HomeScreen with your actual home screen
+                            const LoginScreen()),
                   );
                 },
                 child: const Text("OK"),
@@ -222,7 +254,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
         )) ??
-        false; // In case of dialog dismiss, return false
+        false;
   }
 
   @override
@@ -235,6 +267,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               )
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   const SizedBox(
                     height: 25.0,
@@ -247,57 +280,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     height: largePadding,
                   ),
 
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 25),
-                          GaugeContainer(
-                            child: GaugeWidget(
-                              label: 'Credit',
-                              currentAmount: creditAmount ?? 0.0,
-                              totalAmount: creditAmount ?? 0.0,
-                              color: Colors.green,
-                              icon: Icons.arrow_downward_rounded,
+                  if (AuthManager.getKycStatus() != "Pending")
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 25),
+                            GaugeContainer(
+                              child: GaugeWidget(
+                                label: 'Credit',
+                                currentAmount: creditAmount ?? 0.0,
+                                totalAmount: creditAmount ?? 0.0,
+                                color: Colors.green,
+                                icon: Icons.arrow_downward_rounded,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          GaugeContainer(
-                            child: GaugeWidget(
-                              label: 'Debit',
-                              currentAmount: debitAmount ?? 0.0,
-                              totalAmount: creditAmount ?? 0.0,
-                              color: Colors.red,
-                              icon: Icons.arrow_upward_rounded,
+                            const SizedBox(width: 16),
+                            GaugeContainer(
+                              child: GaugeWidget(
+                                label: 'Debit',
+                                currentAmount: debitAmount ?? 0.0,
+                                totalAmount: creditAmount ?? 0.0,
+                                color: Colors.red,
+                                icon: Icons.arrow_upward_rounded,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          GaugeContainer(
-                            child: GaugeWidget(
-                              label: 'Investing',
-                              currentAmount: investingAmount ?? 0.0,
-                              totalAmount: creditAmount ?? 0.0,
-                              color: Colors.purple,
-                              icon: Icons.attach_money,
+                            const SizedBox(width: 16),
+                            GaugeContainer(
+                              child: GaugeWidget(
+                                label: 'Investing',
+                                currentAmount: investingAmount ?? 0.0,
+                                totalAmount: creditAmount ?? 0.0,
+                                color: Colors.purple,
+                                icon: Icons.attach_money,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          GaugeContainer(
-                            child: GaugeWidget(
-                              label: 'Earning',
-                              currentAmount: earningAmount ?? 0.0,
-                              totalAmount: creditAmount ?? 0.0,
-                              color: Colors.lightGreen,
-                              icon: Icons.attach_money,
+                            const SizedBox(width: 16),
+                            GaugeContainer(
+                              child: GaugeWidget(
+                                label: 'Earning',
+                                currentAmount: earningAmount ?? 0.0,
+                                totalAmount: creditAmount ?? 0.0,
+                                color: Colors.lightGreen,
+                                icon: Icons.attach_money,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
 
                   const SizedBox(
                     height: smallPadding,
@@ -313,6 +347,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       style: const TextStyle(color: Colors.red),
                     )),
 
+                  if (AuthManager.getKycStatus() != "Pending")
                   // Account list (only when not loading and no error)
                   if (!isLoading &&
                       errorMessage == null &&
@@ -341,10 +376,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: GestureDetector(
                               onTap: () {
                                 setState(() {
-                                  // Update the selected index
                                   _selectedIndex = index;
 
-                                  // Send Data To Exchange Money
                                   accountIdExchange = accountsData.accountId;
                                   countryExchange = accountsData.country;
                                   currencyExchange = accountsData.currency;
@@ -352,7 +385,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   statusExchange = accountsData.status;
                                   amountExchange = accountsData.amount;
 
-                                  // Call the function with the updated account data
                                   mAccountListTransaction(
                                       accountsData.accountId,
                                       accountsData.currency);
@@ -462,144 +494,148 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
 
-                  // The Accounts design ----------------
-                  Card(
-                    margin: const EdgeInsets.all(16.0),
-                    color: Colors.white,
-                    elevation: 5,
-                    child: Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const SizedBox(height: smallPadding),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              FloatingActionButton.extended(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const AddMoneyScreen()),
-                                  );
-                                  // Add your onPressed code here!
-                                },
-                                label: const Text(
-                                  'Add Money',
-                                  style: TextStyle(color: Colors.white),
+                  if (AuthManager.getKycStatus() != "Pending")
+                    // The Accounts design ----------------
+                    Card(
+                      margin: const EdgeInsets.all(16.0),
+                      color: Colors.white,
+                      elevation: 5,
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const SizedBox(height: smallPadding),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                FloatingActionButton.extended(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const AddMoneyScreen()),
+                                    );
+                                    // Add your onPressed code here!
+                                  },
+                                  label: const Text(
+                                    'Add Money',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  icon: const Icon(
+                                    Icons.add,
+                                    color: Colors.white,
+                                  ),
+                                  backgroundColor: kPrimaryColor,
                                 ),
-                                icon: const Icon(
-                                  Icons.add,
-                                  color: Colors.white,
+                                const SizedBox(width: 35),
+                                FloatingActionButton.extended(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              ExchangeMoneyScreen(
+                                                  accountId: accountIdExchange,
+                                                  country: countryExchange,
+                                                  currency: currencyExchange,
+                                                  iban: ibanExchange,
+                                                  status: statusExchange,
+                                                  amount: amountExchange)),
+                                    );
+                                  },
+                                  label: const Text(
+                                    ' Exchange  ',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  icon: const Icon(
+                                    Icons.currency_exchange,
+                                    color: Colors.white,
+                                  ),
+                                  backgroundColor: kPrimaryColor,
                                 ),
-                                backgroundColor: kPrimaryColor,
-                              ),
-                              const SizedBox(width: 35),
-                              FloatingActionButton.extended(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            ExchangeMoneyScreen(
-                                                accountId: accountIdExchange,
-                                                country: countryExchange,
-                                                currency: currencyExchange,
-                                                iban: ibanExchange,
-                                                status: statusExchange,
-                                                amount: amountExchange)),
-                                  );
-                                },
-                                label: const Text(
-                                  ' Exchange  ',
-                                  style: TextStyle(color: Colors.white),
+                              ],
+                            ),
+                            const SizedBox(height: defaultPadding),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                FloatingActionButton.extended(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const SendMoneyScreen()),
+                                    );
+                                    // Add your onPressed code here!
+                                  },
+                                  label: const Text(
+                                    'Send Money',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  icon: const Icon(
+                                    Icons.send,
+                                    color: Colors.white,
+                                  ),
+                                  backgroundColor: kPrimaryColor,
                                 ),
-                                icon: const Icon(
-                                  Icons.currency_exchange,
-                                  color: Colors.white,
+                                const SizedBox(width: 30),
+                                FloatingActionButton.extended(
+                                  onPressed: () {
+                                    // Add your onPressed code here!
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const AllAccountsScreen()),
+                                    );
+                                  },
+                                  label: const Text(
+                                    'All Account',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  icon: const Icon(
+                                    Icons.select_all,
+                                    color: Colors.white,
+                                  ),
+                                  backgroundColor: kPrimaryColor,
                                 ),
-                                backgroundColor: kPrimaryColor,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: defaultPadding),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              FloatingActionButton.extended(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const SendMoneyScreen()),
-                                  );
-                                  // Add your onPressed code here!
-                                },
-                                label: const Text(
-                                  'Send Money',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                icon: const Icon(
-                                  Icons.send,
-                                  color: Colors.white,
-                                ),
-                                backgroundColor: kPrimaryColor,
-                              ),
-                              const SizedBox(width: 30),
-                              FloatingActionButton.extended(
-                                onPressed: () {
-                                  // Add your onPressed code here!
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const AllAccountsScreen()),
-                                  );
-                                },
-                                label: const Text(
-                                  'All Account',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                icon: const Icon(
-                                  Icons.select_all,
-                                  color: Colors.white,
-                                ),
-                                backgroundColor: kPrimaryColor,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(
-                            height: smallPadding,
-                          ),
-                        ],
+                              ],
+                            ),
+                            const SizedBox(
+                              height: smallPadding,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
 
-                  // Transaction List Design
-                  const SizedBox(
-                    height: largePadding,
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: defaultPadding),
-                    child: Text(
-                      "Recent Transaction ",
-                      style: TextStyle(
-                          color: kPrimaryColor,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold),
+                  if (AuthManager.getKycStatus() != "Pending")
+                    // Transaction List Design
+                    const SizedBox(
+                      height: largePadding,
                     ),
-                  ),
+                  if (AuthManager.getKycStatus() != "Pending")
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: defaultPadding),
+                      child: Text(
+                        "Recent Transaction ",
+                        style: TextStyle(
+                            color: kPrimaryColor,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
                   const SizedBox(
                     height: smallPadding,
                   ),
 
-                  // Loading and Error Handling
-                  if (isTransactionLoading)
-                    const Center(child: CircularProgressIndicator()),
+                  if (AuthManager.getKycStatus() != "Pending")
+                    // Loading and Error Handling
+                    if (isTransactionLoading)
+                      const Center(child: CircularProgressIndicator()),
                   if (errorTransactionMessage != null)
                     SizedBox(
                         height: 190,
@@ -617,97 +653,99 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         )),
 
-                  // Account list (only when not loading and no error)
-                  if (!isTransactionLoading &&
-                      errorTransactionMessage == null &&
-                      transactionList.isNotEmpty)
-                    Column(
-                      children: transactionList.take(2).map((transaction) {
-                        // Limiting to 5 items
-                        return Card(
-                          margin: const EdgeInsets.symmetric(
-                              vertical: 8, horizontal: 16),
-                          color: kPrimaryColor, // Custom background color
-                          child: InkWell(
-                            onTap: () => {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => TransactionDetailPage(
-                                    transactionId: transaction
-                                        .trxId, // Passing transactionId here
+                  if (AuthManager.getKycStatus() != "Pending")
+                    // Account list (only when not loading and no error)
+                    if (!isTransactionLoading &&
+                        errorTransactionMessage == null &&
+                        transactionList.isNotEmpty)
+                      Column(
+                        children: transactionList.take(2).map((transaction) {
+                          // Limiting to 5 items
+                          return Card(
+                            margin: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 16),
+                            color: kPrimaryColor, // Custom background color
+                            child: InkWell(
+                              onTap: () => {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => TransactionDetailPage(
+                                      transactionId: transaction
+                                          .trxId, // Passing transactionId here
+                                    ),
                                   ),
-                                ),
-                              )
-                            }, // Navigate on tap
-                            child: ListTile(
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SizedBox(height: defaultPadding),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text("${transaction.transactionId}",
+                                )
+                              }, // Navigate on tap
+                              child: ListTile(
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const SizedBox(height: defaultPadding),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text("${transaction.transactionId}",
+                                            style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 16)),
+                                        Text(
+                                            formatDate(
+                                                transaction.transactionDate),
+                                            style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 16)),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text("${transaction.transactionType}",
+                                            style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 16)),
+                                        Text(
+                                          "${getCurrencySymbol(transaction.fromCurrency!)} ${(double.tryParse(transaction.fees.toString()) ?? 0) + (double.tryParse(transaction.amount.toString()) ?? 0)}",
                                           style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 16)),
-                                      Text(
-                                          formatDate(
-                                              transaction.transactionDate),
-                                          style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 16)),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text("${transaction.transactionType}",
-                                          style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 16)),
-                                      Text(
-                                        "${getCurrencySymbol(transaction.fromCurrency!)} ${(double.tryParse(transaction.fees.toString()) ?? 0) + (double.tryParse(transaction.amount.toString()) ?? 0)}",
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text('${getCurrencySymbol(transaction.fromCurrency!)} ${transaction.balance!.toStringAsFixed(2)}',
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                            '${getCurrencySymbol(transaction.fromCurrency!)} ${transaction.balance!.toStringAsFixed(2)}',
+                                            style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 16)),
+                                        Text(
+                                          (transaction.transactionStatus
+                                                      ?.isNotEmpty ??
+                                                  false)
+                                              ? '${transaction.transactionStatus![0].toUpperCase()}${transaction.transactionStatus!.substring(1)}'
+                                              : 'Unknown',
+                                          // Fallback to 'Unknown' if null or empty
                                           style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 16)),
-                                      Text(
-                                        (transaction.transactionStatus
-                                                    ?.isNotEmpty ??
-                                                false)
-                                            ? '${transaction.transactionStatus![0].toUpperCase()}${transaction.transactionStatus!.substring(1)}'
-                                            : 'Unknown',
-                                        // Fallback to 'Unknown' if null or empty
-                                        style: const TextStyle(
-                                            color: Colors.white),
-                                      )
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                ],
+                                              color: Colors.white),
+                                        )
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
+                          );
+                        }).toList(),
+                      ),
                 ],
               ),
       ),
