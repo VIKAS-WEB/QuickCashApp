@@ -70,6 +70,11 @@ class _StatementScreenState extends State<StatementScreen> {
     }
   }
 
+  String getCurrencySymbol(String currencyCode) {
+    var format = NumberFormat.simpleCurrency(name: currencyCode);
+    return format.currencySymbol;
+  }
+
 // Function to format the date
   String formatDate(String? dateTime) {
     if (dateTime == null) {
@@ -163,9 +168,13 @@ class _StatementScreenState extends State<StatementScreen> {
                                 const Text("Amount:",
                                     style: TextStyle(
                                         color: Colors.white, fontSize: 16)),
-                                Text("${transaction.fromCurrency} ${transaction.amount}",
-                                    style: const TextStyle(
-                                        color: Colors.white, fontSize: 16)),
+                                Text(
+                                  "${getCurrencySymbol(transaction.fromCurrency!)} ${(double.tryParse(transaction.fees.toString()) ?? 0) + (double.tryParse(transaction.amount!.toStringAsFixed(2)) ?? 0)}",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 8),
@@ -177,7 +186,7 @@ class _StatementScreenState extends State<StatementScreen> {
                                 const Text("Balance:",
                                     style: TextStyle(
                                         color: Colors.white, fontSize: 16)),
-                                Text("${transaction.balance}",
+                                Text('${getCurrencySymbol(transaction.fromCurrency!)} ${transaction.balance!.toStringAsFixed(2)}',
                                     style: const TextStyle(
                                         color: Colors.white, fontSize: 16)),
                               ],

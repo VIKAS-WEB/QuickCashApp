@@ -7,6 +7,7 @@ class TransactionListDetails {
   final double? balance;
   final String? transactionStatus;
   final double? amount;
+  final double? fees;
   final String? fromCurrency;
 
   TransactionListDetails({
@@ -18,6 +19,7 @@ class TransactionListDetails {
     this.balance,
     this.transactionStatus,
     this.amount,
+    this.fees,
     this.fromCurrency,
   });
 
@@ -35,6 +37,9 @@ class TransactionListDetails {
       amount: (json['amount'] is int
           ? (json['amount'] as int).toDouble()
           : json['amount']) as double?,
+      fees: (json['fee'] is int
+          ? (json['fee'] as int).toDouble()
+          : json['fee']) as double?,
       fromCurrency: json['from_currency'] as String?,
     );
   }
