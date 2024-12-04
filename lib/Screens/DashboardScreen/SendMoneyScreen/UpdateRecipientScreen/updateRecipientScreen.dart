@@ -6,10 +6,13 @@ import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/account
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/UpdateRecipientScreen/RecipientDetailsModel/receipientDetailsApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/UpdateRecipientScreen/RecipientExchangeMoneyModel/recipientExchangeMoneyApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/UpdateRecipientScreen/RecipientExchangeMoneyModel/recipientExchangeMoneyModel.dart';
+import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/UpdateRecipientScreen/UpdateRecipientModel/UpdateRecipientApi.dart';
+import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/UpdateRecipientScreen/UpdateRecipientModel/updateRecipientModel.dart';
 import 'package:quickcash/constants.dart';
 
 import '../../../../util/auth_manager.dart';
 import '../../../../util/customSnackBar.dart';
+import '../../../HomeScreen/home_screen.dart';
 
 class UpdateRecipientScreen extends StatefulWidget {
   final String? mRecipientId;
@@ -24,6 +27,7 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
   final RecipientsDetailsApi _recipientsDetailsApi = RecipientsDetailsApi();
   final RecipientExchangeMoneyApi _recipientExchangeMoneyApi =
       RecipientExchangeMoneyApi();
+  final RecipientUpdateApi _recipientUpdateApi = RecipientUpdateApi();
 
   TextEditingController mIbanController = TextEditingController();
   TextEditingController mBicCodeController = TextEditingController();
@@ -45,6 +49,7 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
   bool? mToStatus;
   double? mToAmount = 0.0;
   String? mToCurrencySymbol = '';
+  String? mFromCurrencySymbol = '';
   double? mFromRate;
   double? mFees = 0.0;
   String? mTotalAmount = "0.0";
@@ -92,9 +97,11 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
           mBicCodeController.text = response.recipientDetails!.first.bicCode!;
           mCurrencyController.text = response.recipientDetails!.first.currency!;
           mFromCurrency = response.recipientDetails!.first.currency!;
+          mFromCurrencySymbol = getCurrencySymbol(mFromCurrency!);
         });
       } else {
         setState(() {
+          Navigator.of(context).pop();
           CustomSnackBar.showSnackBar(
               context: context,
               message: "We are facing some issue!",
@@ -104,6 +111,7 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
     } catch (error) {
       setState(() {
         isLoading = false;
+        Navigator.of(context).pop();
         CustomSnackBar.showSnackBar(
             context: context,
             message: "Something went wrong!",
@@ -159,8 +167,45 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
   // Update Recipients Details Api ************
   Future<void> mUpdateRecipient() async {
     setState(() {
-      isSubmitLoading = false;
+      isSubmitLoading = true;
     });
+
+    try{
+
+      String amountText = '$mFromCurrencySymbol ${mAmountController
+          .text}';
+
+      String conversionAmountText = '$mToCurrencySymbol $mGetTotalAmount';
+
+      final request = RecipientUpdateRequest(userId: AuthManager.getUserId(), fee: mFees.toString(), toCurrency: mToCurrency!, recipientId: widget.mRecipientId!, amount: mAmountController.text, amountText: amountText, conversionAmount: mGetTotalAmount.toString(), conversionAmountText: conversionAmountText);
+      final response = await _recipientUpdateApi.recipientUpdateApi(request);
+
+      if(response.message == "Bank Transfer transaction has been submitted Successfully!!!"){
+        setState(() {
+          isSubmitLoading = false;
+          CustomSnackBar.showSnackBar(context: context, message: "Bank Transfer transaction has been submitted Successfully!", color: kPrimaryColor);
+          Navigator.of(context).pop();
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomeScreen(),
+            ),
+          );
+        });
+      }else{
+        setState(() {
+          isSubmitLoading = false;
+          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kPrimaryColor);
+        });
+      }
+
+    }catch (error) {
+      setState(() {
+        isSubmitLoading = false;
+        isSubmit = false;
+      });
+    }
+
   }
 
   // Currency Symbol *********
@@ -454,9 +499,7 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                               ),
-                              onPressed: () {
-                                //
-                              },
+                              onPressed: isSubmitLoading ? null : mUpdateRecipient,
                               child: const Text(
                                 'Submit',
                                 style: TextStyle(
