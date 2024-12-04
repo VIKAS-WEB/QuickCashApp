@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/DashboardScreen/BeneficiaryScreen/select_beneficiary_screen.dart';
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/PayRecipientsScree/recipientListModel/receipientModel.dart';
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/PayRecipientsScree/recipientListModel/recipientApi.dart';
+import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/UpdateRecipientScreen/updateRecipientScreen.dart';
 import 'package:quickcash/constants.dart';
 
 class ShowBeneficiaryScreen extends StatefulWidget {
@@ -107,6 +108,10 @@ class _ShowBeneficiaryScreen extends State<ShowBeneficiaryScreen> {
                    return Padding(padding: const EdgeInsets.symmetric(vertical: 5,horizontal: smallPadding),
                      child: GestureDetector(
                        onTap: () {
+                         Navigator.push(
+                           context,
+                           MaterialPageRoute(builder: (context) => const UpdateRecipientScreen()),
+                         );
                        },
                        child: Card(
                          elevation: 1.0,
