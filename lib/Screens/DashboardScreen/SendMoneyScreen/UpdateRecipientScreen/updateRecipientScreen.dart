@@ -4,8 +4,11 @@ import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListModel.dart';
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/UpdateRecipientScreen/RecipientDetailsModel/receipientDetailsApi.dart';
+import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/UpdateRecipientScreen/RecipientExchangeMoneyModel/recipientExchangeMoneyApi.dart';
+import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/UpdateRecipientScreen/RecipientExchangeMoneyModel/recipientExchangeMoneyModel.dart';
 import 'package:quickcash/constants.dart';
 
+import '../../../../util/auth_manager.dart';
 import '../../../../util/customSnackBar.dart';
 
 class UpdateRecipientScreen extends StatefulWidget {
@@ -18,6 +21,7 @@ class UpdateRecipientScreen extends StatefulWidget {
 
 class _UpdateRecipientScreenState extends State<UpdateRecipientScreen>{
   final RecipientsDetailsApi _recipientsDetailsApi = RecipientsDetailsApi();
+  final RecipientExchangeMoneyApi _recipientExchangeMoneyApi = RecipientExchangeMoneyApi();
 
   TextEditingController mIbanController = TextEditingController();
   TextEditingController mBicCodeController = TextEditingController();
@@ -27,6 +31,9 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen>{
   bool isLoading = false;
   bool isSubmitLoading = false;
   bool isSubmit = false;
+
+  // From Currency
+  String? mFromCurrency;
 
   // To Currency -----
   String? mToAccountId = '';
@@ -38,7 +45,7 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen>{
   String? mToCurrencySymbol = '';
   double? mFromRate;
   double? mFees = 0.0;
-  double? mTotalAmount = 0.0;
+  String? mTotalAmount = "0.0";
   double? mGetTotalAmount = 0.0;
 
   Future<void> mSetSelectedAccountData(mSelectedAccountId,
@@ -80,6 +87,7 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen>{
           mIbanController.text = response.recipientDetails!.first.iban!;
           mBicCodeController.text = response.recipientDetails!.first.bicCode!;
           mCurrencyController.text = response.recipientDetails!.first.currency!;
+          mFromCurrency = response.recipientDetails!.first.currency!;
         });
       }else{
         setState(() {
@@ -94,6 +102,48 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen>{
       });
     }
   }
+
+  // Exchange Money Api **************
+  Future<void> mExchangeMoneyApi() async {
+    setState(() {
+     // isLoading = true;
+    });
+
+    try {
+      final request = RecipientExchangeMoneyRequest(
+          userId: AuthManager.getUserId(),
+          amount: mAmountController.text,
+          fromCurrency: mFromCurrency!,
+          toCurrency: mToCurrency!);
+      final response = await _recipientExchangeMoneyApi.recipientExchangeMoneyApi(request);
+
+      if (response.message == "Success") {
+        setState(() {
+          isLoading = false;
+          isSubmit = true;
+          mFees = response.data.totalFees;
+          mTotalAmount = response.data.totalCharge.toString();
+          mGetTotalAmount = response.data.convertedAmount;
+          print('Get Total Amount: ${response.data.convertedAmount.toStringAsFixed(2)}');
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+          isSubmit = false;
+          CustomSnackBar.showSnackBar(
+              context: context,
+              message: "We are facing some issue!",
+              color: kPrimaryColor);
+        });
+      }
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        isSubmit = false;
+      });
+    }
+  }
+
 
   // Update Recipients Details Api ************
   Future<void> mUpdateRecipient() async {
@@ -271,11 +321,25 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen>{
                 return null;
               },
               onChanged: (value){
-                if(mAmountController.text.isNotEmpty){
+                if(mToCurrency != "Select"){
+                   if(mAmountController.text.isNotEmpty){
+                     setState(() {
+                       mExchangeMoneyApi();
+                     });
 
                 }else{
                   CustomSnackBar.showSnackBar(context: context, message: "Please enter an amount", color: kPrimaryColor);
+                 setState(() {
+                   mFees = 0.0;
+                   mTotalAmount = '0.0';
+                   mGetTotalAmount = 0.0;
+                 });
                 }
+                }else{
+                  CustomSnackBar.showSnackBar(context: context, message: "Please select an account", color: kPrimaryColor);
+                }
+
+
               },
             ),
 
@@ -311,8 +375,7 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen>{
                            fontWeight: FontWeight.bold),
                      ),
                      Text(
-                       "$mToCurrencySymbol ${mTotalAmount
-                           ?.toStringAsFixed(2)}",
+                       "$mToCurrencySymbol $mTotalAmount",
                        style: const TextStyle(
                            color: kPrimaryColor,
                            fontWeight: FontWeight.bold),
@@ -331,8 +394,7 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen>{
                            fontWeight: FontWeight.bold),
                      ),
                      Text(
-                       "$mToCurrencySymbol ${mGetTotalAmount
-                           ?.toStringAsFixed(2)}",
+                       "$mToCurrencySymbol $mGetTotalAmount",
                        style: const TextStyle(
                            color: kPrimaryColor,
                            fontWeight: FontWeight.bold),

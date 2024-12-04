@@ -1,26 +1,26 @@
 import 'package:dio/dio.dart';
+import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/UpdateRecipientScreen/RecipientExchangeMoneyModel/recipientExchangeMoneyModel.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import '../../../../../../util/apiConstants.dart';
-import 'exchangeCurrencyModel.dart';
 
-class ExchangeCurrencyApi {
+class RecipientExchangeMoneyApi {
   final Dio _dio = Dio();
 
-  ExchangeCurrencyApi() {
+  RecipientExchangeMoneyApi() {
     _dio.options.baseUrl = ApiConstants.baseUrl;
     _dio.options.headers['Authorization'] = 'Bearer ${AuthManager.getToken()}';
 
 
-    /*_dio.interceptors.add(LogInterceptor(
+    _dio.interceptors.add(LogInterceptor(
       request: true,
       requestBody: true,
       responseBody: true,
       responseHeader: true,
-    ));*/
+    ));
   }
 
 
-  Future<ExchangeCurrencyResponse> exchangeCurrencyApi(ExchangeCurrencyRequest request) async {
+  Future<RecipientExchangeMoneyResponse> recipientExchangeMoneyApi(RecipientExchangeMoneyRequest request) async {
     try {
       final response = await _dio.post(
         '/crypto/fetch-beneexchange',
@@ -29,9 +29,9 @@ class ExchangeCurrencyApi {
 
       // Check for a successful response
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return ExchangeCurrencyResponse.fromJson(response.data);
+        return RecipientExchangeMoneyResponse.fromJson(response.data);
       } else if(response.statusCode == 401){
-        return ExchangeCurrencyResponse.fromJson(response.data);
+        return RecipientExchangeMoneyResponse.fromJson(response.data);
 
       } else {
         throw Exception('Failed to fetch data: ${response.statusMessage}');
