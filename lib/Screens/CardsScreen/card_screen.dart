@@ -6,7 +6,6 @@ import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListApi.dart';
 import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListModel.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/auth_manager.dart';
-import 'package:quickcash/util/customSnackBar.dart';
 
 import '../../model/currencyApiModel/currencyApi.dart';
 import '../../model/currencyApiModel/currencyModel.dart';
