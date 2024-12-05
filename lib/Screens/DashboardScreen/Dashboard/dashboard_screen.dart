@@ -323,7 +323,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ],
                                 )
 
-
                               else
                                 Column(
                                   children: [
@@ -884,7 +883,7 @@ class GaugeWidget extends StatelessWidget {
   final String label;
   final double currentAmount;
   final double totalAmount;
-  final Color color; // Color for the gauge and text
+  final Color color;
   final IconData icon;
 
   const GaugeWidget({
@@ -907,7 +906,6 @@ class GaugeWidget extends StatelessWidget {
           size: const Size(100, 120),
           painter: GaugePainter(percentage: percentage, color: color),
         ),
-        // Centered Column with Icon on top and Text below
         Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -921,13 +919,13 @@ class GaugeWidget extends StatelessWidget {
               size: 20, // Icon size
               color: color,
             ),
-            const SizedBox(height: 0), // Space between icon and text
+            const SizedBox(height: 0),
             Text(
               label,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: color, // Set the text color to the received color
+                color: color,
               ),
             ),
             Text(
@@ -935,7 +933,7 @@ class GaugeWidget extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: color, // Set the text color to the received color
+                color: color,
               ),
             ),
           ],
