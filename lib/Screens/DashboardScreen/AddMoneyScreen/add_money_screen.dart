@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quickcash/Screens/CheckOutScreen/checkoutScreen.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/model/currencyApiModel/currencyModel.dart';
 import 'package:quickcash/util/customSnackBar.dart';
@@ -238,6 +239,13 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                           CustomSnackBar.showSnackBar(context: context, message: "Please select a transfer type", color: kPrimaryColor);
                           return;
                         }
+
+                        /*Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CheckoutScreen(),
+                          ),
+                        );*/
                         // Perform the action to add money
                       }
                     },
