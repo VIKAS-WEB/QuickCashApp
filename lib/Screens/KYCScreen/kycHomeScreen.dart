@@ -3,10 +3,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:quickcash/Screens/KYCScreen/KycUpdateModel/kycUpdateApi.dart';
+import 'package:quickcash/Screens/KYCScreen/KycUpdateModel/kycUpdateModel.dart';
 import 'package:quickcash/components/background.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import 'package:quickcash/util/customSnackBar.dart';
+
+import '../HomeScreen/home_screen.dart';
 
 class KycHomeScreen extends StatefulWidget {
   const KycHomeScreen({super.key});
@@ -16,14 +20,15 @@ class KycHomeScreen extends StatefulWidget {
 }
 
 class _KycHomeScreenState extends State<KycHomeScreen> {
+  final KycUpdateApi _kycUpdateApi = KycUpdateApi();
+
   final TextEditingController mEmail = TextEditingController();
   final TextEditingController mPrimaryPhoneNo = TextEditingController();
   final TextEditingController mAdditionalPhoneNo = TextEditingController();
-
   final TextEditingController _documentsNoController = TextEditingController();
+
   final GlobalKey<FormState> _formKeyPrimary = GlobalKey<FormState>();
   final GlobalKey<FormState> _formKeyAdditional = GlobalKey<FormState>();
-
 
   bool isUpdateLoading = false;
   String? mPrimaryNoStatus = 'Verify';
@@ -31,9 +36,9 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
 
   String? imagePathFront;
   String? imagePathBack;
+  String? imagePathAddress;
   String selectedDocument = 'Select Document';
   String selectedResidentialDocument = 'Select Document';
-
 
   @override
   void initState() {
@@ -55,6 +60,117 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
     setState(() {
       mAdditionalNoStatus = additionalNoVerified;
     });
+  }
+
+  // Kyc Update Api **************
+  Future<void> mKycUpdate() async {
+    setState(() {
+      isUpdateLoading = true;
+    });
+
+    try {
+      if (mPrimaryNoStatus != "Verify") {
+        if (mAdditionalNoStatus != "Verify") {
+          if (selectedDocument != "Select Document") {
+            if (_documentsNoController.text.isNotEmpty) {
+              if (imagePathFront != null) {
+                if (imagePathBack != null) {
+                  if (selectedResidentialDocument != "Select Document") {
+                    if (imagePathAddress != null) {
+                      final request = KycUpdateRequest(
+                          userId: AuthManager.getUserId(),
+                          emailId: mEmail.text,
+                          primaryPhoneNo: mPrimaryPhoneNo.text,
+                          additionalPhoneNo: mAdditionalPhoneNo.text,
+                          documentType: selectedDocument,
+                          documentNumber: _documentsNoController.text,
+                          addressDocumentType: selectedResidentialDocument,
+                          status: "Pending",
+                          emailVerified: true,
+                          primaryPhoneVerified: true,
+                          additionalPhoneVerified: true,
+                          documentPhotoFront: imagePathFront !=null ? File(imagePathFront!) : null,
+                          documentPhotoBack: imagePathBack !=null ? File(imagePathBack!) : null,
+                          addressProofPhoto: imagePathAddress !=null ? File(imagePathAddress!) : null);
+
+                      final response = await _kycUpdateApi.kycUpdateApi(request, AuthManager.getKycId());
+
+                      if(response.message == "Kyc Updated !!!"){
+                        setState(() {
+                          isUpdateLoading = false;
+                          CustomSnackBar.showSnackBar(context: context, message: "You kyc documents uploaded successfully, Wait for admin side approval", color: kPrimaryColor);
+                          Navigator.of(context).pop();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HomeScreen(),
+                            ),
+                          );
+                        });
+                      }else{
+                        setState(() {
+                          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue, Please try after some time.", color: kPrimaryColor);
+                        });
+                      }
+
+                    } else {
+                      CustomSnackBar.showSnackBar(
+                          context: context,
+                          message: "Upload residential document",
+                          color: kPrimaryColor);
+                    }
+                  } else {
+                    CustomSnackBar.showSnackBar(
+                        context: context,
+                        message: "Please select residential document type",
+                        color: kPrimaryColor);
+                  }
+                } else {
+                  CustomSnackBar.showSnackBar(
+                      context: context,
+                      message: "Upload document back side",
+                      color: kPrimaryColor);
+                }
+              } else {
+                CustomSnackBar.showSnackBar(
+                    context: context,
+                    message: "Upload document front side",
+                    color: kPrimaryColor);
+              }
+            } else {
+              CustomSnackBar.showSnackBar(
+                  context: context,
+                  message: "Please enter selected documentId no",
+                  color: kPrimaryColor);
+            }
+          } else {
+            CustomSnackBar.showSnackBar(
+                context: context,
+                message: "Please select a document type",
+                color: kPrimaryColor);
+          }
+        } else {
+          CustomSnackBar.showSnackBar(
+              context: context,
+              message: "Your additional number not verify",
+              color: kPrimaryColor);
+        }
+      } else {
+        CustomSnackBar.showSnackBar(
+            context: context,
+            message: "Your primary number not verify",
+            color: kPrimaryColor);
+      }
+    } catch (error) {
+      setState(() {
+        isUpdateLoading = false;
+        CustomSnackBar.showSnackBar(
+          context: context,
+          message: "Something went wrong!",
+          color: kRedColor,
+        );
+      });
+    }
   }
 
   @override
@@ -84,7 +200,6 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                 padding: const EdgeInsets.all(smallPadding),
                 child: Column(
                   children: [
-
                     const Center(
                       child: Text(
                         "To fully activate your account and access all features, please complete the KYC (Know your Customer) process. It's quick and essential for your security and compliance. Don't miss out. Finish your KYC today!",
@@ -93,7 +208,6 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                         textAlign: TextAlign.center, // Ensure text is centered
                       ),
                     ),
-
                     Card(
                       elevation: 4.0,
                       color: Colors.white,
@@ -149,10 +263,12 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                                 keyboardType: TextInputType.phone,
                                 focusNode: FocusNode(),
                                 style: const TextStyle(color: kPrimaryColor),
-                                dropdownIcon: const Icon(Icons.arrow_drop_down, size: 28, color: kPrimaryColor),
+                                dropdownIcon: const Icon(Icons.arrow_drop_down,
+                                    size: 28, color: kPrimaryColor),
                                 decoration: InputDecoration(
                                   labelText: 'Mobile Number',
-                                  labelStyle: const TextStyle(color: kPrimaryColor),
+                                  labelStyle:
+                                      const TextStyle(color: kPrimaryColor),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     borderSide: const BorderSide(),
@@ -164,14 +280,14 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                                 onChanged: (phone) {},
                                 enabled: mPrimaryNoStatus != "Verified",
                                 validator: (value) {
-                                  if (value == null || value.completeNumber.isEmpty) {
+                                  if (value == null ||
+                                      value.completeNumber.isEmpty) {
                                     return 'Please enter primary phone number';
                                   }
                                   return null;
                                 },
                               ),
                             ),
-
                             const SizedBox(
                               height: smallPadding,
                             ),
@@ -185,26 +301,31 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                                   child: FloatingActionButton.extended(
                                     onPressed: () {
                                       if (mPrimaryNoStatus == "Verify") {
-                                        if (_formKeyPrimary.currentState?.validate() ?? false) {
+                                        if (_formKeyPrimary.currentState
+                                                ?.validate() ??
+                                            false) {
                                           mPrimaryNoVerifyDialog(context);
                                         } else {
                                           CustomSnackBar.showSnackBar(
                                             context: context,
-                                            message: "Please enter a valid primary phone number",
+                                            message:
+                                                "Please enter a valid primary phone number",
                                             color: kPrimaryColor,
                                           );
                                         }
                                       } else {
                                         CustomSnackBar.showSnackBar(
                                           context: context,
-                                          message: "Primary phone number is already verified",
+                                          message:
+                                              "Primary phone number is already verified",
                                           color: kPrimaryColor,
                                         );
                                       }
                                     },
                                     label: Text(
                                       '$mPrimaryNoStatus',
-                                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                                      style: const TextStyle(
+                                          color: Colors.white, fontSize: 14),
                                     ),
                                     backgroundColor: kPrimaryColor,
                                   ),
@@ -213,16 +334,19 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                             ),
                             const SizedBox(height: largePadding),
                             Form(
-                              key: _formKeyAdditional,  // Assign the global key
+                              key: _formKeyAdditional,
+                              // Assign the global key
                               child: IntlPhoneField(
                                 controller: mAdditionalPhoneNo,
                                 keyboardType: TextInputType.phone,
                                 focusNode: FocusNode(),
                                 style: const TextStyle(color: kPrimaryColor),
-                                dropdownIcon: const Icon(Icons.arrow_drop_down, size: 28, color: kPrimaryColor),
+                                dropdownIcon: const Icon(Icons.arrow_drop_down,
+                                    size: 28, color: kPrimaryColor),
                                 decoration: InputDecoration(
                                   labelText: 'Mobile Number',
-                                  labelStyle: const TextStyle(color: kPrimaryColor),
+                                  labelStyle:
+                                      const TextStyle(color: kPrimaryColor),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     borderSide: const BorderSide(),
@@ -234,14 +358,14 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                                 onChanged: (phone) {},
                                 enabled: mAdditionalNoStatus != "Verified",
                                 validator: (value) {
-                                  if (value == null || value.completeNumber.isEmpty) {
+                                  if (value == null ||
+                                      value.completeNumber.isEmpty) {
                                     return 'Please enter additional phone number';
                                   }
                                   return null;
                                 },
                               ),
                             ),
-
                             const SizedBox(
                               height: smallPadding,
                             ),
@@ -255,33 +379,37 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                                   child: FloatingActionButton.extended(
                                     onPressed: () {
                                       if (mAdditionalNoStatus == "Verify") {
-                                        if (_formKeyAdditional.currentState?.validate() ?? false) {
+                                        if (_formKeyAdditional.currentState
+                                                ?.validate() ??
+                                            false) {
                                           mAdditionalNoVerifyDialog(context);
                                         } else {
                                           CustomSnackBar.showSnackBar(
                                             context: context,
-                                            message: "Please enter a valid additional phone number",
+                                            message:
+                                                "Please enter a valid additional phone number",
                                             color: kPrimaryColor,
                                           );
                                         }
                                       } else {
                                         CustomSnackBar.showSnackBar(
                                           context: context,
-                                          message: "Additional phone number is already verified",
+                                          message:
+                                              "Additional phone number is already verified",
                                           color: kPrimaryColor,
                                         );
                                       }
                                     },
                                     label: Text(
                                       '$mAdditionalNoStatus',
-                                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                                      style: const TextStyle(
+                                          color: Colors.white, fontSize: 14),
                                     ),
                                     backgroundColor: kPrimaryColor,
                                   ),
                                 ),
                               ],
                             ),
-
                             const SizedBox(height: largePadding),
                           ],
                         ),
@@ -329,7 +457,7 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                                 fillColor: Colors.transparent,
                               ),
                               items: [
-                                'Select Document Type',
+                                'Select Document',
                                 'Passport',
                                 'Driving License'
                               ].map((String role) {
@@ -364,7 +492,7 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                                 return null;
                               },
                               decoration: InputDecoration(
-                                labelText: "Document Document No",
+                                labelText: "Document Id No",
                                 labelStyle:
                                     const TextStyle(color: kPrimaryColor),
                                 border: OutlineInputBorder(
@@ -402,11 +530,11 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                                             height: 180,
                                           )
                                         : Image.asset(
-                                      'assets/images/thumbnail.png',
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                      height: 180,
-                                    ),
+                                            'assets/images/thumbnail.png',
+                                            fit: BoxFit.cover,
+                                            width: double.infinity,
+                                            height: 180,
+                                          ),
                                   ),
                                   Positioned(
                                     bottom: 8,
@@ -469,21 +597,20 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                               child: Stack(
                                 children: [
                                   ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: imagePathBack != null
-                                        ? Image.file(
-                                            File(imagePathBack!),
-                                            fit: BoxFit.cover,
-                                            width: double.infinity,
-                                            height: 180,
-                                          )
-                                        : Image.asset(
-                                      'assets/images/thumbnail.png',
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                      height: 180,
-                                    )
-                                  ),
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: imagePathBack != null
+                                          ? Image.file(
+                                              File(imagePathBack!),
+                                              fit: BoxFit.cover,
+                                              width: double.infinity,
+                                              height: 180,
+                                            )
+                                          : Image.asset(
+                                              'assets/images/thumbnail.png',
+                                              fit: BoxFit.cover,
+                                              width: double.infinity,
+                                              height: 180,
+                                            )),
                                   Positioned(
                                     bottom: 8,
                                     right: 8,
@@ -533,7 +660,6 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                         ),
                       ),
                     ),
-
                     const SizedBox(
                       height: largePadding,
                     ),
@@ -561,11 +687,12 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                             const SizedBox(height: 25),
                             DropdownButtonFormField<String>(
                               value: selectedResidentialDocument,
-                              style: const TextStyle(color: kPrimaryColor, fontSize: 17),
+                              style: const TextStyle(
+                                  color: kPrimaryColor, fontSize: 17),
                               decoration: InputDecoration(
                                 labelText: 'Residential Document',
                                 labelStyle:
-                                const TextStyle(color: kPrimaryColor),
+                                    const TextStyle(color: kPrimaryColor),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: const BorderSide(),
@@ -586,8 +713,7 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                               }).toList(),
                               onChanged: (newValue) {
                                 setState(() {
-                                  selectedResidentialDocument =
-                                  newValue!;
+                                  selectedResidentialDocument = newValue!;
                                 });
                               },
                             ),
@@ -610,19 +736,19 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                                 children: [
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(12),
-                                    child: imagePathFront != null
+                                    child: imagePathAddress != null
                                         ? Image.file(
-                                      File(imagePathFront!),
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                      height: 180,
-                                    )
+                                            File(imagePathAddress!),
+                                            fit: BoxFit.cover,
+                                            width: double.infinity,
+                                            height: 180,
+                                          )
                                         : Image.asset(
-                                      'assets/images/thumbnail.png',
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                      height: 180,
-                                    ),
+                                            'assets/images/thumbnail.png',
+                                            fit: BoxFit.cover,
+                                            width: double.infinity,
+                                            height: 180,
+                                          ),
                                   ),
                                   Positioned(
                                     bottom: 8,
@@ -630,27 +756,27 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                                     child: GestureDetector(
                                       onTap: () async {
                                         final ImagePicker picker =
-                                        ImagePicker();
+                                            ImagePicker();
                                         final XFile? image =
-                                        await picker.pickImage(
-                                            source: ImageSource.gallery);
+                                            await picker.pickImage(
+                                                source: ImageSource.gallery);
 
                                         if (image != null) {
                                           setState(() {
-                                            imagePathFront = image.path;
+                                            imagePathAddress = image.path;
                                           });
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(
                                             const SnackBar(
                                                 content:
-                                                Text('Image selected')),
+                                                    Text('Image selected')),
                                           );
                                         } else {
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(
                                             const SnackBar(
                                                 content:
-                                                Text('No image selected.')),
+                                                    Text('No image selected.')),
                                           );
                                         }
                                       },
@@ -671,7 +797,6 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                         ),
                       ),
                     ),
-
                     const SizedBox(
                       height: defaultPadding,
                     ),
@@ -681,7 +806,6 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                           color: kPrimaryColor,
                         ),
                       ),
-
                     const SizedBox(height: largePadding),
                     const SizedBox(
                       height: smallPadding,
@@ -691,17 +815,15 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                         width: 185,
                         height: 47.0,
                         child: FloatingActionButton.extended(
-                          onPressed: () {},
+                          onPressed: isUpdateLoading ? null : mKycUpdate,
                           label: const Text(
                             'Submit',
-                            style: TextStyle(
-                                color: Colors.white, fontSize: 14),
+                            style: TextStyle(color: Colors.white, fontSize: 14),
                           ),
                           backgroundColor: kPrimaryColor,
                         ),
                       ),
                     ),
-
                   ],
                 ),
               ),

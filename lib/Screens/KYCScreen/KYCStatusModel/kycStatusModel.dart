@@ -1,11 +1,13 @@
 class KycStatusDetails {
 
   final String? kycStatus;
+  final String? kycId;
 
 
   KycStatusDetails({
 
     this.kycStatus,
+    this.kycId,
 
   });
 
@@ -13,6 +15,7 @@ class KycStatusDetails {
     return KycStatusDetails(
 
       kycStatus: json['status'] as String?,
+      kycId: json['_id'] as String?,
 
     );
   }

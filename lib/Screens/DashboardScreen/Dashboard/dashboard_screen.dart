@@ -76,8 +76,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       if (response.message == "kyc data are fetched Successfully") {
         setState(() {
-          AuthManager.saveKycStatus(
-              response.kycStatusDetails!.first.kycStatus!);
+          AuthManager.saveKycStatus(response.kycStatusDetails!.first.kycStatus!);
+          AuthManager.saveKycId(response.kycStatusDetails!.first.kycId!);
           if (AuthManager.getKycStatus() == "completed") {
             mAccounts();
             mRevenueList();
@@ -280,7 +280,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     height: largePadding,
                   ),
 
-                 // if(AuthManager.getKycStatus() == "complete")
+                 // if(AuthManager.getKycStatus() != "completed" && AuthManager.getKycStatus() != "declined")
                   /*Padding(padding: const EdgeInsets.all(defaultPadding),
                   child: Card(
                     elevation: 4.0,

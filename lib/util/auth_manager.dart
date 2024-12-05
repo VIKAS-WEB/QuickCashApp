@@ -19,12 +19,21 @@ class AuthManager {
   }
 
   // Save Kyc Status
-  static Future<void> saveKycStatus(String id) async {
-    await _sharedPref.setString('kyc_status', id);
+  static Future<void> saveKycStatus(String status) async {
+    await _sharedPref.setString('kyc_status', status);
   }
 
   static String getKycStatus() {
     return _sharedPref.getString('kyc_status') ?? '';
+  }
+
+  // Save Kyc Status
+  static Future<void> saveKycId(String id) async {
+    await _sharedPref.setString('kyc_id', id);
+  }
+
+  static String getKycId() {
+    return _sharedPref.getString('kyc_id') ?? '';
   }
 
 
