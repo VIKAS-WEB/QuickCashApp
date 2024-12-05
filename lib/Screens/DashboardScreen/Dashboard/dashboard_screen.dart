@@ -82,10 +82,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           AuthManager.saveKycStatus(
               response.kycStatusDetails!.first.kycStatus!);
           AuthManager.saveKycId(response.kycStatusDetails!.first.kycId!);
+          AuthManager.saveKycDocFront(response.kycStatusDetails!.first.documentPhotoFront!);
           mKycDocumentStatus =
               response.kycStatusDetails!.first.documentPhotoFront;
-          print(
-              "Status: ${response.kycStatusDetails!.first.documentPhotoFront}");
+
           if (AuthManager.getKycStatus() == "completed") {
             mAccounts();
             mRevenueList();
@@ -314,7 +314,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     SizedBox(height: largePadding,),
                                     Center(
                                       child: Text(
-                                        'Your details are submitted, Admin will approve after review your kyc details !',
+                                        'Your details are submitted, Admin will approve after review your kyc details!',
                                         textAlign: TextAlign.center, // Ensure text is centered within the Text widget
                                         style: TextStyle(color: Colors.grey,fontSize: 16),
                                       ),

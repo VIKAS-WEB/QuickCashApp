@@ -36,7 +36,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       'description': 'Thank you for shopping with us!',
       // 'prefill': {'contact': '2783939294', 'email': 'abc@gmail.com'}, -> pass contact and email details of the user if available
       'theme': {
-        'color': kPrimaryColor,
+        'color': "000000",
       }
     };
 

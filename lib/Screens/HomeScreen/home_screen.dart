@@ -21,6 +21,7 @@ import 'package:quickcash/Screens/TicketsScreen/TicketScreen/tickets_screen.dart
 import 'package:quickcash/Screens/TransactionScreen/TransactionScreen/transaction_screen.dart';
 import 'package:quickcash/Screens/UserProfileScreen/profile_main_screen.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/util/customSnackBar.dart';
 
 import '../../util/auth_manager.dart';
 import '../KYCScreen/kycHomeScreen.dart';
@@ -138,24 +139,45 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-
+            if(AuthManager.getKycStatus() !="completed")
             Positioned(
-              top: 40,
-              right: 60,
-              child: IconButton(
-                icon: const Icon(Icons.person_off_rounded),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const KycHomeScreen(),
-                    ),
-                  );
+              top: 48,
+              right: 80,
+              child: GestureDetector(
+                onTap: () {
+                  if(AuthManager.getKycDocFront().isNotEmpty){
+                    CustomSnackBar.showSnackBar(context: context, message: "Your details are already submitted, Admin will approve after review your kyc details!", color: kPrimaryColor);
+                  }else{
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const KycHomeScreen(),
+                      ),
+                    );
+                  }
                 },
-                color: kPrimaryColor,
-                iconSize: 30,
+                child: Image.asset(
+                  "assets/icons/kycpending.png",
+                  width: 30,
+                  height: 30,
+                ),
               ),
-            ),
+            )
+            else
+              Positioned(
+                top: 48,
+                right: 80,
+                child: GestureDetector(
+                  onTap: () {
+                    CustomSnackBar.showSnackBar(context: context, message: "KYC Verified", color: kPrimaryColor);
+                  },
+                  child: Image.asset(
+                    "assets/icons/kycverify.png",
+                    width: 30,
+                    height: 30,
+                  ),
+                ),
+              ),
 
             // Logout button
             Positioned(
