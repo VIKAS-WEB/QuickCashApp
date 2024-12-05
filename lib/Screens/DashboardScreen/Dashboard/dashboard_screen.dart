@@ -18,6 +18,7 @@ import 'package:intl/intl.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import 'package:quickcash/util/customSnackBar.dart';
 
+import '../../KYCScreen/kycHomeScreen.dart';
 import '../../LoginScreen/login_screen.dart';
 import 'RevenueList/revenueListApi.dart';
 import 'TransactionList/transactionListModel.dart';
@@ -57,6 +58,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool? statusExchange;
   double? amountExchange;
 
+  String? mKycDocumentStatus;
+
   @override
   void initState() {
     super.initState();
@@ -64,9 +67,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       mAccounts();
       mRevenueList();
       mTransactionList();
-    } else {
       mKycStatus();
     }
+    mKycStatus();
   }
 
   Future<void> mKycStatus() async {
@@ -76,8 +79,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       if (response.message == "kyc data are fetched Successfully") {
         setState(() {
-          AuthManager.saveKycStatus(response.kycStatusDetails!.first.kycStatus!);
+          AuthManager.saveKycStatus(
+              response.kycStatusDetails!.first.kycStatus!);
           AuthManager.saveKycId(response.kycStatusDetails!.first.kycId!);
+          mKycDocumentStatus =
+              response.kycStatusDetails!.first.documentPhotoFront;
+          print(
+              "Status: ${response.kycStatusDetails!.first.documentPhotoFront}");
           if (AuthManager.getKycStatus() == "completed") {
             mAccounts();
             mRevenueList();
@@ -239,14 +247,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               TextButton(
                 onPressed: () async {
                   // Log the user out
-                  AuthManager
-                      .logout();
+                  AuthManager.logout();
                   Navigator.of(context).pop(true);
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                        builder: (context) =>
-                            const LoginScreen()),
+                        builder: (context) => const LoginScreen()),
                   );
                 },
                 child: const Text("OK"),
@@ -280,96 +286,96 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     height: largePadding,
                   ),
 
-                 // if(AuthManager.getKycStatus() != "completed" && AuthManager.getKycStatus() != "declined")
-                  /*Padding(padding: const EdgeInsets.all(defaultPadding),
-                  child: Card(
-                    elevation: 4.0,
-                    color: Colors.white,
-                    margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
-                    child: Padding(
+                  if (AuthManager.getKycStatus() != "completed")
+                    Padding(
                       padding: const EdgeInsets.all(defaultPadding),
-                      child: Column(
-                        children: [
-                          const SizedBox(height: largePadding,),
-                          Center(
-                            child: Image.asset(
-                              'assets/images/kyc.png',
-                              width: 200, // Set the width
-                              height: 150, // Set the height
-                            ),
-                          ),
-
-                          const SizedBox(height: largePadding,),
-                          const Text(
-                            'Kyc is Pending',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26, color: kPrimaryColor),
-                          ),
-
-                          const SizedBox(height: smallPadding,),
-                          const Text(
-                            'Click here to complete the KYC',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-
-                          const SizedBox(height: 35),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 50),
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: kPrimaryColor,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 32, vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                      child: Card(
+                        elevation: 4.0,
+                        color: Colors.white,
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 0, horizontal: 0),
+                        child: Padding(
+                          padding: const EdgeInsets.all(defaultPadding),
+                          child: Column(
+                            children: [
+                              const SizedBox(
+                                height: largePadding,
+                              ),
+                              Center(
+                                child: Image.asset(
+                                  'assets/images/kyc.png',
+                                  width: 200, // Set the width
+                                  height: 150, // Set the height
                                 ),
                               ),
-                              onPressed: (){
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const KycHomeScreen(),
-                                  ),
-                                );
-                              },
-                              child: const Text('Click Now',
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 16)),
-                            ),
-                          ),
-                          const SizedBox(height: 35),
+                              if (mKycDocumentStatus != null)
+                                const Column(
+                                  children: [
+                                    SizedBox(height: largePadding,),
+                                    Center(
+                                      child: Text(
+                                        'Your details are submitted, Admin will approve after review your kyc details !',
+                                        textAlign: TextAlign.center, // Ensure text is centered within the Text widget
+                                        style: TextStyle(color: Colors.grey,fontSize: 16),
+                                      ),
+                                    ),
+                                    SizedBox(height: largePadding,)
+                                  ],
+                                )
 
-                        ],
+
+                              else
+                                Column(
+                                  children: [
+                                    const SizedBox(height: largePadding),
+                                    const Text(
+                                      'Kyc is Pending',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 26,
+                                          color: kPrimaryColor),
+                                    ),
+                                    const SizedBox(height: smallPadding),
+                                    const Text(
+                                      'Click here to complete the KYC',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                    const SizedBox(height: 35),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 50),
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: kPrimaryColor,
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 32, vertical: 16),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                          ),
+                                        ),
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const KycHomeScreen(),
+                                            ),
+                                          );
+                                        },
+                                        child: const Text('Click Now',
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 16)),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                            ],
+                          ),
+                        ),
                       ),
-
-                    *//*  child: Row(
-                        children: [
-                          Icon(
-                            Icons.person,
-                            size: 60,
-                            color: kPrimaryColor,
-                          ),
-                          SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Recipient',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                ),
-                                Text(
-                                  'Pay a recipient\'s bank account',
-                                  style: TextStyle(color: Colors.grey),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Icon(Icons.navigate_next_rounded, color: kPrimaryColor),
-                        ],
-                      ),*//*
                     ),
-                  ),)*/
-
 
                   if (AuthManager.getKycStatus() != "Pending")
                     SingleChildScrollView(
@@ -439,151 +445,153 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     )),
 
                   if (AuthManager.getKycStatus() != "Pending")
-                  // Account list (only when not loading and no error)
-                  if (!isLoading &&
-                      errorMessage == null &&
-                      accountsListData.isNotEmpty)
-                    SizedBox(
-                      height: 170, // Set height for the horizontal list view
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: accountsListData.length,
-                        itemBuilder: (context, index) {
-                          final accountsData = accountsListData[index];
-                          final isSelected = index == _selectedIndex;
+                    // Account list (only when not loading and no error)
+                    if (!isLoading &&
+                        errorMessage == null &&
+                        accountsListData.isNotEmpty)
+                      SizedBox(
+                        height: 170, // Set height for the horizontal list view
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: accountsListData.length,
+                          itemBuilder: (context, index) {
+                            final accountsData = accountsListData[index];
+                            final isSelected = index == _selectedIndex;
 
-                          if (_selectedIndex == null) {
-                            accountIdExchange = accountsData.accountId;
-                            countryExchange = accountsData.country;
-                            currencyExchange = accountsData.currency;
-                            ibanExchange = accountsData.iban;
-                            statusExchange = accountsData.status;
-                            amountExchange = accountsData.amount;
-                          }
+                            if (_selectedIndex == null) {
+                              accountIdExchange = accountsData.accountId;
+                              countryExchange = accountsData.country;
+                              currencyExchange = accountsData.currency;
+                              ibanExchange = accountsData.iban;
+                              statusExchange = accountsData.status;
+                              amountExchange = accountsData.amount;
+                            }
 
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: smallPadding),
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _selectedIndex = index;
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: smallPadding),
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _selectedIndex = index;
 
-                                  accountIdExchange = accountsData.accountId;
-                                  countryExchange = accountsData.country;
-                                  currencyExchange = accountsData.currency;
-                                  ibanExchange = accountsData.iban;
-                                  statusExchange = accountsData.status;
-                                  amountExchange = accountsData.amount;
+                                    accountIdExchange = accountsData.accountId;
+                                    countryExchange = accountsData.country;
+                                    currencyExchange = accountsData.currency;
+                                    ibanExchange = accountsData.iban;
+                                    statusExchange = accountsData.status;
+                                    amountExchange = accountsData.amount;
 
-                                  mAccountListTransaction(
-                                      accountsData.accountId,
-                                      accountsData.currency);
-                                });
-                              },
-                              child: Card(
-                                elevation: 5,
-                                color:
-                                    isSelected ? kPrimaryColor : Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(defaultPadding),
-                                ),
-                                child: Container(
-                                  width: 320,
-                                  padding: const EdgeInsets.all(defaultPadding),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          CountryFlag.fromCountryCode(
-                                            width: 35,
-                                            height: 35,
-                                            accountsData.country!,
-                                            shape: const Circle(),
-                                          ),
-                                          Text(
-                                            "${accountsData.currency}",
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                              color: isSelected
-                                                  ? Colors.white
-                                                  : kPrimaryColor,
+                                    mAccountListTransaction(
+                                        accountsData.accountId,
+                                        accountsData.currency);
+                                  });
+                                },
+                                child: Card(
+                                  elevation: 5,
+                                  color:
+                                      isSelected ? kPrimaryColor : Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.circular(defaultPadding),
+                                  ),
+                                  child: Container(
+                                    width: 320,
+                                    padding:
+                                        const EdgeInsets.all(defaultPadding),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            CountryFlag.fromCountryCode(
+                                              width: 35,
+                                              height: 35,
+                                              accountsData.country!,
+                                              shape: const Circle(),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(
-                                        height: defaultPadding,
-                                      ),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            "IBAN",
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: isSelected
-                                                  ? Colors.white
-                                                  : kPrimaryColor,
+                                            Text(
+                                              "${accountsData.currency}",
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : kPrimaryColor,
+                                              ),
                                             ),
-                                          ),
-                                          Text(
-                                            "${accountsData.iban}",
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: isSelected
-                                                  ? Colors.white
-                                                  : kPrimaryColor,
+                                          ],
+                                        ),
+                                        const SizedBox(
+                                          height: defaultPadding,
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              "IBAN",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : kPrimaryColor,
+                                              ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(
-                                        height: defaultPadding,
-                                      ),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            "Balance",
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: isSelected
-                                                  ? Colors.white
-                                                  : kPrimaryColor,
+                                            Text(
+                                              "${accountsData.iban}",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : kPrimaryColor,
+                                              ),
                                             ),
-                                          ),
-                                          Text(
-                                            "${accountsData.amount}",
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: isSelected
-                                                  ? Colors.white
-                                                  : kPrimaryColor,
+                                          ],
+                                        ),
+                                        const SizedBox(
+                                          height: defaultPadding,
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              "Balance",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : kPrimaryColor,
+                                              ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
+                                            Text(
+                                              "${accountsData.amount}",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : kPrimaryColor,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          );
-                        },
+                            );
+                          },
+                        ),
                       ),
-                    ),
 
                   if (AuthManager.getKycStatus() != "Pending")
                     // The Accounts design ----------------

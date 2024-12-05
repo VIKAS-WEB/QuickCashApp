@@ -2,12 +2,14 @@ class KycStatusDetails {
 
   final String? kycStatus;
   final String? kycId;
+  final String? documentPhotoFront;
 
 
   KycStatusDetails({
 
     this.kycStatus,
     this.kycId,
+    this.documentPhotoFront,
 
   });
 
@@ -16,6 +18,7 @@ class KycStatusDetails {
 
       kycStatus: json['status'] as String?,
       kycId: json['_id'] as String?,
+      documentPhotoFront: json['documentPhotoFront'] as String?,
 
     );
   }
