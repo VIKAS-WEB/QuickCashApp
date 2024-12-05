@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/CheckOutScreen/checkoutScreen.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/model/currencyApiModel/currencyModel.dart';
@@ -19,9 +20,13 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
   String? selectedSendCurrency;
   String? selectedTransferType;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _amountController = TextEditingController();
+  final TextEditingController mAmountController = TextEditingController();
 
   List<CurrencyListsData> currency = [];
+
+  String? mDepositFees = '0.0';
+  String? mAmountCharge = '0.0';
+  String? mConversionAmount = '0.0';
 
   @override
   void initState() {
@@ -35,6 +40,14 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
     if (response.currencyList != null && response.currencyList!.isNotEmpty) {
       currency = response.currencyList!;
     }
+  }
+
+  String getCurrencySymbol(String currencyCode) {
+    // Create a NumberFormat object for the specific currency
+    var format = NumberFormat.simpleCurrency(name: currencyCode);
+
+    // Extract the currency symbol
+    return format.currencySymbol;
   }
 
 
@@ -95,6 +108,7 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                         if (newValue != null) {
                           setState(() {
                             selectedSendCurrency = newValue;
+                            mAmountController.clear();
                           });
                         }
                       });
@@ -165,7 +179,7 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                 ),
                 const SizedBox(height: defaultPadding),
                 TextFormField(
-                  controller: _amountController,
+                  controller: mAmountController,
                   keyboardType: TextInputType.number,
                   textInputAction: TextInputAction.next,
                   cursorColor: kPrimaryColor,
@@ -182,40 +196,37 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter an amount';
-                    }
-                    if (double.tryParse(value) == null) {
-                      return 'Please enter a valid number';
+                      return 'Please enter a amount';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 45),
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Deposit Fee:", style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
-                    Text("0.00", style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold))
+                    const Text("Deposit Fee:", style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
+                    Text("$mDepositFees", style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold))
                   ],
                 ),
                 const SizedBox(height: smallPadding),
                 const Divider(),
                 const SizedBox(height: smallPadding),
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Amount Charge:", style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
-                    Text("0.00", style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold))
+                    const Text("Amount Charge:", style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
+                    Text("$mAmountCharge", style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold))
                   ],
                 ),
                 const SizedBox(height: smallPadding),
                 const Divider(),
                 const SizedBox(height: smallPadding),
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Conversion Amount:", style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
-                    Text("0.00", style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold))
+                    const Text("Conversion Amount:", style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
+                    Text("$mConversionAmount", style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold))
                   ],
                 ),
                 const SizedBox(height: 45),
@@ -239,6 +250,17 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                           CustomSnackBar.showSnackBar(context: context, message: "Please select a transfer type", color: kPrimaryColor);
                           return;
                         }
+
+                        if(selectedTransferType =="UPI * Currently Support Only INR Currency"){
+                          if(selectedSendCurrency == "INR"){
+                            // Razor Pay
+                          }else{
+                            CustomSnackBar.showSnackBar(context: context, message: "Currency is not supported!", color: kPrimaryColor);
+                          }
+                        }else{
+
+                        }
+
 
                         /*Navigator.push(
                           context,
@@ -319,6 +341,7 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
         setState(() {
           if (isTransfer) {
             selectedTransferType = type;
+            mAmountController.clear();
           }
         });
         Navigator.pop(context);
