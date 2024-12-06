@@ -8,6 +8,7 @@ import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/Invoices/invoice
 import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/UpdateInvoiceScreen/update_invoice_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/Settings/SettingsScreen/settingsModel/settingsApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/Settings/SettingsScreen/settings_screen.dart';
+import 'package:quickcash/Screens/InvoicesScreen/Settings/settingsMainScreen.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import 'package:quickcash/util/customSnackBar.dart';
@@ -322,7 +323,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) =>
-                                        const SettingsScreen()),
+                                        const SettingsMainScreen()),
                                   );
                                 }else{
                                   Navigator.push(
