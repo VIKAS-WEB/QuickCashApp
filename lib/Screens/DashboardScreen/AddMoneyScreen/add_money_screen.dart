@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:quickcash/Screens/DashboardScreen/AddMoneyScreen/AddPaymentSuccessScreen/addPaymentSuccessScreen.dart';
+import 'package:quickcash/Screens/DashboardScreen/AddMoneyScreen/AddPaymentSuccessModel/addPaymentSuccessApi.dart';
+import 'package:quickcash/Screens/DashboardScreen/AddMoneyScreen/AddPaymentSuccessModel/addPaymentSuccessModel.dart';
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/PayRecipientsScree/exchangeCurrencyModel/exchangeCurrencyApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/PayRecipientsScree/exchangeCurrencyModel/exchangeCurrencyModel.dart';
 import 'package:quickcash/constants.dart';
@@ -10,6 +11,7 @@ import 'package:quickcash/util/customSnackBar.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 import '../../../model/currencyApiModel/currencyApi.dart';
+import 'AddPaymentSuccessScreen/addPaymentSuccessScreen.dart';
 
 class AddMoneyScreen extends StatefulWidget {
   final String? accountId;
@@ -18,12 +20,15 @@ class AddMoneyScreen extends StatefulWidget {
   final String? iban;
   final bool? status;
   final double? amount;
-  const AddMoneyScreen({super.key,this.accountId,
-    this.country,
-    this.currency,
-    this.iban,
-    this.status,
-    this.amount});
+
+  const AddMoneyScreen(
+      {super.key,
+      this.accountId,
+      this.country,
+      this.currency,
+      this.iban,
+      this.status,
+      this.amount});
 
   @override
   State<AddMoneyScreen> createState() => _AddMoneyScreen();
@@ -33,9 +38,9 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
   bool isPaymentComplete = false;
   final Razorpay _razorpay = Razorpay();
 
+  final AddPaymentSuccessApi _addPaymentSuccessApi = AddPaymentSuccessApi();
   final CurrencyApi _currencyApi = CurrencyApi();
   final ExchangeCurrencyApi _exchangeCurrencyApi = ExchangeCurrencyApi();
-
 
   String? selectedSendCurrency;
   String? selectedTransferType;
@@ -49,6 +54,7 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
   String? mConversionAmount = '0.0';
 
   bool isLoading = false;
+  bool isAddLoading = false;
 
   // From  Account ---
   String? mFromAccountId;
@@ -61,8 +67,6 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
 
   // To Account ----
   String? mToCurrencySymbol = '';
-
-
 
   @override
   void initState() {
@@ -147,15 +151,15 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
     int amount = (amountInDouble * 100).toInt();
 
     try {
-    var options = {
-      'key': 'rzp_test_TR6pZnguGgK8hQ',
-      'amount': amount,
-      'name': 'Quickcash',
-      'method': 'upi',
-      'theme': {
-        'color': "#6F35A5",
-      }
-    };
+      var options = {
+        'key': 'rzp_test_TR6pZnguGgK8hQ',
+        'amount': amount,
+        'name': 'Quickcash',
+        'method': 'upi',
+        'theme': {
+          'color': "#6F35A5",
+        }
+      };
       _razorpay.open(options);
     } catch (e) {
       print('Error: ${e.toString()}');
@@ -163,18 +167,67 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
   }
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) {
-   // showPaymentPopupMessage(context, true, 'Payment Successful!');
+    mAddPaymentSuccess(response.paymentId, "succeeded", "Razorpay");
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
     showPaymentPopupMessage(context, false, 'Payment Failed!');
+    mAddPaymentSuccess("", "succeeded", "Razorpay");
   }
 
-  void _handleExternalWallet(ExternalWalletResponse response) {
-    print(
-        'You have chosen to pay via : ${response.walletName}. It will take some time to reflect your payment.');
-  }
+  void _handleExternalWallet(ExternalWalletResponse response) {}
 
+  // Add Payment Success Api ****
+  Future<void> mAddPaymentSuccess(
+      String? paymentId, String status, String paymentGateway) async {
+    setState(() {
+      isAddLoading = true;
+    });
+
+    try {
+      String amountText = '$mToCurrencySymbol ${mAmountController.text}';
+      String conversionAmountText =
+          '$mFromCurrencySymbol ${mConversionAmount!}';
+      final request = AddPaymentSuccessRequest(
+          userId: AuthManager.getUserId(),
+          status: status,
+          paymentId: paymentId!,
+          paymentGateway: paymentGateway,
+          amount: mAmountController.text,
+          fee: mDepositFees.toString(),
+          amountText: amountText,
+          fromCurrency: mFromCurrency!,
+          toCurrency: selectedSendCurrency!,
+          conversionAmount: mConversionAmount!,
+          conversionAmountText: conversionAmountText);
+      final response =
+          await _addPaymentSuccessApi.addPaymentSuccessApi(request);
+
+      if (response.message == "Payment has been done Successfully !!!") {
+        setState(() {
+          String totalAmount = '$mToCurrencySymbol $mAmountCharge';
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddPaymentSuccessScreen(transactionId: paymentId, amount: totalAmount),
+            ),
+          );
+
+          isAddLoading = false;
+        });
+      }else{
+        isAddLoading = false;
+      }
+    } catch (error) {
+      setState(() {
+        isAddLoading = false;
+        CustomSnackBar.showSnackBar(
+            context: context,
+            message: "Something went wrong!",
+            color: kPrimaryColor);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -187,7 +240,11 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
           style: TextStyle(color: Colors.white),
         ),
       ),
-      body: SingleChildScrollView(
+      body: isAddLoading ? const Center(
+        child: CircularProgressIndicator(
+          color: kPrimaryColor,
+        ),
+      ) : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(defaultPadding),
           child: Form(
@@ -209,8 +266,8 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                             ),
                             content: SingleChildScrollView(
                               child: ListBody(
-                                children:
-                                currency.map((CurrencyListsData currencyItem) {
+                                children: currency
+                                    .map((CurrencyListsData currencyItem) {
                                   return ListTile(
                                     title: Text(
                                       currencyItem.currencyCode!,
@@ -233,7 +290,8 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                         if (newValue != null) {
                           setState(() {
                             selectedSendCurrency = newValue;
-                            mToCurrencySymbol = getCurrencySymbol(selectedSendCurrency!);
+                            mToCurrencySymbol =
+                                getCurrencySymbol(selectedSendCurrency!);
                             mAmountController.clear();
                           });
                         }
@@ -255,20 +313,22 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                           Text(
                             selectedSendCurrency ?? "Select Currency",
                             style: const TextStyle(
-                                color: kPrimaryColor,),
+                              color: kPrimaryColor,
+                            ),
                           ),
-                          const Icon(Icons.arrow_drop_down, color: kPrimaryColor),
+                          const Icon(Icons.arrow_drop_down,
+                              color: kPrimaryColor),
                         ],
                       ),
                     ),
                   ),
                 ),
-
                 const SizedBox(height: defaultPadding),
                 GestureDetector(
                   onTap: () => _showTransferTypeDropDown(context, true),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 15.0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0, vertical: 15.0),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: kPrimaryColor),
@@ -284,7 +344,8 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                                 height: 24,
                                 width: 24,
                                 errorBuilder: (context, error, stackTrace) {
-                                  return const Icon(Icons.broken_image, color: Colors.red);
+                                  return const Icon(Icons.broken_image,
+                                      color: Colors.red);
                                 },
                               ),
                             const SizedBox(width: 8.0),
@@ -324,9 +385,9 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                     }
                     return null;
                   },
-                  onChanged: (value){
-                    if(selectedSendCurrency !=null){
-                      if(mAmountController.text.isNotEmpty){
+                  onChanged: (value) {
+                    if (selectedSendCurrency != null) {
+                      if (mAmountController.text.isNotEmpty) {
                         if (double.parse(mAmountController.text) <=
                             mFromAmount!) {
                           mExchangeMoneyApi();
@@ -336,59 +397,65 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                               message: "Please enter a valid amount",
                               color: kPrimaryColor);
                         }
-                      }else{
-                        CustomSnackBar.showSnackBar(context: context, message: "Please enter amount", color: kPrimaryColor);
+                      } else {
+                        CustomSnackBar.showSnackBar(
+                            context: context,
+                            message: "Please enter amount",
+                            color: kPrimaryColor);
                       }
-                    }else{
-                      CustomSnackBar.showSnackBar(context: context, message: "Please select currency", color: kPrimaryColor);
+                    } else {
+                      CustomSnackBar.showSnackBar(
+                          context: context,
+                          message: "Please select currency",
+                          color: kPrimaryColor);
                     }
                   },
                 ),
-
-
                 const SizedBox(height: 45),
-                if(isLoading)
-                Center(
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-
-                      // Circular button
-                      Material(
-                        elevation: 6.0,
-                        shape: const CircleBorder(),
-                        child: Container(
-                          width: 50,
-                          height: 50,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
-                          ),
-                          child: isLoading
-                              ? const Center(
-                            child: CircularProgressIndicator(
-                              color: kPrimaryColor,
+                if (isLoading)
+                  Center(
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Circular button
+                        Material(
+                          elevation: 6.0,
+                          shape: const CircleBorder(),
+                          child: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
                             ),
-                          )
-                              : const Center(
-                            child: Icon(
-                              Icons.arrow_downward,
-                              size: 30,
-                              color: kPrimaryColor,
-                            ),
+                            child: isLoading
+                                ? const Center(
+                                    child: CircularProgressIndicator(
+                                      color: kPrimaryColor,
+                                    ),
+                                  )
+                                : const Center(
+                                    child: Icon(
+                                      Icons.arrow_downward,
+                                      size: 30,
+                                      color: kPrimaryColor,
+                                    ),
+                                  ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-
                 const SizedBox(height: 45),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text("Deposit Fee:", style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
-                    Text("$mToCurrencySymbol $mDepositFees", style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold))
+                    const Text("Deposit Fee:",
+                        style: TextStyle(
+                            color: kPrimaryColor, fontWeight: FontWeight.bold)),
+                    Text("$mToCurrencySymbol $mDepositFees",
+                        style: const TextStyle(
+                            color: kPrimaryColor, fontWeight: FontWeight.bold))
                   ],
                 ),
                 const SizedBox(height: smallPadding),
@@ -397,8 +464,12 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text("Amount Charge:", style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
-                    Text("$mToCurrencySymbol $mAmountCharge", style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold))
+                    const Text("Amount Charge:",
+                        style: TextStyle(
+                            color: kPrimaryColor, fontWeight: FontWeight.bold)),
+                    Text("$mToCurrencySymbol $mAmountCharge",
+                        style: const TextStyle(
+                            color: kPrimaryColor, fontWeight: FontWeight.bold))
                   ],
                 ),
                 const SizedBox(height: smallPadding),
@@ -407,8 +478,12 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text("Conversion Amount:", style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
-                    Text("$mFromCurrencySymbol $mConversionAmount", style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold))
+                    const Text("Conversion Amount:",
+                        style: TextStyle(
+                            color: kPrimaryColor, fontWeight: FontWeight.bold)),
+                    Text("$mFromCurrencySymbol $mConversionAmount",
+                        style: const TextStyle(
+                            color: kPrimaryColor, fontWeight: FontWeight.bold))
                   ],
                 ),
                 const SizedBox(height: 45),
@@ -417,40 +492,44 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: kPrimaryColor,
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
                     onPressed: () {
-
                       if (_formKey.currentState!.validate()) {
                         if (selectedSendCurrency == null) {
-                          CustomSnackBar.showSnackBar(context: context, message: "Please select a currency", color: kPrimaryColor);
+                          CustomSnackBar.showSnackBar(
+                              context: context,
+                              message: "Please select a currency",
+                              color: kPrimaryColor);
                           return;
                         } else if (selectedTransferType == null) {
-                          CustomSnackBar.showSnackBar(context: context, message: "Please select a transfer type", color: kPrimaryColor);
+                          CustomSnackBar.showSnackBar(
+                              context: context,
+                              message: "Please select a transfer type",
+                              color: kPrimaryColor);
                           return;
                         }
 
-                        if(selectedTransferType =="UPI * Currently Support Only INR Currency"){
-                          if(selectedSendCurrency == "INR"){
+                        if (selectedTransferType ==
+                            "UPI * Currently Support Only INR Currency") {
+                          if (selectedSendCurrency == "INR") {
                             // Razor Pay
                             _openRazorpay();
-                          }else{
-                            CustomSnackBar.showSnackBar(context: context, message: "Currency is not supported!", color: kPrimaryColor);
+                          } else {
+                            CustomSnackBar.showSnackBar(
+                                context: context,
+                                message: "Currency is not supported!",
+                                color: kPrimaryColor);
                           }
-                        }else{
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const AddPaymentSuccessScreen(),
-                            ),
-                          );
-                        }
+                        } else {}
                       }
                     },
-                    child: const Text('Add Money', style: TextStyle(color: Colors.white, fontSize: 16)),
+                    child: const Text('Add Money',
+                        style: TextStyle(color: Colors.white, fontSize: 16)),
                   ),
                 ),
               ],
@@ -460,9 +539,6 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
       ),
     );
   }
-
-
-
 
   String _getFlagForTransferType(String transferType) {
     switch (transferType) {
@@ -540,13 +616,13 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
             children: [
               isPaymentSuccess
                   ? const Icon(
-                Icons.done,
-                color: Colors.green,
-              )
+                      Icons.done,
+                      color: Colors.green,
+                    )
                   : const Icon(
-                Icons.clear,
-                color: Colors.red,
-              ),
+                      Icons.clear,
+                      color: Colors.red,
+                    ),
               const SizedBox(
                 width: 5,
               ),

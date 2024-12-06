@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:quickcash/components/background.dart';
 import 'package:quickcash/constants.dart';
 
+import '../../../HomeScreen/home_screen.dart';
+
 class AddPaymentSuccessScreen extends StatefulWidget {
-  const AddPaymentSuccessScreen({super.key});
+  final String? transactionId;
+  final String? amount;
+  const AddPaymentSuccessScreen({super.key, this.transactionId, this.amount});
 
   @override
   State<AddPaymentSuccessScreen> createState() =>
@@ -46,31 +50,31 @@ class _AddPaymentSuccessScreenState extends State<AddPaymentSuccessScreen> {
                     fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: smallPadding),
-              const Text(
-                'Successfully paid \$ 150',
+              Text(
+                'Successfully paid ${widget.amount}',
                 maxLines: 3,
-                style: TextStyle(color: Colors.grey, fontSize: 18),
+                style: const TextStyle(color: Colors.grey, fontSize: 18),
               ),
               const SizedBox(
                 height: 75,
               ),
-              const Card(
+              Card(
                 elevation: 1.0,
                 color: kPrimaryLightColor,
-                margin: EdgeInsets.symmetric(vertical: 0,horizontal: 0),
+                margin: const EdgeInsets.symmetric(vertical: 0,horizontal: 0),
                 child: Padding(
-                  padding: EdgeInsets.all(defaultPadding),
+                  padding: const EdgeInsets.all(defaultPadding),
                   child: Column(
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Transaction Id',style: TextStyle(fontWeight: FontWeight.w500,color: kPrimaryColor),),
-                          Text('22124545412',style: TextStyle(fontWeight: FontWeight.w500,fontSize: 16,color: kPrimaryColor),),
+                          const Text('Transaction Id',style: TextStyle(fontWeight: FontWeight.w500,color: kPrimaryColor),),
+                          Text('${widget.transactionId}',style: TextStyle(fontWeight: FontWeight.w500,fontSize: 16,color: kPrimaryColor),),
                         ],
                       ),
-                      SizedBox(height: defaultPadding,),
-                      Row(
+                      const SizedBox(height: defaultPadding,),
+                      const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('Status',style: TextStyle(fontWeight: FontWeight.w500,color: kPrimaryColor),),
@@ -89,7 +93,13 @@ class _AddPaymentSuccessScreenState extends State<AddPaymentSuccessScreen> {
                   height: 50,
                   child: FloatingActionButton.extended(
                     onPressed: (){
-
+                      Navigator.of(context).pop();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HomeScreen(),
+                        ),
+                      );
                     },
                     label: const Text(
                       'Home',

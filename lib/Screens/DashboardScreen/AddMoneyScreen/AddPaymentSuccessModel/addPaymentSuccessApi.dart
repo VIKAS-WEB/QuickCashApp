@@ -1,17 +1,17 @@
 import 'package:dio/dio.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import '../../../../../../util/apiConstants.dart';
-import 'addBeneficiaryModel.dart';
+import 'addPaymentSuccessModel.dart';
 
-class AddBeneficiaryApi {
+class AddPaymentSuccessApi {
   final Dio _dio = Dio();
 
-  AddBeneficiaryApi() {
+  AddPaymentSuccessApi() {
     _dio.options.baseUrl = ApiConstants.baseUrl;
     _dio.options.headers['Authorization'] = 'Bearer ${AuthManager.getToken()}';
 
 
-    /* _dio.interceptors.add(LogInterceptor(
+    /*_dio.interceptors.add(LogInterceptor(
       request: true,
       requestBody: true,
       responseBody: true,
@@ -20,18 +20,18 @@ class AddBeneficiaryApi {
   }
 
 
-  Future<AddBeneficiaryResponse> addBeneficiaryApi(AddBeneficiaryRequest request) async {
+  Future<AddPaymentSuccessResponse> addPaymentSuccessApi(AddPaymentSuccessRequest request) async {
     try {
       final response = await _dio.post(
-        '/receipient/add',
+        '/transaction/mobileapp/addmoney',
         data: request.toJson(),
       );
 
       // Check for a successful response
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return AddBeneficiaryResponse.fromJson(response.data);
+        return AddPaymentSuccessResponse.fromJson(response.data);
       } else if(response.statusCode == 401){
-        return AddBeneficiaryResponse.fromJson(response.data);
+        return AddPaymentSuccessResponse.fromJson(response.data);
 
       } else {
         throw Exception('Failed to fetch data: ${response.statusMessage}');
