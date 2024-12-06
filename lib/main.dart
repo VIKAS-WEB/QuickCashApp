@@ -5,7 +5,7 @@ import 'package:quickcash/util/auth_manager.dart';
 
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Ensure that binding is initialized
+  WidgetsFlutterBinding.ensureInitialized();
   await AuthManager.init();
   runApp(const QuickCashApp());
 }
