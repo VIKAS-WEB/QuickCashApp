@@ -6,6 +6,7 @@ import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListApi.dart';
 import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListModel.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/auth_manager.dart';
+import 'package:quickcash/util/customSnackBar.dart';
 
 import '../../model/currencyApiModel/currencyApi.dart';
 import '../../model/currencyApiModel/currencyModel.dart';
@@ -90,7 +91,11 @@ class _CardsScreenState extends State<CardsScreen> {
                     width: 150,
                     child: FloatingActionButton.extended(
                       onPressed: () {
-                        mAddCardBottomSheet(context);
+                        if (AuthManager.getKycStatus() == "completed"){
+                          mAddCardBottomSheet(context);
+                        }else{
+                          CustomSnackBar.showSnackBar(context: context, message: "Your KYC is not completed", color: kPrimaryColor);
+                        }
                       },
                       label: const Text(
                         'Add Card',
@@ -106,10 +111,14 @@ class _CardsScreenState extends State<CardsScreen> {
                     child: FloatingActionButton.extended(
                       onPressed: () {
                         // Add your onPressed code here!
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const CardsListScreen()),
-                        );
+                        if (AuthManager.getKycStatus() == "completed"){
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const CardsListScreen()),
+                          );
+                        }else{
+                          CustomSnackBar.showSnackBar(context: context, message: "Your KYC is not completed", color: kPrimaryColor);
+                        }
                       },
                       label: const Text(
                         'Action',

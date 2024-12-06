@@ -4,7 +4,9 @@ import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/BuyAndSellScreen/model
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/BuyAndSellScreen/model/buyAndSellListModel.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/crypto_sell_exchange_screen.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/util/customSnackBar.dart';
 
+import '../../../../util/auth_manager.dart';
 
 class BuyAndSellScreen extends StatefulWidget {
   const BuyAndSellScreen({super.key});
@@ -15,13 +17,13 @@ class BuyAndSellScreen extends StatefulWidget {
 
 class _BuyAndSellScreenState extends State<BuyAndSellScreen> {
   final CryptoListApi _cryptoListApi = CryptoListApi();
-  List<CryptoListsData> cryptoTransactions =[];
+  List<CryptoListsData> cryptoTransactions = [];
 
   bool isLoading = true;
   String? errorMessage;
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     mCryptoTransactionsList();
   }
@@ -32,22 +34,21 @@ class _BuyAndSellScreenState extends State<BuyAndSellScreen> {
       errorMessage = null;
     });
 
-    try{
+    try {
       final response = await _cryptoListApi.cryptoListApi();
 
-      if(response.cryptoList !=null && response.cryptoList!.isNotEmpty){
+      if (response.cryptoList != null && response.cryptoList!.isNotEmpty) {
         setState(() {
           cryptoTransactions = response.cryptoList!;
           isLoading = false;
         });
-      }else {
+      } else {
         setState(() {
           isLoading = false;
           errorMessage = 'No Crypto List';
         });
       }
-
-    }catch (error) {
+    } catch (error) {
       setState(() {
         isLoading = false;
         errorMessage = error.toString();
@@ -104,10 +105,16 @@ class _BuyAndSellScreenState extends State<BuyAndSellScreen> {
                   height: 50,
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const CryptoBuyAnsSellScreen()),
-                      );
+                      if (AuthManager.getKycStatus() == "completed") {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const CryptoBuyAnsSellScreen()),
+                        );
+                      }else{
+                        CustomSnackBar.showSnackBar(context: context, message: "Your KYC is not completed", color: kPrimaryColor);
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: kPrimaryColor,
@@ -123,116 +130,159 @@ class _BuyAndSellScreenState extends State<BuyAndSellScreen> {
           ),
           const SizedBox(height: defaultPadding),
           Expanded(
-            child:isLoading ? const Center(
-              child: CircularProgressIndicator(
-                color: kPrimaryColor,
-              ),
-            ) : cryptoTransactions.isNotEmpty
-                ? ListView.builder(
-              itemCount: cryptoTransactions.length,
-              itemBuilder: (context, index) {
-                final transaction = cryptoTransactions[index];
-                return Card(
-                  elevation: 4.0,
-                  color: Colors.white,
-                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                  child: Padding(
-                    padding: const EdgeInsets.all(defaultPadding),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Coin:   ${transaction.coinName!.split('_')[0]}",
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                            ClipOval(
-                              child: Image.network(
-                                _getImageForCoin(transaction.coinName!.split('_')[0]),
-                                width: 40,
-                                height: 40,
-                                fit: BoxFit.cover, // Ensure the image fills the circle
-                              ),
-                            )
-                          ],
-                        ),
-                        const SizedBox(height: defaultPadding),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text("Date:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                            Text(formatDate(transaction.date ?? "N/A"), style: const TextStyle(fontSize: 16)),
-                          ],
-                        ),
-                        const SizedBox(height: defaultPadding),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text("Payment Type:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                            Text(transaction.paymentType ?? "N/A", style: const TextStyle(fontSize: 16)),
-                          ],
-                        ),
-                        const SizedBox(height: defaultPadding),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text("No Of Coins:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                            Text(transaction.noOfCoin ?? "N/A", style: const TextStyle(fontSize: 16)),
-                          ],
-                        ),
-                        const SizedBox(height: defaultPadding),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text("Side:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                            Text(transaction.side![0].toUpperCase() + transaction.side!.substring(1), style: const TextStyle(fontSize: 16)),
-                          ],
-                        ),
-                        const SizedBox(height: defaultPadding),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text("Amount:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-
-                            Text(
-                              transaction.noOfCoin != null
-                                  ? '${transaction.currencyType} ${(double.tryParse(transaction.amount?.toString() ?? '0.00')?.toStringAsFixed(2) ?? '0.00')}'
-                                  : '0.00',
-                              style: const TextStyle(fontSize: 16),
-                            )
-
-
-                          ],
-                        ),
-                        const SizedBox(height: defaultPadding),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text("Status:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                            FilledButton.tonal(
-                              onPressed: () {},
-                              style: ButtonStyle(
-                                backgroundColor: WidgetStateProperty.all(_getStatusColor(transaction.status!)),
-                              ),
-                              child: Text(
-                                (transaction.status?.isNotEmpty ?? false)
-                                    ? transaction.status![0].toUpperCase() + transaction.status!.substring(1)
-                                    : "N/A",
-                                style: const TextStyle(color: Colors.white),
-                              ),
-
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                      ],
+            child: isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: kPrimaryColor,
                     ),
-                  ),
-                );
-              },
-            )
-                : const Center(child: Text("No Crypto Available.")),
+                  )
+                : cryptoTransactions.isNotEmpty
+                    ? ListView.builder(
+                        itemCount: cryptoTransactions.length,
+                        itemBuilder: (context, index) {
+                          final transaction = cryptoTransactions[index];
+                          return Card(
+                            elevation: 4.0,
+                            color: Colors.white,
+                            margin: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 20),
+                            child: Padding(
+                              padding: const EdgeInsets.all(defaultPadding),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "Coin:   ${transaction.coinName!.split('_')[0]}",
+                                        style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      ClipOval(
+                                        child: Image.network(
+                                          _getImageForCoin(transaction.coinName!
+                                              .split('_')[0]),
+                                          width: 40,
+                                          height: 40,
+                                          fit: BoxFit
+                                              .cover, // Ensure the image fills the circle
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                  const SizedBox(height: defaultPadding),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text("Date:",
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold)),
+                                      Text(
+                                          formatDate(transaction.date ?? "N/A"),
+                                          style: const TextStyle(fontSize: 16)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: defaultPadding),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text("Payment Type:",
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold)),
+                                      Text(transaction.paymentType ?? "N/A",
+                                          style: const TextStyle(fontSize: 16)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: defaultPadding),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text("No Of Coins:",
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold)),
+                                      Text(transaction.noOfCoin ?? "N/A",
+                                          style: const TextStyle(fontSize: 16)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: defaultPadding),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text("Side:",
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold)),
+                                      Text(
+                                          transaction.side![0].toUpperCase() +
+                                              transaction.side!.substring(1),
+                                          style: const TextStyle(fontSize: 16)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: defaultPadding),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text("Amount:",
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold)),
+                                      Text(
+                                        transaction.noOfCoin != null
+                                            ? '${transaction.currencyType} ${(double.tryParse(transaction.amount?.toString() ?? '0.00')?.toStringAsFixed(2) ?? '0.00')}'
+                                            : '0.00',
+                                        style: const TextStyle(fontSize: 16),
+                                      )
+                                    ],
+                                  ),
+                                  const SizedBox(height: defaultPadding),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text("Status:",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16)),
+                                      FilledButton.tonal(
+                                        onPressed: () {},
+                                        style: ButtonStyle(
+                                          backgroundColor:
+                                              WidgetStateProperty.all(
+                                                  _getStatusColor(
+                                                      transaction.status!)),
+                                        ),
+                                        child: Text(
+                                          (transaction.status?.isNotEmpty ??
+                                                  false)
+                                              ? transaction.status![0]
+                                                      .toUpperCase() +
+                                                  transaction.status!
+                                                      .substring(1)
+                                              : "N/A",
+                                          style: const TextStyle(
+                                              color: Colors.white),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : const Center(child: Text("No Crypto Available.")),
           ),
         ],
       ),
