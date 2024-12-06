@@ -1,14 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/CheckOutScreen/checkoutScreen.dart';
+import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/PayRecipientsScree/exchangeCurrencyModel/exchangeCurrencyApi.dart';
+import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/PayRecipientsScree/exchangeCurrencyModel/exchangeCurrencyModel.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/model/currencyApiModel/currencyModel.dart';
+import 'package:quickcash/util/auth_manager.dart';
 import 'package:quickcash/util/customSnackBar.dart';
 
 import '../../../model/currencyApiModel/currencyApi.dart';
 
 class AddMoneyScreen extends StatefulWidget {
-  const AddMoneyScreen({super.key});
+  final String? accountId;
+  final String? country;
+  final String? currency;
+  final String? iban;
+  final bool? status;
+  final double? amount;
+  const AddMoneyScreen({super.key,this.accountId,
+    this.country,
+    this.currency,
+    this.iban,
+    this.status,
+    this.amount});
 
   @override
   State<AddMoneyScreen> createState() => _AddMoneyScreen();
@@ -16,6 +30,8 @@ class AddMoneyScreen extends StatefulWidget {
 
 class _AddMoneyScreen extends State<AddMoneyScreen> {
   final CurrencyApi _currencyApi = CurrencyApi();
+  final ExchangeCurrencyApi _exchangeCurrencyApi = ExchangeCurrencyApi();
+
 
   String? selectedSendCurrency;
   String? selectedTransferType;
@@ -24,31 +40,95 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
 
   List<CurrencyListsData> currency = [];
 
-  String? mDepositFees = '0.0';
+  double? mDepositFees = 0.0;
   String? mAmountCharge = '0.0';
   String? mConversionAmount = '0.0';
 
+  bool isLoading = false;
+
+  // From  Account ---
+  String? mFromAccountId;
+  String? mFromCountry;
+  String? mFromCurrency;
+  String? mFromIban;
+  bool? mFromStatus;
+  double? mFromAmount;
+  String? mFromCurrencySymbol;
+
+  // To Account ----
+  String? mToCurrencySymbol = '';
+
+
+
   @override
   void initState() {
-    super.initState();
+    mSetDefaultAccountData();
     mGetCurrency();
+    super.initState();
+  }
+
+  Future<void> mSetDefaultAccountData() async {
+    setState(() {
+      mFromAccountId = widget.accountId;
+      mFromCountry = widget.country;
+      mFromCurrency = widget.currency;
+      mFromIban = widget.iban;
+      mFromStatus = widget.status;
+      mFromAmount = widget.amount;
+
+      mFromCurrencySymbol = getCurrencySymbol(mFromCurrency!);
+    });
   }
 
   Future<void> mGetCurrency() async {
     final response = await _currencyApi.currencyApi();
-
     if (response.currencyList != null && response.currencyList!.isNotEmpty) {
       currency = response.currencyList!;
     }
   }
 
   String getCurrencySymbol(String currencyCode) {
-    // Create a NumberFormat object for the specific currency
     var format = NumberFormat.simpleCurrency(name: currencyCode);
-
-    // Extract the currency symbol
     return format.currencySymbol;
   }
+
+  // Exchange Money Api **************
+  Future<void> mExchangeMoneyApi() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final request = ExchangeCurrencyRequest(
+          userId: AuthManager.getUserId(),
+          amount: mAmountController.text,
+          fromCurrency: selectedSendCurrency!,
+          toCurrency: mFromCurrency!);
+      final response = await _exchangeCurrencyApi.exchangeCurrencyApi(request);
+
+      if (response.message == "Success") {
+        setState(() {
+          isLoading = false;
+          mDepositFees = response.data.totalFees;
+          mAmountCharge = response.data.totalCharge.toString();
+          mConversionAmount = response.data.convertedAmount.toStringAsFixed(2);
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+          CustomSnackBar.showSnackBar(
+              context: context,
+              message: "We are facing some issue!",
+              color: kPrimaryColor);
+        });
+      }
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
 
 
   @override
@@ -108,6 +188,7 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                         if (newValue != null) {
                           setState(() {
                             selectedSendCurrency = newValue;
+                            mToCurrencySymbol = getCurrencySymbol(selectedSendCurrency!);
                             mAmountController.clear();
                           });
                         }
@@ -129,9 +210,7 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                           Text(
                             selectedSendCurrency ?? "Select Currency",
                             style: const TextStyle(
-                                color: kPrimaryColor,
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold),
+                                color: kPrimaryColor,),
                           ),
                           const Icon(Icons.arrow_drop_down, color: kPrimaryColor),
                         ],
@@ -200,13 +279,71 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                     }
                     return null;
                   },
+                  onChanged: (value){
+                    if(selectedSendCurrency !=null){
+                      if(mAmountController.text.isNotEmpty){
+                        if (double.parse(mAmountController.text) <=
+                            mFromAmount!) {
+                          mExchangeMoneyApi();
+                        } else {
+                          CustomSnackBar.showSnackBar(
+                              context: context,
+                              message: "Please enter a valid amount",
+                              color: kPrimaryColor);
+                        }
+                      }else{
+                        CustomSnackBar.showSnackBar(context: context, message: "Please enter amount", color: kPrimaryColor);
+                      }
+                    }else{
+                      CustomSnackBar.showSnackBar(context: context, message: "Please select currency", color: kPrimaryColor);
+                    }
+                  },
                 ),
+
+
+                const SizedBox(height: 45),
+                if(isLoading)
+                Center(
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+
+                      // Circular button
+                      Material(
+                        elevation: 6.0,
+                        shape: const CircleBorder(),
+                        child: Container(
+                          width: 50,
+                          height: 50,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                          ),
+                          child: isLoading
+                              ? const Center(
+                            child: CircularProgressIndicator(
+                              color: kPrimaryColor,
+                            ),
+                          )
+                              : const Center(
+                            child: Icon(
+                              Icons.arrow_downward,
+                              size: 30,
+                              color: kPrimaryColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
                 const SizedBox(height: 45),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text("Deposit Fee:", style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
-                    Text("$mDepositFees", style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold))
+                    Text("$mToCurrencySymbol $mDepositFees", style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold))
                   ],
                 ),
                 const SizedBox(height: smallPadding),
@@ -216,7 +353,7 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text("Amount Charge:", style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
-                    Text("$mAmountCharge", style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold))
+                    Text("$mToCurrencySymbol $mAmountCharge", style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold))
                   ],
                 ),
                 const SizedBox(height: smallPadding),
@@ -226,7 +363,7 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text("Conversion Amount:", style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
-                    Text("$mConversionAmount", style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold))
+                    Text("$mFromCurrencySymbol $mConversionAmount", style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold))
                   ],
                 ),
                 const SizedBox(height: 45),

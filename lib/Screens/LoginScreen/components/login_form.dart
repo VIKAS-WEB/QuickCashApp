@@ -50,6 +50,10 @@ class _LoginFormState extends State<LoginForm> {
         await AuthManager.saveToken(response.token);
         await AuthManager.saveUserName(response.name);
         await AuthManager.saveUserEmail(response.email);
+        if(response.kycStatus == true){
+          AuthManager.saveKycStatus("completed");
+        }
+
 
         Navigator.pushReplacement(
           context,

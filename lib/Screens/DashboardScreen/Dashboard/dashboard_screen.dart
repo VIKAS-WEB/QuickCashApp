@@ -613,7 +613,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       context,
                                       MaterialPageRoute(
                                           builder: (context) =>
-                                              const AddMoneyScreen()),
+                                               AddMoneyScreen(accountId: accountIdExchange,
+                                                  country: countryExchange,
+                                                  currency: currencyExchange,
+                                                  iban: ibanExchange,
+                                                  status: statusExchange,
+                                                  amount: amountExchange)),
                                     );
                                     // Add your onPressed code here!
                                   },

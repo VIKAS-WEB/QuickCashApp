@@ -18,8 +18,9 @@ class LoginResponse {
   final String token;
   final String name;
   final String email;
+  final bool kycStatus;
 
-  LoginResponse({required this.userId, required this.token, required this.name, required this.email});
+  LoginResponse({required this.userId, required this.token, required this.name, required this.email, required this.kycStatus});
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
     return LoginResponse(
@@ -27,6 +28,7 @@ class LoginResponse {
       token: json['token'],
       name: json['data']?['name'] as String,
       email: json['data']?['email'] as String,
+      kycStatus: json['data']?['kycstatus'] as bool,
     );
   }
 }
