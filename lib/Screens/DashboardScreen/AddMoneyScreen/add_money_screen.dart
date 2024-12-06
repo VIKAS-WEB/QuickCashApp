@@ -6,6 +6,7 @@ import 'package:quickcash/constants.dart';
 import 'package:quickcash/model/currencyApiModel/currencyModel.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import 'package:quickcash/util/customSnackBar.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 import '../../../model/currencyApiModel/currencyApi.dart';
 
@@ -28,6 +29,9 @@ class AddMoneyScreen extends StatefulWidget {
 }
 
 class _AddMoneyScreen extends State<AddMoneyScreen> {
+  bool isPaymentComplete = false;
+  final Razorpay _razorpay = Razorpay();
+
   final CurrencyApi _currencyApi = CurrencyApi();
   final ExchangeCurrencyApi _exchangeCurrencyApi = ExchangeCurrencyApi();
 
@@ -64,6 +68,15 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
     mSetDefaultAccountData();
     mGetCurrency();
     super.initState();
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _razorpay.clear();
   }
 
   Future<void> mSetDefaultAccountData() async {
@@ -128,6 +141,38 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
     }
   }
 
+  void _openRazorpay() async {
+    double amountInDouble = double.tryParse(mAmountCharge ?? '0.0') ?? 0.0;
+    int amount = (amountInDouble * 100).toInt();
+
+    try {
+    var options = {
+      'key': 'rzp_test_TR6pZnguGgK8hQ',
+      'amount': amount,
+      'name': 'Quickcash',
+      'method': 'upi',
+      'theme': {
+        'color': "#6F35A5",
+      }
+    };
+      _razorpay.open(options);
+    } catch (e) {
+      print('Error: ${e.toString()}');
+    }
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    showPaymentPopupMessage(context, true, 'Payment Successful!');
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    showPaymentPopupMessage(context, false, 'Payment Failed!');
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    print(
+        'You have chosen to pay via : ${response.walletName}. It will take some time to reflect your payment.');
+  }
 
 
   @override
@@ -390,6 +435,7 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                         if(selectedTransferType =="UPI * Currently Support Only INR Currency"){
                           if(selectedSendCurrency == "INR"){
                             // Razor Pay
+                            _openRazorpay();
                           }else{
                             CustomSnackBar.showSnackBar(context: context, message: "Currency is not supported!", color: kPrimaryColor);
                           }
@@ -485,4 +531,52 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
     );
   }
 
+  void showPaymentPopupMessage(
+      BuildContext ctx, bool isPaymentSuccess, String message) {
+    showDialog<void>(
+      context: ctx,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              isPaymentSuccess
+                  ? const Icon(
+                Icons.done,
+                color: Colors.green,
+              )
+                  : const Icon(
+                Icons.clear,
+                color: Colors.red,
+              ),
+              const SizedBox(
+                width: 5,
+              ),
+              Text(
+                isPaymentSuccess ? 'Payment Successful' : 'Payment Failed',
+                style: const TextStyle(
+                  fontSize: 20,
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                const Divider(
+                  color: Colors.grey,
+                ),
+                const SizedBox(
+                  height: 5,
+                ),
+                Text(message),
+                const SizedBox(
+                  height: 5,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
