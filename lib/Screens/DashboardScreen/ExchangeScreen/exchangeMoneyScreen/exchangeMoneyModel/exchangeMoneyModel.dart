@@ -4,7 +4,6 @@ class ExchangeMoneyRequest {
   final String fromCurrency;
   final String toCurrency;
 
-
   ExchangeMoneyRequest({
     required this.userId,
     required this.amount,
@@ -45,7 +44,7 @@ class ExchangeMoneyResponse {
 class ExchangeMoneyData {
   final double rate;
   final double totalFees;
-  final String totalCharge;
+  final double totalCharge;
   final double convertedAmount;
   final double sourceAccountBalance;
   final String sourceAccountCountryCode;
@@ -67,27 +66,27 @@ class ExchangeMoneyData {
 
   factory ExchangeMoneyData.fromJson(Map<String, dynamic> json) {
     return ExchangeMoneyData(
-      rate: _parseDouble (json['rate']) as double,
-      totalFees: _parseDouble (json['totalFees']) as double,
-      totalCharge: json['totalCharge'] as String,
-      convertedAmount: _parseDouble (json['convertedAmount']) as double,
-      sourceAccountBalance: _parseDouble (json['sourceAccountBalance']) as double,
-      sourceAccountCountryCode: json['sourceAccuntCountryCode'] as String,
-      sourceAccountNo: json['sourceAccountNo'] as String,
-      transferAccountCountryCode: json['transferAccountCountryCode'] as String,
-      transferAccountNo: json['transferAccountNo'] as String,
+      rate: _parseDouble(json['rate'])!,
+      totalFees: _parseDouble(json['totalFees']),
+      totalCharge: _parseDouble(json['totalCharge'])!,
+      convertedAmount: _parseDouble(json['convertedAmount'])!,
+      sourceAccountBalance: _parseDouble(json['sourceAccountBalance'])!,
+      sourceAccountCountryCode: json['sourceAccountCountryCode'] as String? ?? 'Unknown',  // Handle null
+      sourceAccountNo: json['sourceAccountNo'] as String? ?? 'Unknown',  // Handle null
+      transferAccountCountryCode: json['transferAccountCountryCode'] as String? ?? 'Unknown',  // Handle null
+      transferAccountNo: json['transferAccountNo'] as String? ?? 'Unknown',  // Handle null
     );
   }
 
   // Helper function to handle the type conversion for fees
-  static double? _parseDouble(dynamic value) {
-    if (value == null) return null;
+  static double _parseDouble(dynamic value) {
     if (value is int) {
       return value.toDouble();
     } else if (value is double) {
       return value;
+    } else {
+      throw Exception("Invalid type for double parsing");
     }
-    return null;  // Return null if the value is neither int nor double
   }
-
 }
+

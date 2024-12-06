@@ -58,7 +58,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
   bool? mToStatus;
   double? mToAmount = 0.0;
   String? mToCurrencySymbol = '';
-  double? mFromRate;
+  double? mFromRate = 0.0;
 
 
   @override
@@ -113,6 +113,14 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
     });
 
     try {
+      if (mFromCurrency == null || mToCurrency == null) {
+        CustomSnackBar.showSnackBar(
+            context: context,
+            message: "Currency selection is missing!",
+            color: kPrimaryColor);
+        return;
+      }
+
       final request = ExchangeMoneyRequest(
           userId: AuthManager.getUserId(),
           amount: mFromAmountController.text,
@@ -126,7 +134,6 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
           isReviewOrder = true;
           mFromTotalFees = response.data.totalFees;
           mToAmountController.text = response.data.convertedAmount.toStringAsFixed(2);
-          mFromRate = response.data.rate;
         });
       } else {
         setState(() {
@@ -149,6 +156,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
       });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -228,10 +236,17 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                             cursorColor: kPrimaryColor,
                             style: const TextStyle(color: kPrimaryColor),
                             onChanged: (value) {
-                              setState(() {
                                 if (mToCurrency != "Select") {
                                   if (mFromAmountController.text.isNotEmpty) {
-                                    mExchangeMoneyApi();
+
+                                    if(double.parse(mFromAmountController.text) <= mFromAmount!){
+                                      mExchangeMoneyApi();
+                                    }else{
+                                      CustomSnackBar.showSnackBar(
+                                          context: context,
+                                          message: "Please enter a valid amount",
+                                          color: kPrimaryColor);
+                                    }
                                   } else {
                                     isReviewOrder = false;
                                     mToAmountController.clear();
@@ -247,7 +262,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                                       "Please select an exchange account",
                                       color: kPrimaryColor);
                                 }
-                              });
+
                             },
 
                             decoration: InputDecoration(
