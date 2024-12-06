@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:quickcash/Screens/DashboardScreen/AddMoneyScreen/AddPaymentSuccessScreen/addPaymentSuccessScreen.dart';
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/PayRecipientsScree/exchangeCurrencyModel/exchangeCurrencyApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/PayRecipientsScree/exchangeCurrencyModel/exchangeCurrencyModel.dart';
 import 'package:quickcash/constants.dart';
@@ -162,7 +163,7 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
   }
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) {
-    showPaymentPopupMessage(context, true, 'Payment Successful!');
+   // showPaymentPopupMessage(context, true, 'Payment Successful!');
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
@@ -440,17 +441,13 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
                             CustomSnackBar.showSnackBar(context: context, message: "Currency is not supported!", color: kPrimaryColor);
                           }
                         }else{
-
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AddPaymentSuccessScreen(),
+                            ),
+                          );
                         }
-
-
-                        /*Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const CheckoutScreen(),
-                          ),
-                        );*/
-                        // Perform the action to add money
                       }
                     },
                     child: const Text('Add Money', style: TextStyle(color: Colors.white, fontSize: 16)),
@@ -463,6 +460,8 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
       ),
     );
   }
+
+
 
 
   String _getFlagForTransferType(String transferType) {
