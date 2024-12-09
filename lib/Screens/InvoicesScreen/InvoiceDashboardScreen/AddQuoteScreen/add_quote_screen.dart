@@ -12,6 +12,7 @@ import 'package:quickcash/util/auth_manager.dart';
 import '../../../../model/currencyApiModel/currencyApi.dart';
 import '../../../../model/currencyApiModel/currencyModel.dart';
 import '../../../../util/customSnackBar.dart';
+import '../../../HomeScreen/home_screen.dart';
 import '../../ClientsScreen/ClientsScreen/model/clientsApi.dart';
 import '../../ClientsScreen/ClientsScreen/model/clientsModel.dart';
 
@@ -199,7 +200,7 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
   // Add Quotes Api ----
   Future<void> mAddQuote() async {
     setState(() {
-      isSubmitLoading = false;
+      isSubmitLoading = true;
     });
 
     try {
@@ -210,50 +211,119 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
 
 
       final List<Map<String, dynamic>> productsInfo = productList.map((product) => product.toMap()).toList();
-      List<Map<String, String>> taxList = selectedTaxes.map((taxString) {
-        return {
-          'tax': taxString,
-        };
-      }).toList();
 
-      // Create the OthersInfo object
-      OthersInfo newReceiver = OthersInfo(
-        email: receiverEmail.text,
-        name: receiverName.text,
-        address: receiverAddress.text,
-      );
+      List<String> taxList = selectedTaxes.toList();
 
-      // Convert the OthersInfo object to a Map
-      Map<String, String> receiverMap = newReceiver.toMap();
+      if(selectedType == 'other'){
+        // Create the OthersInfo object
+        OthersInfo newReceiver = OthersInfo(
+          email: receiverEmail.text,
+          name: receiverName.text,
+          address: receiverAddress.text,
+        );
 
+        // Convert the OthersInfo object to a Map
+        Map<String, String> receiverMap = newReceiver.toMap();
 
-      final request = AddQuoteRequest(userId: AuthManager.getUserId(),
-          currency: selectedCurrency!,
-          currencyText: mCurrencySymbol!,
-          discount: showDiscount,
-          discountType: selectedDiscount,
-          dueDate: dueDateStr!,
-          invoiceCountry: selectedInvoiceTemplate,
-          invoiceDate: quotesDateStr!,
-          note: noteController.text,
-          quoteNumber: quoteNumber.text,
-          reference: encryptedReference!,
-          subTotal: subTotal,
-          subDiscount: showDiscount,
-          subTax: showTaxes,
-          tax: taxList,
-          terms: termsController.text,
-          total: showTotalAmount,
-          url: url,
-          clientId: mMemberId!,
-          othersInfo: [receiverMap],
-          productsInfo: productsInfo);
+        final request = AddQuoteRequest(userId: AuthManager.getUserId(),
+            currency: selectedCurrency!,
+            currencyText: mCurrencySymbol!,
+            discount: discount.text,
+            discountType: selectedDiscount.toLowerCase(),
+            dueDate: dueDateStr!,
+            invoiceCountry: selectedInvoiceTemplate,
+            invoiceDate: quotesDateStr!,
+            note: noteController.text,
+            quoteNumber: quoteNumber.text,
+            reference: encryptedReference!,
+            subTotal: subTotal,
+            subDiscount: showDiscount,
+            subTax: showTaxes,
+            tax: selectedTaxes.toList(),
+            terms: termsController.text,
+            total: showTotalAmount,
+            url: url,
+            clientId: '',
+            othersInfo: [receiverMap],
+            productsInfo: productsInfo);
 
-      final response = await _addQuoteApi.addQuoteApi(request);
+        final response = await _addQuoteApi.addQuoteApi(request);
 
+        if(response.message == "Quote Data is added Successfully!!!"){
+          setState(() {
+            isSubmitLoading = false;
+            CustomSnackBar.showSnackBar(context: context, message: "Quote Data is added Successfully!", color: kPrimaryColor);
+            Navigator.of(context).pop();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomeScreen(),
+              ),
+            );
+          });
+
+        }else{
+          setState(() {
+            isSubmitLoading = false;
+            CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue", color: kPrimaryColor);
+          });
+        }
+
+      }else{
+        OthersInfo newReceiver = OthersInfo(
+          email: '',
+          name: '',
+          address: '',
+        );
+
+        // Convert the OthersInfo object to a Map
+        Map<String, String> receiverMap = newReceiver.toMap();
+
+        final request = AddQuoteRequest(userId: AuthManager.getUserId(),
+            currency: selectedCurrency!,
+            currencyText: mCurrencySymbol!,
+            discount: discount.text,
+            discountType: selectedDiscount.toLowerCase(),
+            dueDate: dueDateStr!,
+            invoiceCountry: selectedInvoiceTemplate,
+            invoiceDate: quotesDateStr!,
+            note: noteController.text,
+            quoteNumber: quoteNumber.text,
+            reference: encryptedReference!,
+            subTotal: subTotal,
+            subDiscount: showDiscount,
+            subTax: showTaxes,
+            tax: taxList,
+            terms: termsController.text,
+            total: showTotalAmount,
+            url: url,
+            clientId: mMemberId!,
+            othersInfo: [receiverMap],
+            productsInfo: productsInfo);
+
+        final response = await _addQuoteApi.addQuoteApi(request);
+        if(response.message == "Quote Data is added Successfully!!!"){
+          setState(() {
+            isSubmitLoading = false;
+            CustomSnackBar.showSnackBar(context: context, message: "Quote Data is added Successfully!", color: kPrimaryColor);
+            Navigator.of(context).pop();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomeScreen(),
+              ),
+            );
+          });
+
+        }else{
+          setState(() {
+            isSubmitLoading = false;
+            CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue", color: kPrimaryColor);
+          });
+        }
+      }
     } catch (error) {
       setState(() {
-        print('Error: $error');
         isSubmitLoading = false;
         CustomSnackBar.showSnackBar(context: context,
             message: "Something went wrong!",
@@ -1197,11 +1267,11 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
 
                         const SizedBox(height: largePadding,),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const SizedBox(height: largePadding,),
 
-                            // Draft Button
+                           /* // Draft Button
                             SizedBox(
                               width: 145,
                               height: 47.0,
@@ -1216,13 +1286,13 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                                 ),
                                 backgroundColor: kPrimaryColor,
                               ),
-                            ),
+                            ),*/
 
                             const SizedBox(width: defaultPadding,),
 
                             // Save Button
                             SizedBox(
-                              width: 145,
+                              width: 300,
                               height: 47.0,
                               child: FloatingActionButton.extended(
                                 onPressed: () {

@@ -13,7 +13,7 @@ class AddQuoteRequest {
   final String subTotal;
   final String subDiscount;
   final String subTax;
-  final List<Map<String, String>> tax;
+  final List<String> tax;
   final String terms;
   final String total;
   final String url;
