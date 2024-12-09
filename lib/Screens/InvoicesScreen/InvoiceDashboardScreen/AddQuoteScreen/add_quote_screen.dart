@@ -136,7 +136,6 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
         setState(() {
           isLoading = false;
           errorMessage = null;
-
           productLists = response.productsList!;
 
         });
@@ -184,9 +183,7 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
   }
 
   String getCurrencySymbol(String currencyCode) {
-    // Create a NumberFormat object for the specific currency
     var format = NumberFormat.simpleCurrency(name: currencyCode);
-    // Extract the currency symbol
     return format.currencySymbol;
   }
 
@@ -237,6 +234,22 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
       setState(() {
         productList.removeAt(index);
       });
+
+      // Recalculate the subtotal and the totals after product removal
+      if (productList.isEmpty) {
+        subTotal = "0.00";
+        showTotalAmount = "0.00";
+        showDiscount = "0.00";
+        showTaxes = "0.00";
+      } else {
+        calculateSubTotalAmount(); // Recalculate subtotal if list is not empty
+      }
+
+      // Recalculate the total amount if the list becomes empty
+      mDiscount();
+      mCalculateTax();
+      mTotalAmount();
+
     }
   }
 
@@ -693,12 +706,24 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                                         productList[index].productName = newValue.productName ?? '';
                                         productList[index].price = newValue.unitPrice?.toString() ?? '';
                                         productList[index].quantity = "1"; // Default quantity
-                                        productList[index].amount = (newValue.unitPrice! * 1).toStringAsFixed(2); // Calculate amount based on quantity
+                                        productList[index].amount = (newValue.unitPrice! * 1).toStringAsFixed(2);
+
+                                        calculateAmount(index);
+                                        mDiscount();
+                                        mCalculateTax();
+                                        mTotalAmount();
+
                                       } else {
                                         productList[index].productName = "";
                                         productList[index].price = "";
                                         productList[index].quantity = "0";
                                         productList[index].amount = "0.00";
+
+                                        calculateAmount(index);
+                                        mDiscount();
+                                        mCalculateTax();
+                                        mTotalAmount();
+
                                       }
                                     });
                                   },
@@ -724,6 +749,12 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                                       double price = double.tryParse(productList[index].price) ?? 0;
                                       int quantity = int.tryParse(value) ?? 0;
                                       productList[index].amount = (price * quantity).toStringAsFixed(2);
+
+                                      calculateAmount(index);
+                                      mDiscount();
+                                      mCalculateTax();
+                                      mTotalAmount();
+
                                     });
                                   },
                                 ),
@@ -746,6 +777,10 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                                   onChanged: (value) {
                                     setState(() {
                                       productList[index].price = value;
+                                      calculateAmount(index);
+                                      mDiscount();
+                                      mCalculateTax();
+                                      mTotalAmount();
                                     });
                                   },
                                 ),
@@ -776,6 +811,7 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                                       onPressed: () {
                                         setState(() {
                                           removeProduct(index);
+                                          calculateAmount(index);
                                         });
                                       },
                                     ),
@@ -808,15 +844,22 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                         SizedBox(
                           width: 100, // Set your desired fixed width here
                           child: TextFormField(
+                            controller: discount,
                             keyboardType: TextInputType.number,
                             textInputAction: TextInputAction.next,
                             cursorColor: kPrimaryColor,
                             style: const TextStyle(color: kPrimaryColor),
-                            onSaved: (value) {},
+                            onChanged: (value) {
+                              setState(() {
+                                mDiscount();
+                                mCalculateTax();
+                                mTotalAmount();
+                              });
+                            },
+                            enabled: selectedDiscount != "Select Discount",
                             decoration: InputDecoration(
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(
-                                    defaultPadding),
+                                borderRadius: BorderRadius.circular(defaultPadding),
                                 borderSide: const BorderSide(),
                               ),
                               hintText: "0",
@@ -851,6 +894,8 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                           onChanged: (newValue) {
                             setState(() {
                               selectedDiscount = newValue!;
+                              discount.clear();
+                              showDiscount = "0.00";
                             });
                           },
                         ),
@@ -859,44 +904,38 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                     ),
 
                     const SizedBox(height: largePadding),
-                    DropdownButtonFormField<String>(
-                      value: selectedTax,
-                      style: const TextStyle(color: kPrimaryColor),
-
-                      decoration: InputDecoration(
-                        labelText: 'Tax',
-                        labelStyle: const TextStyle(color: kPrimaryColor),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(),
+                    GestureDetector(
+                      onTap: _showMultiSelectDialog,
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: 'Select Taxes',
+                          labelStyle: const TextStyle(color: kPrimaryColor),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(),
+                          ),
+                          suffixIcon: const Icon(Icons.arrow_drop_down, color: kPrimaryColor),
+                        ),
+                        child: Text(
+                          selectedTaxes.isEmpty
+                              ? 'Select Taxes'
+                              : selectedTaxes.join(', '),
+                          style: const TextStyle(color: kPrimaryColor),
                         ),
                       ),
-
-                      items: ['Select Tax', 'Test Product',].map((String role) {
-                        return DropdownMenuItem(
-                          value: role,
-                          child: Text(role, style: const TextStyle(
-                              color: kPrimaryColor, fontSize: 16),),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
-                        setState(() {
-                          selectedTax = newValue!;
-                        });
-                      },
                     ),
 
                     const SizedBox(height: 35,),
-                    const Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Sub Total:", style: TextStyle(
+                        const Text("Sub Total:", style: TextStyle(
                             color: kPrimaryColor,
                             fontSize: 14,
                             fontWeight: FontWeight.bold),),
-                        Padding(padding: EdgeInsets.symmetric(
+                        Padding(padding: const EdgeInsets.symmetric(
                             horizontal: defaultPadding),
-                          child: Text("100.00", style: TextStyle(
+                          child: Text(subTotal, style: const TextStyle(
                               color: kPrimaryColor,
                               fontSize: 14,
                               fontWeight: FontWeight.bold),),),
@@ -904,15 +943,15 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                     ),
 
                     const SizedBox(height: defaultPadding,),
-                    const Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Discount:", style: TextStyle(color: kPrimaryColor,
+                        const Text("Discount:", style: TextStyle(color: kPrimaryColor,
                             fontSize: 14,
                             fontWeight: FontWeight.bold),),
-                        Padding(padding: EdgeInsets.symmetric(
+                        Padding(padding: const EdgeInsets.symmetric(
                             horizontal: defaultPadding),
-                          child: Text("0.00", style: TextStyle(
+                          child: Text(showDiscount, style: const TextStyle(
                               color: kPrimaryColor,
                               fontSize: 14,
                               fontWeight: FontWeight.bold),),),
@@ -920,15 +959,15 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                     ),
 
                     const SizedBox(height: defaultPadding,),
-                    const Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Tax:", style: TextStyle(color: kPrimaryColor,
+                        const Text("Tax:", style: TextStyle(color: kPrimaryColor,
                             fontSize: 14,
                             fontWeight: FontWeight.bold),),
-                        Padding(padding: EdgeInsets.symmetric(
+                        Padding(padding: const EdgeInsets.symmetric(
                             horizontal: defaultPadding),
-                          child: Text("0.00", style: TextStyle(
+                          child: Text(showTaxes, style: const TextStyle(
                               color: kPrimaryColor,
                               fontSize: 14,
                               fontWeight: FontWeight.bold),),),
@@ -936,15 +975,15 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                     ),
 
                     const SizedBox(height: defaultPadding,),
-                    const Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Total:", style: TextStyle(color: kPrimaryColor,
+                        const Text("Total:", style: TextStyle(color: kPrimaryColor,
                             fontSize: 14,
                             fontWeight: FontWeight.bold),),
-                        Padding(padding: EdgeInsets.symmetric(
+                        Padding(padding: const EdgeInsets.symmetric(
                             horizontal: defaultPadding),
-                          child: Text("0.00", style: TextStyle(
+                          child: Text(showTotalAmount, style: const TextStyle(
                               color: kPrimaryColor,
                               fontSize: 14,
                               fontWeight: FontWeight.bold),),),
@@ -1028,8 +1067,6 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                               setState(() {});
                             },
                           ),
-
-
                         ],
                       ),
 
@@ -1060,8 +1097,6 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                         ],
                       ),*/
                     ],
-
-
 
                     const SizedBox(height: largePadding,),
                     Row(
@@ -1134,6 +1169,173 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
       ),
     );
   }
+
+  void _showMultiSelectDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Select Taxes'),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return SingleChildScrollView(
+                child: Column(
+                  children: taxList.map((tax) {
+                    return CheckboxListTile(
+                      title: Text(
+                        '${tax.name ?? ''} - ${tax.taxValue ?? ''}',
+                        style: const TextStyle(color: kPrimaryColor),
+                      ),
+                      value: selectedTaxes.contains('${tax.name ?? ''} - ${tax.taxValue ?? ''}'),
+                      onChanged: (bool? isSelected) {
+                        setState(() {
+                          if (isSelected == true) {
+                            selectedTaxes.add('${tax.name ?? ''} - ${tax.taxValue ?? ''}');
+                          } else {
+                            selectedTaxes.remove('${tax.name ?? ''} - ${tax.taxValue ?? ''}');
+                          }
+                          // Recalculate the total tax value
+                          totalTaxValue = _calculateTotalTaxValue();
+                          mCalculateTax();
+                          mTotalAmount();
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                setState(() {});
+              },
+              child: const Text('Done'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void mDiscount() {
+    double discountAmount = 0;
+
+    if (selectedDiscount == "Fixed") {
+      setState(() {
+        discountAmount = double.tryParse(discount.text) ?? 0;
+        showDiscount = discountAmount.toStringAsFixed(2);
+      });
+    } else if (selectedDiscount == "Percentage") {
+      setState(() {
+        double totalPrice = double.tryParse(subTotal.toString()) ?? 0;
+        double percentage = double.tryParse(discount.text) ?? 0;
+
+        if (percentage > 0 && totalPrice > 0) {
+          discountAmount = (percentage / 100) * totalPrice;
+          showDiscount = discountAmount.toStringAsFixed(2);
+        } else {
+          showDiscount = "0.00";
+        }
+      });
+    }
+  }
+
+  void mCalculateTax() {
+    double taxAmount = 0;
+
+    setState(() {
+      double totalPrice = double.tryParse(subTotal.toString()) ?? 0;
+      double? percentage = double.tryParse(totalTaxValue.toStringAsFixed(2)) ?? 0;
+
+      if(percentage >0 && totalPrice> 0){
+        taxAmount = (percentage / 100) * totalPrice;
+        showTaxes = taxAmount.toStringAsFixed(2);
+      }else{
+        showTaxes = "0.00";
+      }
+    });
+  }
+
+  void mTotalAmount() {
+    double totalAmount = 0;
+
+    setState(() {
+      double totalPrice = double.tryParse(subTotal.toString()) ?? 0.0;
+      double? percentage = double.tryParse(showDiscount.toString()) ?? 0.0;
+      double? taxes = double.tryParse(showTaxes.toString()) ?? 0.0;
+
+      if(totalPrice > 0 && percentage >0  && taxes > 0){
+        totalAmount = totalPrice - percentage + taxes;
+        showTotalAmount = totalAmount.toStringAsFixed(2);
+      }else if(totalPrice >0 && percentage >0){
+        totalAmount = totalPrice - percentage;
+        showTotalAmount = totalAmount.toStringAsFixed(2);
+      }else if(totalPrice >0 && taxes >0){
+        totalAmount = totalPrice + taxes;
+        showTotalAmount = totalAmount.toStringAsFixed(2);
+      }else if(totalPrice >0){
+        totalAmount = totalPrice;
+        showTotalAmount = totalPrice.toStringAsFixed(2);
+      } else{
+        showTotalAmount = "0.00";
+      }
+    });
+  }
+
+  void calculateSubTotalAmount() {
+    double totalAmount = 0;
+
+    for (var product in productList) {
+      final amount = double.tryParse(product.amount) ?? 0;
+      totalAmount += amount;
+    }
+
+    setState(() {
+      subTotal = totalAmount.toStringAsFixed(2);
+    });
+
+    // Now update discount, tax, and total amount after recalculating subtotal
+    mDiscount();
+    mCalculateTax();
+    mTotalAmount();
+  }
+
+  void calculateAmount(int index) {
+    final quantity = double.tryParse(productList[index].quantity) ?? 0;
+    final price = double.tryParse(productList[index].price) ?? 0;
+
+    if (quantity != 0) {
+      final amount = quantity * price;
+      setState(() {
+        productList[index].amount = amount.toStringAsFixed(2);
+      });
+    } else {
+      setState(() {
+        productList[index].amount = price.toStringAsFixed(2);
+      });
+    }
+
+    calculateSubTotalAmount(); // Recalculate subtotal after amount change
+    mDiscount(); // Recalculate discount
+    mCalculateTax(); // Recalculate taxes
+    mTotalAmount(); // Recalculate total amount
+  }
+
+  double _calculateTotalTaxValue() {
+    double total = 0.0;
+    for (var selectedTax in selectedTaxes) {
+      final tax = taxList.firstWhere(
+            (tax) => '${tax.name ?? ''} - ${tax.taxValue ?? ''}' == selectedTax,
+        orElse: () => TaxData(name: '', taxValue: 0),
+      );
+      total += (tax.taxValue ?? 0).toDouble();
+    }
+    return total;
+  }
+
 
 }
 
