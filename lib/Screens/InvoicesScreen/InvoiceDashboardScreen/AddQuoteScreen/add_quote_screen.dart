@@ -997,7 +997,6 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                               ),
                             ),
 
-
                             const SizedBox(width: defaultPadding,),
                             Expanded(child: DropdownButtonFormField<String>(
                               value: selectedDiscount,
@@ -1381,7 +1380,6 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
         setState(() {
           productList.add(ProductEntry(productId: selectedProduct.id));
         });
-        print("Updated productList: $productList");
       } else {
         CustomSnackBar.showSnackBar(
           context: context,
