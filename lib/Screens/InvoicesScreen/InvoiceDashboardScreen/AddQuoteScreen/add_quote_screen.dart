@@ -34,6 +34,7 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
   List<ClientsData> clientsData = [];
 
   String? selectedCurrency;
+  String? mCurrencySymbol;
   List<CurrencyListsData> currency = [];
 
   // Product list holding the product entries
@@ -182,8 +183,12 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
     }
   }
 
-
-
+  String getCurrencySymbol(String currencyCode) {
+    // Create a NumberFormat object for the specific currency
+    var format = NumberFormat.simpleCurrency(name: currencyCode);
+    // Extract the currency symbol
+    return format.currencySymbol;
+  }
 
 // Function to generate a product code based on the current timestamp
   String generateCodeFromTimestamp() {
@@ -471,7 +476,7 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                     controller: TextEditingController(
                       text: quoteDate == null
                           ? ''
-                          : DateFormat('dd-MM-yyyy').format(quoteDate!),
+                          : DateFormat('yyyy-MM-dd').format(quoteDate!),
                     ),
                     style: const TextStyle(color: kPrimaryColor),
                     decoration: InputDecoration(
@@ -503,7 +508,7 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                     controller: TextEditingController(
                       text: dueDate == null
                           ? ''
-                          : DateFormat('dd-MM-yyyy').format(dueDate!),
+                          : DateFormat('yyyy-MM-dd').format(dueDate!),
                     ),
                     style: const TextStyle(color: kPrimaryColor),
                     decoration: InputDecoration(
@@ -576,14 +581,15 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                       ),
                       items: currency.map((CurrencyListsData currencyItem) {
                         return PopupMenuItem<String>(
-                          value: currencyItem.currencyCode, // Use the appropriate property
+                          value: currencyItem.currencyCode,
                           child: Text(currencyItem.currencyCode!, style: const TextStyle(color: kPrimaryColor),), // Display the name or code of the currency
                         );
                       }).toList(),
                     ).then((String? newValue) {
                       if (newValue != null) {
                         setState(() {
-                          selectedCurrency = newValue; // Update the selected coin
+                          selectedCurrency = newValue;
+                          mCurrencySymbol = getCurrencySymbol(selectedCurrency!);
                         });
                       }
                     });
@@ -591,7 +597,7 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                   }
                 },
                 child: Material(
-                  color: Colors.transparent, // Make the Material widget invisible
+                  color: Colors.transparent,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 15.0),
                     decoration: BoxDecoration(
@@ -608,8 +614,6 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
                   ),
                 ),
               ),
-
-
 
 
               const SizedBox(height: largePadding,),
