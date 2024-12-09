@@ -16,8 +16,6 @@ import '../../../HomeScreen/home_screen.dart';
 import '../../ClientsScreen/ClientsScreen/model/clientsApi.dart';
 import '../../ClientsScreen/ClientsScreen/model/clientsModel.dart';
 
-import 'dart:math';
-import 'package:encrypt/encrypt.dart' as encrypt;
 
 class AddQuoteScreen extends StatefulWidget {
   const AddQuoteScreen({super.key});
@@ -64,7 +62,6 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
   String showTaxes = "0.00";
   String showTotalAmount = "0.00";
   double totalTaxValue = 0;
-  String? encryptedReference;
   String? mMemberId;
 
   List<OthersInfo> othersInfo = [];
@@ -204,11 +201,6 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
     });
 
     try {
-      if (encryptedReference == null) {
-        return;
-      }
-      String url = 'https://quickcash.oyefin.com/invoice-pay?code=$encryptedReference';
-
 
       final List<Map<String, dynamic>> productsInfo = productList.map((product) => product.toMap()).toList();
 
@@ -235,14 +227,12 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
             invoiceDate: quotesDateStr!,
             note: noteController.text,
             quoteNumber: quoteNumber.text,
-            reference: encryptedReference!,
             subTotal: subTotal,
             subDiscount: showDiscount,
             subTax: showTaxes,
             tax: selectedTaxes.toList(),
             terms: termsController.text,
             total: showTotalAmount,
-            url: url,
             clientId: '',
             othersInfo: [receiverMap],
             productsInfo: productsInfo);
@@ -289,14 +279,12 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
             invoiceDate: quotesDateStr!,
             note: noteController.text,
             quoteNumber: quoteNumber.text,
-            reference: encryptedReference!,
             subTotal: subTotal,
             subDiscount: showDiscount,
             subTax: showTaxes,
             tax: taxList,
             terms: termsController.text,
             total: showTotalAmount,
-            url: url,
             clientId: mMemberId!,
             othersInfo: [receiverMap],
             productsInfo: productsInfo);
@@ -1372,21 +1360,6 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
     return timestampStr.substring(timestampStr.length - 10);
   }
 
-  String generateEncryptedReference() {
-    var random = Random();
-    int reference = random.nextInt(10000000);
-
-    const keyString = 'ganeshganeshgan';
-    String keyStringPadded = keyString.padRight(16, ' ');
-
-    final key = encrypt.Key.fromUtf8(keyStringPadded);
-    final iv = encrypt.IV.fromLength(16);
-
-    final encrypter = encrypt.Encrypter(encrypt.AES(key));
-    final encrypted = encrypter.encrypt(reference.toString(), iv: iv);
-
-    return encrypted.base64;
-  }
 
   // Update product code and send it in the encrypted format
   void updateProductCode() {
@@ -1394,7 +1367,6 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
       String newCode = generateCodeFromTimestamp();
       quoteNumber.text = newCode;
 
-      encryptedReference = generateEncryptedReference();
     });
   }
 
@@ -1647,7 +1619,7 @@ class ProductEntry {
     return {
       'productId': productId,
       'productName': productName,
-      'quantity': quantity,
+      'qty': quantity,
       'price': price,
       'amount': amount,
     };

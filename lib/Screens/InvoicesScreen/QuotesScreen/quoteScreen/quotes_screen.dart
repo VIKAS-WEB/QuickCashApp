@@ -9,7 +9,6 @@ import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/updateQuoteScreen/
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/customSnackBar.dart';
 
-import '../../../../test_code.dart';
 import '../../InvoiceDashboardScreen/AddQuoteScreen/add_quote_screen.dart';
 
 class QuotesScreen extends StatefulWidget {
@@ -65,6 +64,7 @@ class _QuotesScreenState extends State<QuotesScreen> {
       setState(() {
         isLoading = false;
         errorMessage = error.toString();
+        print('Error: $error');
         CustomSnackBar.showSnackBar(context: context, message: errorMessage!, color: kRedColor);
       });
     }

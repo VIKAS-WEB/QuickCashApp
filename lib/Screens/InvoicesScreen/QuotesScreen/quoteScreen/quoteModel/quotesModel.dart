@@ -15,7 +15,7 @@ class QuoteData {
   final List<ProductInfo>? productsInfo;
   final double? discount;
   final String? discountType;
-  final List<dynamic>? tax; // Assuming the response doesn't provide detailed tax structure
+  final List<String>? tax; // Change to List<String> based on response
   final double? subTotal;
   final double? subDiscount;
   final double? subTax;
@@ -75,13 +75,25 @@ class QuoteData {
       productsInfo: (json['productsInfo'] as List<dynamic>?)
           ?.map((item) => ProductInfo.fromJson(item as Map<String, dynamic>))
           .toList(),
-      discount: (json['discount'] as num?)?.toDouble(),
+      discount: (json['discount'] is String
+          ? double.tryParse(json['discount'] as String) // Convert string to double
+          : json['discount'] as num?)?.toDouble(),
       discountType: json['discount_type'] as String?,
-      tax: json['tax'] as List<dynamic>?,
-      subTotal: (json['subTotal'] as num?)?.toDouble(),
-      subDiscount: (json['sub_discount'] as num?)?.toDouble(),
-      subTax: (json['sub_tax'] as num?)?.toDouble(),
-      total: (json['total'] as num?)?.toDouble(),
+      tax: (json['tax'] as List<dynamic>?)
+          ?.map((item) => item as String)
+          .toList(),
+      subTotal: (json['subTotal'] is String
+          ? double.tryParse(json['subTotal'] as String) // Convert string to double
+          : json['subTotal'] as num?)?.toDouble(),
+      subDiscount: (json['sub_discount'] is String
+          ? double.tryParse(json['sub_discount'] as String) // Convert string to double
+          : json['sub_discount'] as num?)?.toDouble(),
+      subTax: (json['sub_tax'] is String
+          ? double.tryParse(json['sub_tax'] as String) // Convert string to double
+          : json['sub_tax'] as num?)?.toDouble(),
+      total: (json['total'] is String
+          ? double.tryParse(json['total'] as String) // Convert string to double
+          : json['total'] as num?)?.toDouble(),
       note: json['note'] as String?,
       terms: json['terms'] as String?,
       currencyText: json['currency_text'] as String?,
@@ -90,6 +102,47 @@ class QuoteData {
     );
   }
 }
+
+class ProductInfo {
+  final String? productName;
+  final String? productId;
+  final String? quantity;  // Changed from `qty` to `quantity`
+  final double? price;
+  final double? tax;
+  final double? taxValue;
+  final double? amount;
+
+  ProductInfo({
+    this.productName,
+    this.productId,
+    this.quantity,  // Changed from `qty` to `quantity`
+    this.price,
+    this.tax,
+    this.taxValue,
+    this.amount,
+  });
+
+  factory ProductInfo.fromJson(Map<String, dynamic> json) {
+    return ProductInfo(
+      productName: json['productName'] as String?,
+      productId: json['productId'] as String?,
+      quantity: json['quantity'] as String?,  // Changed from `qty` to `quantity`
+      price: (json['price'] is String
+          ? double.tryParse(json['price'] as String) // Convert string to double
+          : json['price'] as num?)?.toDouble(),
+      tax: (json['tax'] is String
+          ? double.tryParse(json['tax'] as String) // Convert string to double
+          : json['tax'] as num?)?.toDouble(),
+      taxValue: (json['taxValue'] is String
+          ? double.tryParse(json['taxValue'] as String) // Convert string to double
+          : json['taxValue'] as num?)?.toDouble(),
+      amount: (json['amount'] is String
+          ? double.tryParse(json['amount'] as String) // Convert string to double
+          : json['amount'] as num?)?.toDouble(),
+    );
+  }
+}
+
 
 class OtherInfo {
   final String? name;
@@ -107,38 +160,6 @@ class OtherInfo {
       name: json['name'] as String?,
       email: json['email'] as String?,
       address: json['address'] as String?,
-    );
-  }
-}
-
-class ProductInfo {
-  final String? productName;
-  final String? productId;
-  final String? qty;
-  final double? price;
-  final double? tax;
-  final double? taxValue;
-  final double? amount;
-
-  ProductInfo({
-    this.productName,
-    this.productId,
-    this.qty,
-    this.price,
-    this.tax,
-    this.taxValue,
-    this.amount,
-  });
-
-  factory ProductInfo.fromJson(Map<String, dynamic> json) {
-    return ProductInfo(
-      productName: json['productName'] as String?,
-      productId: json['productId'] as String?,
-      qty: json['qty'] as String?,
-      price: (json['price'] as num?)?.toDouble(),
-      tax: (json['tax'] as num?)?.toDouble(),
-      taxValue: (json['taxValue'] as num?)?.toDouble(),
-      amount: (json['amount'] as num?)?.toDouble(),
     );
   }
 }

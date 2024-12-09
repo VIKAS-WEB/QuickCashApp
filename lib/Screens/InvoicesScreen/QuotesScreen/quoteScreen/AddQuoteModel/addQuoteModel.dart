@@ -9,14 +9,12 @@ class AddQuoteRequest {
   final String invoiceDate;
   final String note;
   final String quoteNumber;
-  final String reference;
   final String subTotal;
   final String subDiscount;
   final String subTax;
   final List<String> tax;
   final String terms;
   final String total;
-  final String url;
   final String clientId;
   final List<Map<String, String>> othersInfo;
   final List<Map<String, dynamic>> productsInfo;
@@ -32,14 +30,12 @@ class AddQuoteRequest {
     required this.invoiceDate,
     required this.note,
     required this.quoteNumber,
-    required this.reference,
     required this.subTotal,
     required this.subDiscount,
     required this.subTax,
     required this.tax,
     required this.terms,
     required this.total,
-    required this.url,
     required this.clientId,
     required this.othersInfo,
     required this.productsInfo,
@@ -57,14 +53,12 @@ class AddQuoteRequest {
       'invoice_date': invoiceDate,
       'note': note,
       'quote_number': quoteNumber,
-      'reference': reference,
       'subTotal': subTotal,
       'sub_discount': subDiscount,
       'sub_tax': subTax,
       'tax': tax,
       'terms': terms,
       'total': total,
-      'url': url,
       'userid': clientId,
       'othersInfo': othersInfo,
       'productsInfo': productsInfo,

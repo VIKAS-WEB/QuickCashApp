@@ -23,7 +23,7 @@ class AddQuoteApi {
   Future<AddQuoteResponse> addQuoteApi(AddQuoteRequest request) async {
     try {
       final response = await _dio.post(
-        '/quote/add',
+        '/quote/mobileApp/add',
         data: request.toJson(),
       );
 
