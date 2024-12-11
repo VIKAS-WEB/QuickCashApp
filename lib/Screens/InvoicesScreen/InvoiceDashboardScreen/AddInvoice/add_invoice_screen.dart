@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Import for date formatting
 import 'package:quickcash/Screens/InvoicesScreen/ClientsScreen/ClientsScreen/model/clientsApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ClientsScreen/ClientsScreen/model/clientsModel.dart';
+import 'package:quickcash/Screens/InvoicesScreen/InvoiceDashboardScreen/AddInvoice/qrCodeModel/qrCodeApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/InvoiceDashboardScreen/AddInvoice/qrCodeModel/qrCodeModel.dart';
 import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/Invoices/invoiceNumberModel/invoiceNumberApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/model/productApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/model/productModel.dart';
@@ -26,6 +28,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
   final ClientsApi _clientsApi = ClientsApi();
   final ProductApi _productApi = ProductApi();
   final TaxApi _taxApi = TaxApi();
+  final QrCodeListApi _qrCodeListApi = QrCodeListApi();
 
   List<ProductData> productLists = [];
   List<TaxData> taxList = [];
@@ -33,6 +36,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
   List<String> selectedTaxesCalculate = [];
 
   List<ClientsData> clientsData = [];
+  List<QrCodeData> qrCodeData = [];
 
   final TextEditingController invoiceNumber = TextEditingController();
   final TextEditingController receiverName = TextEditingController();
@@ -49,7 +53,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
   DateTime? dueDate;
   String selectedStatus = 'Select Status';
   String selectedInvoiceTemplate = 'Default';
-  String selectedPaymentQR = 'Payment QR Code';
+  //String selectedPaymentQR = 'Payment QR Code';
   String selectedRecurringCycle = 'Day';
   String? selectedCurrency;
 
@@ -62,6 +66,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
   String showTotalAmount = "0.00";
   double totalTaxValue = 0;
   String? mMemberId;
+  String? mQrCodeId;
 
   String? mCurrencySymbol;
   List<CurrencyListsData> currency = [];
@@ -69,6 +74,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
   String? invoiceDateStr;
   String? dueDateStr;
   ClientsData? selectedMember;
+  QrCodeData? selectedPaymentQR;
 
   // Product list holding the product entries
   List<ProductEntry> productList = [ProductEntry()];
@@ -122,6 +128,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
     mInvoiceNo();
     mGetCurrency();
     mClientsApi();
+    mQrCodeApi();
     mProduct();
     mTaxes();
     super.initState();
@@ -159,6 +166,34 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
     final response = await _currencyApi.currencyApi();
     if (response.currencyList != null && response.currencyList!.isNotEmpty) {
       currency = response.currencyList!;
+    }
+  }
+
+  // Qr Code List Api *************
+  Future<void> mQrCodeApi() async {
+    setState(() {
+      isLoading = false;
+      errorMessage = null;
+    });
+
+    try{
+      final response = await _qrCodeListApi.qrCodeApi();
+      if(response.qrCodeList !=null && response.qrCodeList!.isNotEmpty){
+        setState(() {
+          qrCodeData = response.qrCodeList!;
+          isLoading = false;
+        });
+      }else{
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Qr Code List';
+        });
+      }
+    }catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
     }
   }
 
@@ -594,9 +629,12 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                   },
                 ),
 
+
+
+
                 // Payment QR Code
                 const SizedBox(height: largePadding),
-                DropdownButtonFormField<String>(
+                DropdownButtonFormField<QrCodeData>(
                   value: selectedPaymentQR,
                   style: const TextStyle(color: kPrimaryColor),
                   decoration: InputDecoration(
@@ -609,21 +647,22 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                     filled: true,
                     fillColor: Colors.transparent,
                   ),
-                  items: [
-                    'Payment QR Code',
-                  ].map((String role) {
-                    return DropdownMenuItem(
+                  items: qrCodeData.map((QrCodeData role) {
+                    return DropdownMenuItem<QrCodeData>(
                       value: role,
                       child: Text(
-                        role,
-                        style:
-                            const TextStyle(color: kPrimaryColor, fontSize: 16),
+                        '${role.title}',
+                        style: const TextStyle(
+                            color: kPrimaryColor, fontSize: 16),
                       ),
                     );
                   }).toList(),
-                  onChanged: (newValue) {
+                  onChanged: (QrCodeData? newValue) {
                     setState(() {
-                      selectedPaymentQR = newValue!;
+                      selectedPaymentQR = newValue;
+                      if (selectedPaymentQR != null) {
+                        mQrCodeId = selectedPaymentQR?.id;
+                      }
                     });
                   },
                 ),
