@@ -58,93 +58,89 @@ class _CardsScreenState extends State<CardsScreen> {
         errorMessage = error.toString();
       });
     }
-
-
   }
 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: kPrimaryColor,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          "Cards",
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
-      body: isLoading
-          ? const Center(
-        child: CircularProgressIndicator(), // Show loading indicator
-      ) : SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(defaultPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: defaultPadding),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  SizedBox(
-                    width: 150,
-                    child: FloatingActionButton.extended(
-                      onPressed: () {
-                        if (AuthManager.getKycStatus() == "completed"){
-                          mAddCardBottomSheet(context);
-                        }else{
-                          CustomSnackBar.showSnackBar(context: context, message: "Your KYC is not completed", color: kPrimaryColor);
-                        }
-                      },
-                      label: const Text(
-                        'Add Card',
-                        style: TextStyle(color: Colors.white, fontSize: 15),
+      body: Column(
+        children: [
+          const SizedBox(height: 75,),
+          const SizedBox(height: defaultPadding,),
+          Expanded(child:
+          isLoading
+              ? const Center(
+            child: CircularProgressIndicator(), // Show loading indicator
+          ) : SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(defaultPadding),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: defaultPadding),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      SizedBox(
+                        width: 150,
+                        child: FloatingActionButton.extended(
+                          onPressed: () {
+                            if (AuthManager.getKycStatus() == "completed"){
+                              mAddCardBottomSheet(context);
+                            }else{
+                              CustomSnackBar.showSnackBar(context: context, message: "Your KYC is not completed", color: kPrimaryColor);
+                            }
+                          },
+                          label: const Text(
+                            'Add Card',
+                            style: TextStyle(color: Colors.white, fontSize: 15),
+                          ),
+                          icon: const Icon(Icons.add, color: Colors.white),
+                          backgroundColor: kPrimaryColor,
+                        ),
                       ),
-                      icon: const Icon(Icons.add, color: Colors.white),
-                      backgroundColor: kPrimaryColor,
-                    ),
+                      const SizedBox(width: 35),
+                      SizedBox(
+                        width: 150,
+                        child: FloatingActionButton.extended(
+                          onPressed: () {
+                            // Add your onPressed code here!
+                            if (AuthManager.getKycStatus() == "completed"){
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const CardsListScreen()),
+                              );
+                            }else{
+                              CustomSnackBar.showSnackBar(context: context, message: "Your KYC is not completed", color: kPrimaryColor);
+                            }
+                          },
+                          label: const Text(
+                            'Action',
+                            style: TextStyle(color: Colors.white, fontSize: 15),
+                          ),
+                          icon: const Icon(Icons.arrow_forward, color: Colors.white),
+                          backgroundColor: kPrimaryColor,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 35),
-                  SizedBox(
-                    width: 150,
-                    child: FloatingActionButton.extended(
-                      onPressed: () {
-                        // Add your onPressed code here!
-                        if (AuthManager.getKycStatus() == "completed"){
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const CardsListScreen()),
-                          );
-                        }else{
-                          CustomSnackBar.showSnackBar(context: context, message: "Your KYC is not completed", color: kPrimaryColor);
-                        }
-                      },
-                      label: const Text(
-                        'Action',
-                        style: TextStyle(color: Colors.white, fontSize: 15),
-                      ),
-                      icon: const Icon(Icons.arrow_forward, color: Colors.white),
-                      backgroundColor: kPrimaryColor,
-                    ),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: cardsListData.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 20.0),
+                        child: CardItem(card: cardsListData[index]),
+                      );
+                    },
                   ),
                 ],
               ),
-              const SizedBox(height: 35.0),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: cardsListData.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 20.0),
-                    child: CardItem(card: cardsListData[index]),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
+            ),
+          )),
+        ],
       ),
     );
   }
@@ -375,7 +371,6 @@ class _AddCardBottomSheetState extends State<AddCardBottomSheet> {
             const SizedBox(height: defaultPadding),
             GestureDetector(
               onTap: () {
-                // Check if currency list is not empty before showing the menu
                 if (currency.isNotEmpty) {
                   RenderBox renderBox = context.findRenderObject() as RenderBox;
                   Offset offset = renderBox.localToGlobal(Offset.zero);
@@ -390,14 +385,14 @@ class _AddCardBottomSheetState extends State<AddCardBottomSheet> {
                     ),
                     items: currency.map((CurrencyListsData currencyItem) {
                       return PopupMenuItem<String>(
-                        value: currencyItem.currencyCode, // Use the appropriate property
-                        child: Text(currencyItem.currencyCode!), // Display the name or code of the currency
+                        value: currencyItem.currencyCode,
+                        child: Text(currencyItem.currencyCode!),
                       );
                     }).toList(),
                   ).then((String? newValue) {
                     if (newValue != null) {
                       setState(() {
-                        selectedCurrency = newValue; // Update the selected coin
+                        selectedCurrency = newValue;
                       });
                     }
                   });
@@ -405,7 +400,7 @@ class _AddCardBottomSheetState extends State<AddCardBottomSheet> {
                 }
               },
               child: Material(
-                color: Colors.transparent, // Make the Material widget invisible
+                color: Colors.transparent,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 15.0),
                   decoration: BoxDecoration(
@@ -429,8 +424,6 @@ class _AddCardBottomSheetState extends State<AddCardBottomSheet> {
 
             const SizedBox(height: defaultPadding),
             if (isLoading) const CircularProgressIndicator(color: kPrimaryColor,), // Show loading indicator
-            if (errorMessage != null) // Show error message if there's an error
-            Text(errorMessage!, style: const TextStyle(color: Colors.red)),
 
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 55),
