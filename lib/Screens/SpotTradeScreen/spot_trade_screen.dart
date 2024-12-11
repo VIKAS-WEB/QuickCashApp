@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:quickcash/Screens/SpotTradeScreen/recentsTradeModel/recentTradeApi.dart';
+import 'package:quickcash/Screens/SpotTradeScreen/recentsTradeModel/recentTradeModel.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/util/auth_manager.dart';
+import 'package:quickcash/util/customSnackBar.dart';
 
 class SpotTradeScreen extends StatefulWidget {
   const SpotTradeScreen({super.key});
@@ -9,76 +14,68 @@ class SpotTradeScreen extends StatefulWidget {
 }
 
 class _CardsScreenState extends State<SpotTradeScreen> {
+  final RecentTradeApi _recentTradeApi = RecentTradeApi();
+  List<TradeDetail> recentTrades = [];
+
   String? selectedTransferType;
   double sliderValue = 50;
 
-  final List<Map<String, String>> recentTrades = [
-    {
-      "price": "71417.67000000",
-      "quantity": "0.00018000",
-      "time": "05:33:28 PM"
-    },
-    {
-      "price": "71417.67000000",
-      "quantity": "0.00018000",
-      "time": "05:33:38 PM"
-    },
-    {
-      "price": "71417.67000000",
-      "quantity": "0.00018000",
-      "time": "05:33:38 PM"
-    },
-    {
-      "price": "71417.67000000",
-      "quantity": "0.00018000",
-      "time": "05:33:38 PM"
-    },
-    {
-      "price": "71417.67000000",
-      "quantity": "0.00018000",
-      "time": "05:33:38 PM"
-    },
-    // Add more trades here if needed
-  ];
+  String? mAccountBalance = '';
+  String? mAccountCurrency = '';
 
-  void _showTransferTypeDropDown(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return ListView(
-          children: [
-            const SizedBox(height: 25),
-            _buildTransferOptions('BTCUSDT', 'https://assets.coincap.io/assets/icons/btc@2x.png'),
-            _buildTransferOptions('BNBUSDT', 'https://assets.coincap.io/assets/icons/bnb@2x.png'),
-            _buildTransferOptions('ADAUSDT', 'https://assets.coincap.io/assets/icons/ada@2x.png'),
-            _buildTransferOptions('SOLUSDT', 'https://assets.coincap.io/assets/icons/sol@2x.png'),
-            _buildTransferOptions('DOGEUSDT', 'https://assets.coincap.io/assets/icons/doge@2x.png'),
-            _buildTransferOptions('LTCUSDT', 'https://assets.coincap.io/assets/icons/ltc@2x.png'),
-            _buildTransferOptions('ETHUSDT', 'https://assets.coincap.io/assets/icons/eth@2x.png'),
-            _buildTransferOptions('SHIBUSDT', 'https://assets.coincap.io/assets/icons/shib@2x.png'),
-          ],
-        );
-      },
-    );
+  bool isLoading = false;
+
+
+  @override
+  void initState() {
+    mAccountCurrency = AuthManager.getCurrency();
+    mAccountBalance = AuthManager.getBalance();
+    mRecentTradeDetails();
+    super.initState();
   }
 
-  Widget _buildTransferOptions(String type, String logoPath) {
-    return ListTile(
-      title: Row(
-        children: [
-          Image.network(logoPath, height: 30),
-          const SizedBox(width: 8.0),
-          Text(type),
-        ],
-      ),
-      onTap: () {
+  Future<void> mRecentTradeDetails() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try{
+      final response = await _recentTradeApi.recentTradeApi();
+
+      if(response.tradeDetails !=null && response.tradeDetails!.isNotEmpty){
         setState(() {
-          selectedTransferType = type;
+          isLoading = false;
+          recentTrades = response.tradeDetails!;
         });
-        Navigator.pop(context);
-      },
-    );
+      }else{
+        setState(() {
+          isLoading = false;
+          CustomSnackBar.showSnackBar(context: context, message: 'We are facing some issue.', color: kPrimaryColor);
+        });
+      }
+
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        CustomSnackBar.showSnackBar(context: context, message: 'Something went wrong', color: kPrimaryColor);
+      });
+    }
+
   }
+
+
+// Function to format the timestamp
+  String formatTimestamp(int? timestamp) {
+    if (timestamp == null) {
+      return 'Time not available';
+    }
+    // Convert the timestamp to DateTime
+    DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+
+    // Format the DateTime to a readable time format (hh:mm:ss a)
+    return DateFormat('hh:mm:ss a').format(dateTime);
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +88,11 @@ class _CardsScreenState extends State<SpotTradeScreen> {
           style: TextStyle(color: Colors.white),
         ),
       ),
-      body: SingleChildScrollView(
+      body: isLoading ? const Center(
+        child: CircularProgressIndicator(
+          color: kPrimaryColor,
+        ),
+      ) : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(defaultPadding),
           child: Column(
@@ -121,18 +122,21 @@ class _CardsScreenState extends State<SpotTradeScreen> {
                       Row(
                         children: [
                           if (selectedTransferType != null)
-                            Image.network(
-                              _getImageForTransferType(selectedTransferType!),
-                              height: 28,
-                              width: 28,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Icon(Icons.broken_image, color: Colors.red);
-                              },
+                            ClipOval(
+                              child: Image.network(
+                                _getImageForTransferType(selectedTransferType!),
+                                height: 30,
+                                width: 30,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(Icons.broken_image,
+                                      color: Colors.red);
+                                },
+                              ),
                             ),
-                          const SizedBox(width: 8.0),
+                          const SizedBox(width: defaultPadding),
                           Text(
                             selectedTransferType != null
-                                ? '$selectedTransferType'
+                                ? '$selectedTransferType$mAccountCurrency'
                                 : 'Coin',
                             style: const TextStyle(color: kPrimaryColor, fontSize: 15, fontWeight: FontWeight.bold),
                           ),
@@ -234,8 +238,8 @@ class _CardsScreenState extends State<SpotTradeScreen> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Text("Price (USDT):", style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
-                                    Text("${trade['price']}", style: const TextStyle(color: kPrimaryColor)),
+                                    Text("Price ($mAccountCurrency):", style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
+                                    Text("${trade.price}", style: const TextStyle(color: kPrimaryColor)),
                                   ],
                                 ),
                                 const SizedBox(height: smallPadding),
@@ -243,7 +247,7 @@ class _CardsScreenState extends State<SpotTradeScreen> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     const Text("Qty (BTC):", style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
-                                    Text("${trade['quantity']}", style: const TextStyle(color: kPrimaryColor)),
+                                    Text("${trade.qty}", style: const TextStyle(color: kPrimaryColor)),
                                   ],
                                 ),
                                 const SizedBox(height: smallPadding),
@@ -251,7 +255,7 @@ class _CardsScreenState extends State<SpotTradeScreen> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     const Text("Time:", style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
-                                    Text("${trade['time']}", style: const TextStyle(color: kPrimaryColor)),
+                                    Text(formatTimestamp(trade.time), style: const TextStyle(color: kPrimaryColor)),
                                   ],
                                 ),
                               ],
@@ -581,24 +585,74 @@ class _CardsScreenState extends State<SpotTradeScreen> {
 
   String _getImageForTransferType(String transferType) {
     switch (transferType) {
-      case "BTCUSDT":
+      case "BTC":
         return 'https://assets.coincap.io/assets/icons/btc@2x.png';
-      case "BNBUSDT":
+      case "BNB":
         return 'https://assets.coincap.io/assets/icons/bnb@2x.png';
-      case "ADAUSDT":
+      case "ADA":
         return 'https://assets.coincap.io/assets/icons/ada@2x.png';
-      case "SOLUSDT":
+      case "SOL":
         return 'https://assets.coincap.io/assets/icons/sol@2x.png';
-      case "DOGEUSDT":
+      case "DOGE":
         return 'https://assets.coincap.io/assets/icons/doge@2x.png';
-      case "LTCUSDT":
+      case "LTC":
         return 'https://assets.coincap.io/assets/icons/ltc@2x.png';
-      case "ETHUSDT":
+      case "ETH":
         return 'https://assets.coincap.io/assets/icons/eth@2x.png';
-      case "SHIBUSDT":
+      case "SHIB":
         return 'https://assets.coincap.io/assets/icons/shib@2x.png';
       default:
         return 'assets/icons/default.png'; // Default image if needed
     }
   }
+
+  void _showTransferTypeDropDown(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return ListView(
+          children: [
+            const SizedBox(height: 25),
+            _buildTransferOptions('BTC', 'https://assets.coincap.io/assets/icons/btc@2x.png'),
+            _buildTransferOptions('BNB', 'https://assets.coincap.io/assets/icons/bnb@2x.png'),
+            _buildTransferOptions('ADA', 'https://assets.coincap.io/assets/icons/ada@2x.png'),
+            _buildTransferOptions('SOL', 'https://assets.coincap.io/assets/icons/sol@2x.png'),
+            _buildTransferOptions('DOGE', 'https://assets.coincap.io/assets/icons/doge@2x.png'),
+            _buildTransferOptions('LTC', 'https://assets.coincap.io/assets/icons/ltc@2x.png'),
+            _buildTransferOptions('ETH', 'https://assets.coincap.io/assets/icons/eth@2x.png'),
+            _buildTransferOptions('SHIB', 'https://assets.coincap.io/assets/icons/shib@2x.png'),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildTransferOptions(String type, String logoPath) {
+    return ListTile(
+      title: Row(
+        children: [
+          ClipOval(
+            child: Image.network(logoPath, height: 30),
+          ),
+          const SizedBox(width: defaultPadding),
+          Text(
+            '$type$mAccountCurrency',
+            style: const TextStyle(
+                color: kPrimaryColor,
+                fontSize: 15,
+                fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+      onTap: () {
+        setState(() {
+          selectedTransferType = type;
+        });
+        Navigator.pop(context);
+      },
+    );
+  }
+
+
+
 }

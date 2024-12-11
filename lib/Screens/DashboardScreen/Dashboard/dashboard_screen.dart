@@ -464,6 +464,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ibanExchange = accountsData.iban;
                               statusExchange = accountsData.status;
                               amountExchange = accountsData.amount;
+                              AuthManager.saveCurrency(accountsData.currency!);
+                              AuthManager.saveAccountBalance(accountsData.amount.toString());
                             }
 
                             return Padding(
@@ -480,6 +482,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     ibanExchange = accountsData.iban;
                                     statusExchange = accountsData.status;
                                     amountExchange = accountsData.amount;
+                                    AuthManager.saveCurrency(accountsData.currency!);
+                                    AuthManager.saveAccountBalance(accountsData.amount.toString());
 
                                     mAccountListTransaction(
                                         accountsData.accountId,

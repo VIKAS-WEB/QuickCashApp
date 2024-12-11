@@ -81,6 +81,28 @@ class AuthManager {
     return _sharedPref.getString('otp') ?? '';
   }
 
+
+  // Save Currency
+  static Future<void> saveCurrency(String otp) async {
+    await _sharedPref.setString('currency', otp);
+  }
+
+  static String getCurrency() {
+    return _sharedPref.getString('currency') ?? '';
+  }
+
+  // Save Balance
+  static Future<void> saveAccountBalance(String otp) async {
+    await _sharedPref.setString('balance', otp);
+  }
+
+  static String getBalance() {
+    return _sharedPref.getString('balance') ?? '';
+  }
+
+
+
+
   // Access Token
   static Future<void> saveToken(String token) async {
     await _sharedPref.setString('access_token', token);
