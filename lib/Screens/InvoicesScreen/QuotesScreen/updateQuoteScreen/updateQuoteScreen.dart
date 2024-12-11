@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/model/productApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/model/productModel.dart';
+import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/updateQuoteScreen/quoteDetailsModel/quoteDetailsApi.dart';
 import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart'; //
 import 'package:quickcash/model/currencyApiModel/currencyApi.dart';
@@ -11,7 +12,8 @@ import 'package:quickcash/model/taxApi/taxApiModel.dart';
 import '../../../../util/customSnackBar.dart';
 
 class UpdateQuoteScreen extends StatefulWidget {
-  const UpdateQuoteScreen({super.key});
+  final String? quoteId;
+  const UpdateQuoteScreen({super.key, required this.quoteId});
 
   @override
   State<UpdateQuoteScreen> createState() => _UpdateQuoteScreenState();
@@ -23,6 +25,7 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
   final CurrencyApi _currencyApi = CurrencyApi();
   final ProductApi _productApi = ProductApi();
   final TaxApi _taxApi = TaxApi();
+  final QuoteDetailsApi _quoteDetailsApi = QuoteDetailsApi();
 
   List<ProductData> productLists = [];
   List<TaxData> taxList = [];
@@ -77,6 +80,7 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
     mGetCurrency();
     mProduct();
     mTaxes();
+    mQuoteDetails();
     super.initState();
   }
 
@@ -88,6 +92,7 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
     }
   }
 
+  // Product Api ****
   Future<void> mProduct() async {
     setState(() {
       isLoading = true;
@@ -117,6 +122,7 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
     }
   }
 
+  // Tax Api *****
   Future<void> mTaxes() async {
     setState(() {
       isLoading = true;
@@ -145,6 +151,43 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
     }
   }
 
+  // Quote Details Api ****
+  Future<void> mQuoteDetails() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try{
+      final response = await _quoteDetailsApi.quoteDetailsApi(widget.quoteId);
+
+      if(response.message == "Invoice details is Successfully fetched"){
+
+
+        setState(() {
+
+          quoteNumber.text = response.quoteList!.first.quoteNumber!;
+          quoteDate = DateTime.tryParse(response.quoteList!.first.invoiceDate ?? "");
+          dueDate = DateTime.tryParse(response.quoteList!.first.dueDate ?? "");
+
+          isLoading = false;
+        });
+      }else{
+        setState(() {
+          isLoading = false;
+          CustomSnackBar.showSnackBar(context: context, message: 'We are facing some issue', color: kPrimaryColor);
+        });
+      }
+
+
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        CustomSnackBar.showSnackBar(context: context, message: 'Something went wrong', color: kPrimaryColor);
+      });
+    }
+
+  }
+
 
   Future<void> mQuoteDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -160,7 +203,6 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
       });
     }
   }
-
 
   Future<void> mDueDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -188,12 +230,18 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
           style: TextStyle(color: Colors.white),
         ),
       ),
-      body: SingleChildScrollView(
+      body: isLoading
+          ? const Center(
+        child: CircularProgressIndicator(
+          color: kPrimaryColor,
+        ),
+      )
+          : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(defaultPadding),
           child: Form(
               key: _formKey,
-              child: Column(
+              child:  Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: <Widget>[

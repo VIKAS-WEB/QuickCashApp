@@ -379,8 +379,7 @@ class _QuotesScreenState extends State<QuotesScreen> {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                                builder: (context) =>
-                                                const UpdateQuoteScreen()),
+                                                builder: (context) => UpdateQuoteScreen(quoteId: quotes.id)),
                                           );
                                         },
                                       ),
