@@ -162,15 +162,19 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
 
       if(response.message == "Invoice details is Successfully fetched"){
 
+        if(response.quoteList?.isNotEmpty ?? false){
+          final quoteDetails = response.quoteList!.first;
 
-        setState(() {
+          setState(() {
 
-          quoteNumber.text = response.quoteList!.first.quoteNumber!;
-          quoteDate = DateTime.tryParse(response.quoteList!.first.invoiceDate ?? "");
-          dueDate = DateTime.tryParse(response.quoteList!.first.dueDate ?? "");
+            quoteNumber.text =quoteDetails.quoteNumber ?? '';
+            quoteDate = DateTime.tryParse(quoteDetails.invoiceDate ?? '');
+            dueDate = DateTime.tryParse(quoteDetails.dueDate ?? '');
+            selectedInvoiceTemplate = quoteDetails.invoiceCountry ?? '';
 
-          isLoading = false;
-        });
+            isLoading = false;
+          });
+        }
       }else{
         setState(() {
           isLoading = false;
@@ -178,14 +182,12 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
         });
       }
 
-
     } catch (error) {
       setState(() {
         isLoading = false;
         CustomSnackBar.showSnackBar(context: context, message: 'Something went wrong', color: kPrimaryColor);
       });
     }
-
   }
 
 
