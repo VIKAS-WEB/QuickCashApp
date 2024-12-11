@@ -1276,6 +1276,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                           ),
                         ],
                       ),
+
                       const SizedBox(height: largePadding),
                       GestureDetector(
                         onTap: _showMultiSelectDialog,
