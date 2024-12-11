@@ -5,6 +5,9 @@ import 'package:quickcash/Screens/SpotTradeScreen/recentsTradeModel/recentTradeM
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import 'package:quickcash/util/customSnackBar.dart';
+import 'package:quickcash/webSocket.dart';
+import 'package:web_socket_channel/io.dart';
+import 'dart:convert';
 
 class SpotTradeScreen extends StatefulWidget {
   const SpotTradeScreen({super.key});
@@ -14,6 +17,7 @@ class SpotTradeScreen extends StatefulWidget {
 }
 
 class _CardsScreenState extends State<SpotTradeScreen> {
+  late IOWebSocketChannel channel;
   final RecentTradeApi _recentTradeApi = RecentTradeApi();
   List<TradeDetail> recentTrades = [];
 
@@ -26,14 +30,55 @@ class _CardsScreenState extends State<SpotTradeScreen> {
   bool isLoading = false;
 
 
+  String selectedCoin = 'btcusdt';
+  String? mTwentyFourHourChange = '0';
+  String? mTwentyFourHourPercentage = '0';
+  String? mTwentyFourHourHigh = '0';
+  String? mTwentyFourHourLow = '0';
+  String? mTwentyFourHourVolume = '0';
+  String? mTwentyFourHourVolumeUSDT = '0';
+
+
   @override
   void initState() {
     mAccountCurrency = AuthManager.getCurrency();
     mAccountBalance = AuthManager.getBalance();
     mRecentTradeDetails();
+    initializeChannel();
     super.initState();
   }
 
+  // Initialize the WebSocket channel with the selected coin
+  void initializeChannel() {
+    // Close the previous channel if it exists
+    channel = IOWebSocketChannel.connect(
+        'wss://stream.binance.com:9443/ws/$selectedCoin@ticker');
+    streamListener();
+  }
+
+  // Listen to the incoming WebSocket stream and update the price
+  void streamListener() {
+    channel.stream.listen((message) {
+      Map getData = jsonDecode(message);
+      setState(() {
+        mTwentyFourHourChange = getData['c'];
+        mTwentyFourHourPercentage = getData['P'];
+        mTwentyFourHourHigh = getData['h'];
+        mTwentyFourHourLow = getData['l'];
+        mTwentyFourHourVolume = getData['v'];
+        mTwentyFourHourVolumeUSDT = getData['q'];
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    // Close the channel when the widget is disposed
+    channel.sink.close();
+    super.dispose();
+  }
+
+  // Recent Trade Api ******
   Future<void> mRecentTradeDetails() async {
     setState(() {
       isLoading = true;
@@ -164,32 +209,40 @@ class _CardsScreenState extends State<SpotTradeScreen> {
                     ),
                   ],
                 ),
-                child: const Column(
+                child:  Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text("24h Change", style: TextStyle(color: kPurpleColor)),
-                    SizedBox(height: 5),
-                    Text("0.000018729.666%", style: TextStyle(color: kGreenColor, fontSize: 16)),
-                    SizedBox(height: smallPadding),
-                    Divider(color: kPrimaryLightColor),
-                    Text("24h High", style: TextStyle(color: kPurpleColor)),
-                    SizedBox(height: 5),
-                    Text("0.00001902", style: TextStyle(fontSize: 16)),
-                    SizedBox(height: smallPadding),
-                    Divider(color: kPrimaryLightColor),
-                    Text("24h Low", style: TextStyle(color: kPurpleColor)),
-                    SizedBox(height: 5),
-                    Text("0.00001697", style: TextStyle(fontSize: 16)),
-                    SizedBox(height: smallPadding),
-                    Divider(color: kPrimaryLightColor),
-                    Text("24h Volume", style: TextStyle(color: kPurpleColor)),
-                    SizedBox(height: 5),
-                    Text("40375.66323000", style: TextStyle(fontSize: 16)),
-                    SizedBox(height: smallPadding),
-                    Divider(color: kPrimaryLightColor),
-                    Text("24h Volume(USDT)", style: TextStyle(color: kPurpleColor)),
-                    SizedBox(height: 5),
-                    Text("2831616388.79402430", style: TextStyle(fontSize: 16)),
+                    const Text("24h Change", style: TextStyle(color: kPurpleColor)),
+                    const SizedBox(height: 5),
+                    Text(
+                        "$mTwentyFourHourChange  $mTwentyFourHourPercentage%",
+                        style: TextStyle(
+                            color: double.tryParse(mTwentyFourHourPercentage!) != null && double.tryParse(mTwentyFourHourPercentage!)! < 0
+                                ? kRedColor
+                                : kGreenColor,
+                            fontSize: 16
+                        )
+                    ),
+                    const SizedBox(height: smallPadding),
+                    const Divider(color: kPrimaryLightColor),
+                    const Text("24h High", style: TextStyle(color: kPurpleColor)),
+                    const SizedBox(height: 5),
+                    Text("$mTwentyFourHourHigh", style: const TextStyle(fontSize: 16)),
+                    const SizedBox(height: smallPadding),
+                    const Divider(color: kPrimaryLightColor),
+                    const Text("24h Low", style: TextStyle(color: kPurpleColor)),
+                    const SizedBox(height: 5),
+                    Text("$mTwentyFourHourLow", style: const TextStyle(fontSize: 16)),
+                    const SizedBox(height: smallPadding),
+                    const Divider(color: kPrimaryLightColor),
+                    const Text("24h Volume", style: TextStyle(color: kPurpleColor)),
+                    const SizedBox(height: 5),
+                    Text("$mTwentyFourHourVolume", style: const TextStyle(fontSize: 16)),
+                    const SizedBox(height: smallPadding),
+                    const Divider(color: kPrimaryLightColor),
+                    const Text("24h Volume(USDT)", style: TextStyle(color: kPurpleColor)),
+                    const SizedBox(height: 5),
+                    Text("$mTwentyFourHourVolumeUSDT", style: const TextStyle(fontSize: 16)),
                   ],
                 ),
               ),
@@ -366,12 +419,12 @@ class _CardsScreenState extends State<SpotTradeScreen> {
                           ),
                         ],
                       ),// Replace with your desired color
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("USD Balance",style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold, fontSize: 15),),
+                          Text("$mAccountCurrency Balance",style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold, fontSize: 15),),
 
-                          Text("428.5093297443351 USD",style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold, fontSize: 15),),
+                          Text("$mAccountBalance $mAccountCurrency",style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold, fontSize: 15),),
                         ],
                       ),
                     ),
@@ -395,12 +448,12 @@ class _CardsScreenState extends State<SpotTradeScreen> {
                           ),
                         ],
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Price",style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold, fontSize: 15),),
+                          const Text("Price",style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold, fontSize: 15),),
 
-                          Text("428.5093297443223351 USD",style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold, fontSize: 15),),
+                          Text("$mTwentyFourHourChange  $mAccountCurrency",style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold, fontSize: 15),),
                         ],
                       ),
                     ),
@@ -647,6 +700,19 @@ class _CardsScreenState extends State<SpotTradeScreen> {
       onTap: () {
         setState(() {
           selectedTransferType = type;
+          setState(() {
+            if(mAccountCurrency == "EUR"){
+              String coin = '${selectedTransferType!.toLowerCase()}eur';
+              selectedCoin = coin;
+              channel.sink.close();
+              initializeChannel();
+            }else{
+              String coin = '${selectedTransferType!.toLowerCase()}usdt';
+              selectedCoin = coin;
+              channel.sink.close();
+              initializeChannel();
+            }
+          });
         });
         Navigator.pop(context);
       },
