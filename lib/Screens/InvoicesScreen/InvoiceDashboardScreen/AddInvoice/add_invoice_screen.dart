@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Import for date formatting
 import 'package:quickcash/Screens/InvoicesScreen/ClientsScreen/ClientsScreen/model/clientsApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ClientsScreen/ClientsScreen/model/clientsModel.dart';
+import 'package:quickcash/Screens/InvoicesScreen/InvoiceDashboardScreen/AddInvoice/addInvouceModel/addInvoiceApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/InvoiceDashboardScreen/AddInvoice/addInvouceModel/addInvoiceModel.dart';
 import 'package:quickcash/Screens/InvoicesScreen/InvoiceDashboardScreen/AddInvoice/qrCodeModel/qrCodeApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/InvoiceDashboardScreen/AddInvoice/qrCodeModel/qrCodeModel.dart';
 import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/Invoices/invoiceNumberModel/invoiceNumberApi.dart';
@@ -12,7 +14,10 @@ import 'package:quickcash/model/currencyApiModel/currencyApi.dart';
 import 'package:quickcash/model/currencyApiModel/currencyModel.dart';
 import 'package:quickcash/model/taxApi/taxApi.dart';
 import 'package:quickcash/model/taxApi/taxApiModel.dart';
+import 'package:quickcash/util/auth_manager.dart';
 import 'package:quickcash/util/customSnackBar.dart';
+
+import '../../../HomeScreen/home_screen.dart';
 
 class AddInvoiceScreen extends StatefulWidget {
   const AddInvoiceScreen({super.key});
@@ -29,6 +34,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
   final ProductApi _productApi = ProductApi();
   final TaxApi _taxApi = TaxApi();
   final QrCodeListApi _qrCodeListApi = QrCodeListApi();
+  final AddInvoiceApi _addInvoiceApi = AddInvoiceApi();
 
   List<ProductData> productLists = [];
   List<TaxData> taxList = [];
@@ -53,6 +59,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
   DateTime? dueDate;
   String selectedStatus = 'Select Status';
   String selectedInvoiceTemplate = 'Default';
+
   //String selectedPaymentQR = 'Payment QR Code';
   String selectedRecurringCycle = 'Day';
   String? selectedCurrency;
@@ -136,29 +143,31 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
 
   Future<void> mInvoiceNo() async {
     setState(() {
-     // invoiceNumber.text = "Loading";
+      // invoiceNumber.text = "Loading";
     });
 
-    try{
+    try {
       final response = await _invoiceNoApi.invoiceNoApi();
 
-      if(response.message == "Invoice Number is generated and sent"){
+      if (response.message == "Invoice Number is generated and sent") {
         setState(() {
           invoiceNumber.text = response.invoiceNo!;
         });
-      }else{
+      } else {
         setState(() {
-          CustomSnackBar.showSnackBar(context: context, message: "Invoice Number is not generated", color: kRedColor);
+          CustomSnackBar.showSnackBar(context: context,
+              message: "Invoice Number is not generated",
+              color: kRedColor);
         });
       }
-
-    }catch (error) {
+    } catch (error) {
       setState(() {
         //invoiceNumber.text = "InvoiceNo not fetch";
-        CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kRedColor);
+        CustomSnackBar.showSnackBar(context: context,
+            message: "We are facing some issue!",
+            color: kRedColor);
       });
     }
-
   }
 
   // Currency Api ----
@@ -176,20 +185,20 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
       errorMessage = null;
     });
 
-    try{
+    try {
       final response = await _qrCodeListApi.qrCodeApi();
-      if(response.qrCodeList !=null && response.qrCodeList!.isNotEmpty){
+      if (response.qrCodeList != null && response.qrCodeList!.isNotEmpty) {
         setState(() {
           qrCodeData = response.qrCodeList!;
           isLoading = false;
         });
-      }else{
+      } else {
         setState(() {
           isLoading = false;
           errorMessage = 'No Qr Code List';
         });
       }
-    }catch (error) {
+    } catch (error) {
       setState(() {
         isLoading = false;
         errorMessage = error.toString();
@@ -282,6 +291,162 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
     }
   }
 
+  //  Add Invoice Api ****
+  Future<void> mAddInvoice() async {
+    setState(() {
+      isSubmitLoading = true;
+    });
+
+
+    try {
+      String recurringCycleNumber = '';
+
+      if (selectedRecurringCycle.isNotEmpty) {
+        switch (selectedRecurringCycle.toLowerCase()) {
+          case 'day':
+            recurringCycleNumber = '1'; // Send the number as a string
+            break;
+          case 'weekly':
+            recurringCycleNumber = '7';
+            break;
+          case 'monthly':
+            recurringCycleNumber = '31';
+            break;
+          case 'half yearly':
+            recurringCycleNumber = '180';
+            break;
+          case 'yearly':
+            recurringCycleNumber = '365';
+            break;
+          default:
+            throw Exception("Invalid recurring cycle");
+        }
+      }
+
+      final List<Map<String, dynamic>> productsInfo = productList.map((
+          product) => product.toMap()).toList();
+
+      List<String> taxList = selectedTaxes.toList();
+
+
+      if (selectedType == 'other') {
+        // Create the OthersInfo object
+        OthersInfo newReceiver = OthersInfo(
+          email: receiverEmail.text,
+          name: receiverName.text,
+          address: receiverAddress.text,
+        );
+        // Convert the OthersInfo object to a Map
+        Map<String, String> receiverMap = newReceiver.toMap();
+
+        final request = AddInvoiceRequest(userId: AuthManager.getUserId(),
+            currency: selectedCurrency!,
+            currencyText: mCurrencySymbol!,
+            discount: discount.text,
+            discountType: selectedDiscount.toLowerCase(),
+            dueDate: dueDateStr!,
+            invoiceCountry: selectedInvoiceTemplate,
+            invoiceDate: invoiceDateStr!,
+            note: noteController.text,
+            invoiceNumber: invoiceNumber.text,
+            subTotal: subTotal,
+            subDiscount: showDiscount,
+            subTax: showTaxes,
+            tax: selectedTaxes.toList(),
+            terms: termsController.text,
+            total: showTotalAmount,
+            clientId: '',
+            othersInfo: [receiverMap],
+            productsInfo: productsInfo,
+            paymentQrCode: mQrCodeId!,
+            recurring: selectedRecurring!.toLowerCase(),
+            recurringCycle: recurringCycleNumber,
+            type: 'send',
+            status: selectedStatus.toLowerCase());
+
+        final response = await _addInvoiceApi.addInvoiceApi(request);
+
+        if(response.message == "Invoice Data is added Successfully!!!"){
+          setState(() {
+            isSubmitLoading = false;
+            CustomSnackBar.showSnackBar(context: context, message: "Invoice Data is added Successfully!", color: kPrimaryColor);
+            Navigator.of(context).pop();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomeScreen(),
+              ),
+            );
+          });
+        }else{
+          setState(() {
+            isSubmitLoading = false;
+            CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue", color: kPrimaryColor);
+          });
+        }
+
+      } else {
+        OthersInfo newReceiver = OthersInfo(
+          email: '',
+          name: '',
+          address: '',
+        );
+        // Convert the OthersInfo object to a Map
+        Map<String, String> receiverMap = newReceiver.toMap();
+
+        final request = AddInvoiceRequest(userId: AuthManager.getUserId(),
+            currency: selectedCurrency!,
+            currencyText: mCurrencySymbol!,
+            discount: discount.text,
+            discountType: selectedDiscount.toLowerCase(),
+            dueDate: dueDateStr!,
+            invoiceCountry: selectedInvoiceTemplate,
+            invoiceDate: invoiceDateStr!,
+            note: noteController.text,
+            invoiceNumber: invoiceNumber.text,
+            subTotal: subTotal,
+            subDiscount: showDiscount,
+            subTax: showTaxes,
+            tax: taxList,
+            terms: termsController.text,
+            total: showTotalAmount,
+            clientId: mMemberId!,
+            othersInfo: [receiverMap],
+            productsInfo: productsInfo,
+            paymentQrCode: mQrCodeId!,
+            recurring: selectedRecurring!.toLowerCase(),
+            recurringCycle: recurringCycleNumber,
+            type: 'send',
+            status: selectedStatus.toLowerCase());
+
+        final response = await _addInvoiceApi.addInvoiceApi(request);
+        if(response.message == "Invoice Data is added Successfully!!!"){
+          setState(() {
+            isSubmitLoading = false;
+            CustomSnackBar.showSnackBar(context: context, message: "Invoice Data is added Successfully!", color: kPrimaryColor);
+            Navigator.of(context).pop();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomeScreen(),
+              ),
+            );
+          });
+        }else{
+          setState(() {
+            isSubmitLoading = false;
+            CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue", color: kPrimaryColor);
+          });
+        }      }
+    } catch (error) {
+      setState(() {
+        isSubmitLoading = false;
+        CustomSnackBar.showSnackBar(context: context,
+            message: "Something went wrong!",
+            color: kPrimaryColor);
+      });
+    }
+  }
 
 
   @override
@@ -322,7 +487,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                   decoration: InputDecoration(
                     labelText: "Invoice #",
                     labelStyle:
-                        const TextStyle(color: kPrimaryColor, fontSize: 16),
+                    const TextStyle(color: kPrimaryColor, fontSize: 16),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(),
@@ -422,7 +587,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                     decoration: InputDecoration(
                       labelText: "Receiver Name",
                       labelStyle:
-                          const TextStyle(color: kPrimaryColor, fontSize: 16),
+                      const TextStyle(color: kPrimaryColor, fontSize: 16),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(),
@@ -449,7 +614,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                     decoration: InputDecoration(
                       labelText: "Receiver Email",
                       labelStyle:
-                          const TextStyle(color: kPrimaryColor, fontSize: 16),
+                      const TextStyle(color: kPrimaryColor, fontSize: 16),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(),
@@ -476,7 +641,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                     decoration: InputDecoration(
                       labelText: "Receiver Address",
                       labelStyle:
-                          const TextStyle(color: kPrimaryColor, fontSize: 16),
+                      const TextStyle(color: kPrimaryColor, fontSize: 16),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(),
@@ -498,10 +663,11 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                             ? ''
                             : DateFormat('dd-MM-yyyy').format(invoiceDate!),
                       ),
+                      style: const TextStyle(color: kPrimaryColor),
                       decoration: InputDecoration(
                         labelText: "Invoice Date*",
                         labelStyle:
-                            const TextStyle(color: kPrimaryColor, fontSize: 16),
+                        const TextStyle(color: kPrimaryColor, fontSize: 16),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(),
@@ -528,10 +694,11 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                             ? ''
                             : DateFormat('dd-MM-yyyy').format(dueDate!),
                       ),
+                      style: const TextStyle(color: kPrimaryColor),
                       decoration: InputDecoration(
                         labelText: "Due Date*",
                         labelStyle:
-                            const TextStyle(color: kPrimaryColor, fontSize: 16),
+                        const TextStyle(color: kPrimaryColor, fontSize: 16),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(),
@@ -575,7 +742,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                       child: Text(
                         role,
                         style:
-                            const TextStyle(color: kPrimaryColor, fontSize: 16),
+                        const TextStyle(color: kPrimaryColor, fontSize: 16),
                       ),
                     );
                   }).toList(),
@@ -618,7 +785,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                       child: Text(
                         role,
                         style:
-                            const TextStyle(color: kPrimaryColor, fontSize: 16),
+                        const TextStyle(color: kPrimaryColor, fontSize: 16),
                       ),
                     );
                   }).toList(),
@@ -628,8 +795,6 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                     });
                   },
                 ),
-
-
 
 
                 // Payment QR Code
@@ -782,7 +947,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                       child: Text(
                         role,
                         style:
-                            const TextStyle(color: kPrimaryColor, fontSize: 16),
+                        const TextStyle(color: kPrimaryColor, fontSize: 16),
                       ),
                     );
                   }).toList(),
@@ -1204,7 +1369,6 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                       ),
 
 
-
                       const SizedBox(
                         height: largePadding,
                       ),
@@ -1226,7 +1390,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                               color: Colors.white,
                             ),
                             backgroundColor:
-                                _isAdded ? Colors.red : kPrimaryColor,
+                            _isAdded ? Colors.red : kPrimaryColor,
                           ),
                         ),
                       ),
@@ -1290,20 +1454,31 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                             ),
                           ],
                         ),
-
                       ],
+
+                      const SizedBox(
+                        height: largePadding,
+                      ),
+                      if (isSubmitLoading)
+                        const Center(
+                          child: CircularProgressIndicator(
+                            color: kPrimaryColor,
+                          ),
+                        ), // Show loading indicator
+
+
                       const SizedBox(
                         height: largePadding,
                       ),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const SizedBox(
                             height: largePadding,
                           ),
 
                           // Draft Button
-                          SizedBox(
+                          /*SizedBox(
                             width: 145,
                             height: 47.0,
                             child: FloatingActionButton.extended(
@@ -1315,33 +1490,47 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                               ),
                               backgroundColor: kPrimaryColor,
                             ),
-                          ),
+                          ),*/
 
-                          const SizedBox(
+                          /*const SizedBox(
                             width: defaultPadding,
-                          ),
+                          ),*/
 
                           // Save Button
                           SizedBox(
-                            width: 145,
+                            width: 300,
                             height: 47.0,
                             child: FloatingActionButton.extended(
                               onPressed: () {
-                                if (_formKey.currentState?.validate() ?? false) {
-                                }else if(selectedType!.isEmpty){
-                                  CustomSnackBar.showSnackBar(context: context, message: "Please select type", color: kRedColor);
-                                }else if(invoiceDate == null){
-                                  CustomSnackBar.showSnackBar(context: context, message: "Please select invoice date", color: kRedColor);
-                                }else if(dueDate == null){
-                                  CustomSnackBar.showSnackBar(context: context, message: "Please select due date", color: kRedColor);
-                                }else if(selectedStatus.isEmpty){
-                                  CustomSnackBar.showSnackBar(context: context, message: "Please select status", color: kRedColor);
-                                }else if(selectedInvoiceTemplate.isEmpty){
-                                  CustomSnackBar.showSnackBar(context: context, message: "Please select invoice template", color: kRedColor);
-                                }else if(selectedCurrency!.isEmpty){
-                                  CustomSnackBar.showSnackBar(context: context, message: "Please select currency", color: kRedColor);
-                                }else{
-                                  CustomSnackBar.showSnackBar(context: context, message: "Save", color: kRedColor);
+                                if (_formKey.currentState?.validate() ??
+                                    false) {
+                                  mAddInvoice();
+                                } else if (selectedType!.isEmpty) {
+                                  CustomSnackBar.showSnackBar(context: context,
+                                      message: "Please select type",
+                                      color: kRedColor);
+                                } else if (invoiceDate == null) {
+                                  CustomSnackBar.showSnackBar(context: context,
+                                      message: "Please select invoice date",
+                                      color: kRedColor);
+                                } else if (dueDate == null) {
+                                  CustomSnackBar.showSnackBar(context: context,
+                                      message: "Please select due date",
+                                      color: kRedColor);
+                                } else if (selectedStatus.isEmpty) {
+                                  CustomSnackBar.showSnackBar(context: context,
+                                      message: "Please select status",
+                                      color: kRedColor);
+                                } else if (selectedInvoiceTemplate.isEmpty) {
+                                  CustomSnackBar.showSnackBar(context: context,
+                                      message: "Please select invoice template",
+                                      color: kRedColor);
+                                } else if (selectedCurrency!.isEmpty) {
+                                  CustomSnackBar.showSnackBar(context: context,
+                                      message: "Please select currency",
+                                      color: kRedColor);
+                                } else {
+                                  // CustomSnackBar.showSnackBar(context: context, message: "Save", color: kRedColor);
                                 }
 
                                 /**/

@@ -8,7 +8,7 @@ class AddInvoiceRequest {
   final String invoiceCountry;
   final String invoiceDate;
   final String note;
-  final String quoteNumber;
+  final String invoiceNumber;
   final String subTotal;
   final String subDiscount;
   final String subTax;
@@ -23,6 +23,7 @@ class AddInvoiceRequest {
   final String recurring;
   final String recurringCycle;
   final String type;
+  final String status;
 
   AddInvoiceRequest({
     required this.userId,
@@ -34,7 +35,7 @@ class AddInvoiceRequest {
     required this.invoiceCountry,
     required this.invoiceDate,
     required this.note,
-    required this.quoteNumber,
+    required this.invoiceNumber,
     required this.subTotal,
     required this.subDiscount,
     required this.subTax,
@@ -48,6 +49,7 @@ class AddInvoiceRequest {
     required this.recurring,
     required this.recurringCycle,
     required this.type,
+    required this.status,
   });
 
   Map<String, dynamic> toJson() {
@@ -61,7 +63,7 @@ class AddInvoiceRequest {
       'invoice_country': invoiceCountry,
       'invoice_date': invoiceDate,
       'note': note,
-      'quote_number': quoteNumber,
+      'invoice_number': invoiceNumber,
       'subTotal': subTotal,
       'sub_discount': subDiscount,
       'sub_tax': subTax,
@@ -75,6 +77,7 @@ class AddInvoiceRequest {
       'recurring': recurring,
       'recurring_cycle': recurringCycle,
       'type': type,
+      'status': status,
     };
   }
 }

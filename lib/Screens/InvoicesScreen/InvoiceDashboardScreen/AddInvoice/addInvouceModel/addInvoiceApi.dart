@@ -11,16 +11,16 @@ class AddInvoiceApi {
     _dio.options.headers['Authorization'] = 'Bearer ${AuthManager.getToken()}';
 
 
-    _dio.interceptors.add(LogInterceptor(
+   /* _dio.interceptors.add(LogInterceptor(
       request: true,
       requestBody: true,
       responseBody: true,
       responseHeader: true,
-    ));
+    ));*/
   }
 
 
-  Future<AddInvoiceResponse> addQuoteApi(AddInvoiceRequest request) async {
+  Future<AddInvoiceResponse> addInvoiceApi(AddInvoiceRequest request) async {
     try {
       final response = await _dio.post(
         '/invoice/mobileApp/add',
