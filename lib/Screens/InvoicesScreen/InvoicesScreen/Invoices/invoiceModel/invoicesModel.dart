@@ -90,35 +90,27 @@ class InvoicesData {
       productsInfo: (json['productsInfo'] as List<dynamic>?)
           ?.map((item) => ProductInfo.fromJson(item as Map<String, dynamic>))
           .toList(),
-
       subTotal: (json['subTotal'] is int
           ? (json['subTotal'] as int).toDouble()
           : json['subTotal']) as double?,
-
       subDiscount: (json['sub_discount'] is int
           ? (json['sub_discount'] as int).toDouble()
           : json['sub_discount']) as double?,
-
       subTax: (json['sub_tax'] is int
           ? (json['sub_tax'] as int).toDouble()
           : json['sub_tax']) as double?,
-
       total: (json['total'] is int
           ? (json['total'] as int).toDouble()
           : json['total']) as double?,
-
       usdTotal: (json['usdtotal'] is int
           ? (json['usdtotal'] as int).toDouble()
           : json['usdtotal']) as double?,
-
       paidAmount: (json['paidAmount'] is int
           ? (json['paidAmount'] as int).toDouble()
           : json['paidAmount']) as double?,
-
       dueAmount: (json['dueAmount'] is int
           ? (json['dueAmount'] as int).toDouble()
           : json['dueAmount']) as double?,
-
       note: json['note'] as String?,
       terms: json['terms'] as String?,
       currencyText: json['currency_text'] as String?,
@@ -155,7 +147,7 @@ class ProductInfo {
       price: (json['price'] is String ? int.tryParse(json['price']) : json['price']) as int?,
       tax: json['tax'] as int?,
       taxValue: json['taxValue'] as int?,
-      amount: json['amount'] as int?,
+      amount: (json['amount'] is String ? double.tryParse(json['amount'])?.toInt() : json['amount']) as int?,
     );
   }
 }
