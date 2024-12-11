@@ -1,4 +1,6 @@
 class SettingsResponse {
+  final int? status;
+  final String? message;
   final String? id;
   final String? user;
   final String? invoiceCountry;
@@ -15,6 +17,8 @@ class SettingsResponse {
   final String? updatedAt;
 
   SettingsResponse({
+    this.status,
+    this.message,
     this.id,
     this.user,
     this.invoiceCountry,
@@ -33,6 +37,8 @@ class SettingsResponse {
 
   factory SettingsResponse.fromJson(Map<String, dynamic> json) {
     return SettingsResponse(
+      status: json['status'] as int?, // Extract the status field
+      message: json['message'] as String?, // Extract the message field
       id: json['data']?['_id'] as String?,
       user: json['data']?['user'] as String?,
       invoiceCountry: json['data']?['invoice_country'] as String?,

@@ -7,8 +7,6 @@ import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/Invoices/invoice
 import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/Invoices/invoiceReminderModel/invoiceReminderApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/InvoicesScreen/UpdateInvoiceScreen/update_invoice_screen.dart';
 import 'package:quickcash/Screens/InvoicesScreen/Settings/SettingsScreen/settingsModel/settingsApi.dart';
-import 'package:quickcash/Screens/InvoicesScreen/Settings/SettingsScreen/settings_screen.dart';
-import 'package:quickcash/Screens/InvoicesScreen/Settings/settingsMainScreen.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import 'package:quickcash/util/customSnackBar.dart';
@@ -276,9 +274,16 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
     try {
       final response = await _settingsApi.settingsApi();
 
-      setState(() {
-        isInvoiceData = true;
-      });
+      if(response.message == "Invoice Settings Data!"){
+        setState(() {
+          isInvoiceData = true;
+        });
+      }else{
+        setState(() {
+          isInvoiceData = false;
+        });
+      }
+
     } catch (error) {
       setState(() {
         isInvoiceData = false;
@@ -324,15 +329,11 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) =>
-                                        const SettingsMainScreen()),
-                                  );
-                                }else{
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
                                         const AddInvoiceScreen()),
                                   );
+
+                                }else{
+                                  CustomSnackBar.showSnackBar(context: context, message: "Please got to Invoice/Setting and fill all details.", color: kPrimaryColor);
                                 }
                               }else{
                                 CustomSnackBar.showSnackBar(context: context, message: "Your KYC is not completed", color: kPrimaryColor);
