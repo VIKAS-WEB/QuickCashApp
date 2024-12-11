@@ -1588,8 +1588,6 @@ class _AddQuoteScreenState extends State<AddQuoteScreen> {
     }
     return total;
   }
-
-
 }
 
 class ProductEntry {

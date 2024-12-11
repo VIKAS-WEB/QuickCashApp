@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/model/productApi.dart';
+import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/model/productModel.dart';
 import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart'; //
+import 'package:quickcash/model/currencyApiModel/currencyApi.dart';
+import 'package:quickcash/model/currencyApiModel/currencyModel.dart';
+import 'package:quickcash/model/taxApi/taxApi.dart';
+import 'package:quickcash/model/taxApi/taxApiModel.dart';
 
 import '../../../../util/customSnackBar.dart';
 
@@ -14,21 +20,50 @@ class UpdateQuoteScreen extends StatefulWidget {
 class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
   final _formKey = GlobalKey<FormState>();
 
+  final CurrencyApi _currencyApi = CurrencyApi();
+  final ProductApi _productApi = ProductApi();
+  final TaxApi _taxApi = TaxApi();
+
+  List<ProductData> productLists = [];
+  List<TaxData> taxList = [];
+  List<String> selectedTaxes = [];
+  List<String> selectedTaxesCalculate = [];
+
+  String? selectedCurrency;
+  String? mCurrencySymbol;
+  List<CurrencyListsData> currency = [];
+
+  // Product list holding the product entries
+  List<ProductEntry> productList = [ProductEntry()];
+
+
   final TextEditingController quoteNumber = TextEditingController();
   final TextEditingController discount = TextEditingController();
+  final TextEditingController noteController = TextEditingController();
+  final TextEditingController termsController = TextEditingController();
 
-
-  String? selectedRecurring = "yes";
-  DateTime? quoteDate;
-  DateTime? dueDate;
-  String selectedMember = 'Select Member';
-  String selectedStatus = 'Select Status';
-  String selectedInvoiceTemplate = 'Default';
-  String selectedCurrency = 'Select Currency';
   String selectedDiscount = 'Select Discount';
   String selectedTax = 'Select Tax';
+  ProductData? selectedProduct;
+  String subTotal = "0.00";
+  String showDiscount = "0.00";
+  String showTaxes = "0.00";
+  String showTotalAmount = "0.00";
+  double totalTaxValue = 0;
+
+  String selectedInvoiceTemplate = 'Default';
+
+  DateTime? quoteDate;
+  DateTime? dueDate;
+
+  String? quotesDateStr;
+  String? dueDateStr;
+
 
   bool _isAdded = false;
+  bool isLoading = false;
+  bool isSubmitLoading = false;
+  String? errorMessage;
 
   void _toggleButton() {
     setState(() {
@@ -36,30 +71,80 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
     });
   }
 
-  List<Map<String, dynamic>> productList = [
-    {"selectedProduct": 'Select Product', "quantity": "", "price": ""}
-  ];
-
 
   @override
   void initState() {
+    mGetCurrency();
+    mProduct();
+    mTaxes();
     super.initState();
   }
 
-  void addProduct() {
-    setState(() {
-      productList.add(
-          {"selectedProduct": 'Select Product', "quantity": "", "price": ""});
-    });
+  // Currency Api ----
+  Future<void> mGetCurrency() async {
+    final response = await _currencyApi.currencyApi();
+    if (response.currencyList != null && response.currencyList!.isNotEmpty) {
+      currency = response.currencyList!;
+    }
   }
 
-  void removeProduct(int index) {
-    if (productList.length > 1) {
+  Future<void> mProduct() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final response = await _productApi.productApi();
+
+      if (response.productsList != null && response.productsList!.isNotEmpty) {
+        setState(() {
+          isLoading = false;
+          errorMessage = null;
+          productLists = response.productsList!;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Product List';
+        });
+      }
+    } catch (error) {
       setState(() {
-        productList.removeAt(index);
+        isLoading = false;
+        errorMessage = error.toString();
       });
     }
   }
+
+  Future<void> mTaxes() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final response = await _taxApi.taxesApi();
+      if (response.taxesList != null && response.taxesList!.isNotEmpty) {
+        setState(() {
+          isLoading = false;
+          errorMessage = null;
+          taxList = response.taxesList!;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Tax List';
+        });
+      }
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
 
   Future<void> mQuoteDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -71,9 +156,11 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
     if (picked != null && picked != quoteDate) {
       setState(() {
         quoteDate = picked;
+        quotesDateStr = DateFormat('yyyy-MM-dd').format(quoteDate!);
       });
     }
   }
+
 
   Future<void> mDueDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -85,6 +172,7 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
     if (picked != null && picked != dueDate) {
       setState(() {
         dueDate = picked;
+        dueDateStr = DateFormat('yyyy-MM-dd').format(dueDate!);
       });
     }
   }
@@ -143,7 +231,7 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
                         controller: TextEditingController(
                           text: quoteDate == null
                               ? ''
-                              : DateFormat('dd-MM-yyyy').format(quoteDate!),
+                              : DateFormat('yyyy-MM-dd').format(quoteDate!),
                         ),
                         style: const TextStyle(color: kPrimaryColor),
                         decoration: InputDecoration(
@@ -175,7 +263,7 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
                         controller: TextEditingController(
                           text: dueDate == null
                               ? ''
-                              : DateFormat('dd-MM-yyyy').format(dueDate!),
+                              : DateFormat('yyyy-MM-dd').format(dueDate!),
                         ),
                         style: const TextStyle(color: kPrimaryColor),
                         decoration: InputDecoration(
@@ -214,10 +302,22 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
                       fillColor: Colors.transparent,
                     ),
 
-                    items: ['Default','New York', 'Toronto', 'Rio', 'London', 'Istanbul', 'Mumbai', 'Hong Kong', 'Tokyo', 'Paris'].map((String role) {
+                    items: [
+                      'Default',
+                      'New York',
+                      'Toronto',
+                      'Rio',
+                      'London',
+                      'Istanbul',
+                      'Mumbai',
+                      'Hong Kong',
+                      'Tokyo',
+                      'Paris'
+                    ].map((String role) {
                       return DropdownMenuItem(
                         value: role,
-                        child: Text(role,style: const TextStyle(color: kPrimaryColor,fontSize: 16),),
+                        child: Text(role, style: const TextStyle(
+                            color: kPrimaryColor, fontSize: 16),),
                       );
                     }).toList(),
                     onChanged: (newValue) {
@@ -228,37 +328,64 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
                   ),
 
 
-
                   // Select Currency
-                  const SizedBox(height: largePadding),
-                  DropdownButtonFormField<String>(
-                    value: selectedCurrency,
-                    style: const TextStyle(color: kPrimaryColor),
+                  const SizedBox(height: defaultPadding),
+                  GestureDetector(
+                    onTap: () {
+                      if (currency.isNotEmpty) {
+                        RenderBox renderBox = context
+                            .findRenderObject() as RenderBox;
+                        Offset offset = renderBox.localToGlobal(Offset.zero);
 
-                    decoration: InputDecoration(
-                      labelText: 'Select Currency',
-                      labelStyle: const TextStyle(color: kPrimaryColor),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(),
-                      ),
-                      filled: true,
-                      fillColor: Colors.transparent,
-                    ),
-
-                    items: ['Select Currency', 'USD', 'INR', 'EUR'].map((String role) {
-                      return DropdownMenuItem(
-                        value: role,
-                        child: Text(role,style: const TextStyle(color: kPrimaryColor,fontSize: 16),),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      setState(() {
-                        selectedCurrency = newValue!;
-                      });
+                        showMenu<String>(
+                          context: context,
+                          position: RelativeRect.fromLTRB(
+                            offset.dx,
+                            offset.dy + renderBox.size.height,
+                            offset.dx + renderBox.size.width,
+                            0.0,
+                          ),
+                          items: currency.map((CurrencyListsData currencyItem) {
+                            return PopupMenuItem<String>(
+                              value: currencyItem.currencyCode,
+                              child: Text(currencyItem.currencyCode!,
+                                style: const TextStyle(
+                                    color: kPrimaryColor),), // Display the name or code of the currency
+                            );
+                          }).toList(),
+                        ).then((String? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              selectedCurrency = newValue;
+                              mCurrencySymbol =
+                                  getCurrencySymbol(selectedCurrency!);
+                            });
+                          }
+                        });
+                      } else {}
                     },
+                    child: Material(
+                      color: Colors.transparent,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0, vertical: 15.0),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: kPrimaryColor),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(selectedCurrency ?? "Select Currency",
+                                style: const TextStyle(
+                                    color: kPrimaryColor, fontSize: 16)),
+                            const Icon(Icons.arrow_drop_down,
+                                color: kPrimaryColor),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-
 
 
                   const SizedBox(height: largePadding,),
@@ -286,15 +413,15 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
                         ListView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          // Prevent scrolling
                           itemCount: productList.length,
                           itemBuilder: (context, index) {
                             return Padding(
-                              padding: const EdgeInsets.only(bottom: smallPadding),
+                              padding: const EdgeInsets.only(
+                                  bottom: smallPadding),
                               child: Container(
                                 padding: const EdgeInsets.all(defaultPadding),
                                 decoration: BoxDecoration(
-                                  color: Colors.white60,
+                                  color: Colors.white,
                                   borderRadius: BorderRadius.circular(12),
                                   boxShadow: [
                                     BoxShadow(
@@ -308,97 +435,163 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const SizedBox(height: largePadding,),
-                                    DropdownButtonFormField<String>(
-                                      value: productList[index]['selectedProduct'],
-                                      style: const TextStyle(color: kPrimaryColor),
+                                    const SizedBox(height: largePadding),
+                                    // Product Dropdown
+                                    DropdownButtonFormField<ProductData?>(
+                                      value: productList[index].productId !=
+                                          null
+                                          ? productLists.firstWhere((product) =>
+                                      product.id ==
+                                          productList[index].productId)
+                                          : null,
+                                      style: const TextStyle(
+                                          color: kPrimaryColor),
                                       decoration: InputDecoration(
                                         labelText: 'Product',
                                         labelStyle: const TextStyle(
                                             color: kPrimaryColor),
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                              12),
                                           borderSide: const BorderSide(),
                                         ),
                                       ),
-                                      items: [
-                                        'Select Product',
-                                        'Product 1',
-                                        'Product 2'
-                                      ].map((String role) {
-                                        return DropdownMenuItem(
-                                          value: role,
-                                          child: Text(role, style: const TextStyle(
-                                              color: kPrimaryColor, fontSize: 16)),
+                                      items: productLists.map((
+                                          ProductData product) {
+                                        return DropdownMenuItem<ProductData?>(
+                                          value: product,
+                                          child: Text(
+                                            product.productName ??
+                                                'Unnamed Product',
+                                            style: const TextStyle(
+                                                color: kPrimaryColor,
+                                                fontSize: 16),
+                                          ),
                                         );
                                       }).toList(),
                                       onChanged: (newValue) {
                                         setState(() {
-                                          productList[index]['selectedProduct'] =
-                                          newValue!;
+                                          if (newValue != null) {
+                                            productList[index].productId =
+                                                newValue.id;
+                                            productList[index].productName =
+                                                newValue.productName ?? '';
+                                            productList[index].price =
+                                                newValue.unitPrice
+                                                    ?.toString() ?? '';
+                                            productList[index].quantity =
+                                            "1"; // Default quantity
+                                            productList[index].amount =
+                                                (newValue.unitPrice! * 1)
+                                                    .toStringAsFixed(2);
+
+                                            calculateAmount(index);
+                                            mDiscount();
+                                            mCalculateTax();
+                                            mTotalAmount();
+                                          } else {
+                                            productList[index].productName = "";
+                                            productList[index].price = "";
+                                            productList[index].quantity = "0";
+                                            productList[index].amount = "0.00";
+
+                                            calculateAmount(index);
+                                            mDiscount();
+                                            mCalculateTax();
+                                            mTotalAmount();
+                                          }
                                         });
                                       },
                                     ),
                                     const SizedBox(height: largePadding),
+                                    // Quantity Field
                                     TextFormField(
+                                      controller: TextEditingController(
+                                        text: productList[index].quantity,
+                                      ),
                                       keyboardType: TextInputType.number,
-                                      style: const TextStyle(color: kPrimaryColor),
+                                      style: const TextStyle(
+                                          color: kPrimaryColor),
                                       decoration: InputDecoration(
                                         labelText: "Quantity",
-                                        labelStyle: const TextStyle(color: kPrimaryColor),
+                                        labelStyle: const TextStyle(
+                                            color: kPrimaryColor),
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                              12),
                                         ),
                                       ),
                                       onChanged: (value) {
                                         setState(() {
-                                          productList[index]['quantity'] = value;
+                                          productList[index].quantity = value;
+                                          double price = double.tryParse(
+                                              productList[index].price) ?? 0;
+                                          int quantity = int.tryParse(value) ??
+                                              0;
+                                          productList[index].amount =
+                                              (price * quantity)
+                                                  .toStringAsFixed(2);
+
+                                          calculateAmount(index);
+                                          mDiscount();
+                                          mCalculateTax();
+                                          mTotalAmount();
                                         });
                                       },
                                     ),
                                     const SizedBox(height: largePadding),
+                                    // Price Field (read-only)
                                     TextFormField(
+                                      controller: TextEditingController(
+                                        text: productList[index].price,
+                                      ),
                                       keyboardType: TextInputType.number,
-                                      style: const TextStyle(color: kPrimaryColor),
+                                      style: const TextStyle(
+                                          color: kPrimaryColor),
                                       decoration: InputDecoration(
                                         labelText: "Price",
-                                        labelStyle: const TextStyle(color: kPrimaryColor),
+                                        labelStyle: const TextStyle(
+                                            color: kPrimaryColor),
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                              12),
                                         ),
                                       ),
+                                      readOnly: true,
                                       onChanged: (value) {
                                         setState(() {
-                                          productList[index]['price'] = value;
+                                          productList[index].price = value;
+                                          calculateAmount(index);
+                                          mDiscount();
+                                          mCalculateTax();
+                                          mTotalAmount();
                                         });
                                       },
                                     ),
                                     const SizedBox(height: largePadding),
+                                    // Amount Calculation (Quantity * Price)
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment
                                           .spaceBetween,
                                       children: [
-                                        const Text("Total", style: TextStyle(
+                                        const Text("Amount", style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold)),
-                                        Padding(padding: const EdgeInsets.symmetric(
-                                            horizontal: 14),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 14),
                                           child: Text(
-                                            "${(double.tryParse(
-                                                productList[index]['quantity'] ??
-                                                    '0') ?? 0) * (double.tryParse(
-                                                productList[index]['price'] ??
-                                                    '0') ?? 0)}",
+                                            productList[index].amount,
                                             style: const TextStyle(
                                                 color: kPrimaryColor,
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 16),
                                           ),
                                         ),
-
                                       ],
                                     ),
                                     const SizedBox(height: smallPadding),
+                                    // Delete Button
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment
                                           .spaceBetween,
@@ -409,7 +602,12 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
                                         IconButton(
                                           icon: const Icon(
                                               Icons.delete, color: Colors.red),
-                                          onPressed: () => removeProduct(index),
+                                          onPressed: () {
+                                            setState(() {
+                                              removeProduct(index);
+                                              calculateAmount(index);
+                                            });
+                                          },
                                         ),
                                       ],
                                     ),
@@ -440,11 +638,19 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
                             SizedBox(
                               width: 100, // Set your desired fixed width here
                               child: TextFormField(
-                                keyboardType: TextInputType.text,
+                                controller: discount,
+                                keyboardType: TextInputType.number,
                                 textInputAction: TextInputAction.next,
                                 cursorColor: kPrimaryColor,
                                 style: const TextStyle(color: kPrimaryColor),
-                                onSaved: (value) {},
+                                onChanged: (value) {
+                                  setState(() {
+                                    mDiscount();
+                                    mCalculateTax();
+                                    mTotalAmount();
+                                  });
+                                },
+                                enabled: selectedDiscount != "Select Discount",
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(
@@ -452,11 +658,11 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
                                     borderSide: const BorderSide(),
                                   ),
                                   hintText: "0",
-                                  hintStyle: const TextStyle(color: kPrimaryColor),
+                                  hintStyle: const TextStyle(
+                                      color: kPrimaryColor),
                                 ),
                               ),
                             ),
-
 
                             const SizedBox(width: defaultPadding,),
                             Expanded(child: DropdownButtonFormField<String>(
@@ -465,7 +671,8 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
 
                               decoration: InputDecoration(
                                 labelText: 'Discount',
-                                labelStyle: const TextStyle(color: kPrimaryColor),
+                                labelStyle: const TextStyle(
+                                    color: kPrimaryColor),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: const BorderSide(),
@@ -483,6 +690,8 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
                               onChanged: (newValue) {
                                 setState(() {
                                   selectedDiscount = newValue!;
+                                  discount.clear();
+                                  showDiscount = "0.00";
                                 });
                               },
                             ),
@@ -491,44 +700,39 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
                         ),
 
                         const SizedBox(height: largePadding),
-                        DropdownButtonFormField<String>(
-                          value: selectedTax,
-                          style: const TextStyle(color: kPrimaryColor),
-
-                          decoration: InputDecoration(
-                            labelText: 'Tax',
-                            labelStyle: const TextStyle(color: kPrimaryColor),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(),
+                        GestureDetector(
+                          onTap: _showMultiSelectDialog,
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              labelText: 'Select Taxes',
+                              labelStyle: const TextStyle(color: kPrimaryColor),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(),
+                              ),
+                              suffixIcon: const Icon(
+                                  Icons.arrow_drop_down, color: kPrimaryColor),
+                            ),
+                            child: Text(
+                              selectedTaxes.isEmpty
+                                  ? 'Select Taxes'
+                                  : selectedTaxes.join(', '),
+                              style: const TextStyle(color: kPrimaryColor),
                             ),
                           ),
-
-                          items: ['Select Tax', 'Test Product',].map((String role) {
-                            return DropdownMenuItem(
-                              value: role,
-                              child: Text(role, style: const TextStyle(
-                                  color: kPrimaryColor, fontSize: 16),),
-                            );
-                          }).toList(),
-                          onChanged: (newValue) {
-                            setState(() {
-                              selectedTax = newValue!;
-                            });
-                          },
                         ),
 
                         const SizedBox(height: 35,),
-                        const Row(
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text("Sub Total:", style: TextStyle(
+                            const Text("Sub Total:", style: TextStyle(
                                 color: kPrimaryColor,
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold),),
-                            Padding(padding: EdgeInsets.symmetric(
+                            Padding(padding: const EdgeInsets.symmetric(
                                 horizontal: defaultPadding),
-                              child: Text("100.00", style: TextStyle(
+                              child: Text(subTotal, style: const TextStyle(
                                   color: kPrimaryColor,
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold),),),
@@ -536,15 +740,16 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
                         ),
 
                         const SizedBox(height: defaultPadding,),
-                        const Row(
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text("Discount:", style: TextStyle(color: kPrimaryColor,
+                            const Text("Discount:", style: TextStyle(
+                                color: kPrimaryColor,
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold),),
-                            Padding(padding: EdgeInsets.symmetric(
+                            Padding(padding: const EdgeInsets.symmetric(
                                 horizontal: defaultPadding),
-                              child: Text("0.00", style: TextStyle(
+                              child: Text(showDiscount, style: const TextStyle(
                                   color: kPrimaryColor,
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold),),),
@@ -552,15 +757,16 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
                         ),
 
                         const SizedBox(height: defaultPadding,),
-                        const Row(
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text("Tax:", style: TextStyle(color: kPrimaryColor,
+                            const Text("Tax:", style: TextStyle(
+                                color: kPrimaryColor,
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold),),
-                            Padding(padding: EdgeInsets.symmetric(
+                            Padding(padding: const EdgeInsets.symmetric(
                                 horizontal: defaultPadding),
-                              child: Text("0.00", style: TextStyle(
+                              child: Text(showTaxes, style: const TextStyle(
                                   color: kPrimaryColor,
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold),),),
@@ -568,20 +774,23 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
                         ),
 
                         const SizedBox(height: defaultPadding,),
-                        const Row(
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text("Total:", style: TextStyle(color: kPrimaryColor,
+                            const Text("Total:", style: TextStyle(
+                                color: kPrimaryColor,
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold),),
-                            Padding(padding: EdgeInsets.symmetric(
+                            Padding(padding: const EdgeInsets.symmetric(
                                 horizontal: defaultPadding),
-                              child: Text("0.00", style: TextStyle(
+                              child: Text(
+                                showTotalAmount, style: const TextStyle(
                                   color: kPrimaryColor,
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold),),),
                           ],
                         ),
+
 
                         const SizedBox(height: largePadding,),
                         Center(
@@ -611,6 +820,7 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
                             children: [
                               const SizedBox(height: largePadding),
                               TextFormField(
+                                controller: noteController,
                                 keyboardType: TextInputType.text,
                                 textInputAction: TextInputAction.next,
                                 cursorColor: kPrimaryColor,
@@ -622,7 +832,8 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
                                 decoration: InputDecoration(
                                   labelText: "Note",
                                   labelStyle:
-                                  const TextStyle(color: kPrimaryColor, fontSize: 16),
+                                  const TextStyle(
+                                      color: kPrimaryColor, fontSize: 16),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     borderSide: const BorderSide(),
@@ -637,6 +848,7 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
 
                               const SizedBox(height: defaultPadding),
                               TextFormField(
+                                controller: termsController,
                                 keyboardType: TextInputType.text,
                                 textInputAction: TextInputAction.next,
                                 cursorColor: kPrimaryColor,
@@ -648,7 +860,8 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
                                 decoration: InputDecoration(
                                   labelText: "Terms",
                                   labelStyle:
-                                  const TextStyle(color: kPrimaryColor, fontSize: 16),
+                                  const TextStyle(
+                                      color: kPrimaryColor, fontSize: 16),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     borderSide: const BorderSide(),
@@ -690,19 +903,32 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
                         ],
                       ),*/
                         ],
+
+
+                        const SizedBox(
+                          height: largePadding,
+                        ),
+                        if (isSubmitLoading)
+                          const Center(
+                            child: CircularProgressIndicator(
+                              color: kPrimaryColor,
+                            ),
+                          ), // Show loading indicator
+
+
                         const SizedBox(height: largePadding,),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const SizedBox(height: largePadding,),
 
-                            // Draft Button
+                            /* // Draft Button
                             SizedBox(
                               width: 145,
                               height: 47.0,
                               child: FloatingActionButton.extended(
                                 onPressed: () {
-
+                                  print("Updated productList: $productList");
                                 },
                                 label: const Text(
                                   'Save as Draft',
@@ -711,30 +937,46 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
                                 ),
                                 backgroundColor: kPrimaryColor,
                               ),
-                            ),
+                            ),*/
 
                             const SizedBox(width: defaultPadding,),
 
                             // Save Button
                             SizedBox(
-                              width: 145,
+                              width: 300,
                               height: 47.0,
                               child: FloatingActionButton.extended(
                                 onPressed: () {
-                                  if(quoteDate == null){
-                                    CustomSnackBar.showSnackBar(context: context, message: "Please select invoice date", color: kPrimaryColor);
-                                  }else if(dueDate == null){
-                                    CustomSnackBar.showSnackBar(context: context, message: "Please select due date", color: kPrimaryColor);
-                                  }else if(selectedStatus.isEmpty){
-                                    CustomSnackBar.showSnackBar(context: context, message: "Please select status", color: kPrimaryColor);
-                                  }else if(selectedInvoiceTemplate.isEmpty){
-                                    CustomSnackBar.showSnackBar(context: context, message: "Please select invoice template", color: kPrimaryColor);
-                                  }else if(selectedCurrency.isEmpty){
-                                    CustomSnackBar.showSnackBar(context: context, message: "Please select currency", color: kPrimaryColor);
-                                  }else{
-                                    CustomSnackBar.showSnackBar(context: context, message: "Save", color: kPrimaryColor);
-                                  }
+                                  if (_formKey.currentState?.validate() ?? false) {
 
+                                  } else
+                                  if (quoteDate == null) {
+                                    CustomSnackBar.showSnackBar(
+                                        context: context,
+                                        message: "Please select invoice date",
+                                        color: kRedColor);
+                                  } else if (dueDate == null) {
+                                    CustomSnackBar.showSnackBar(
+                                        context: context,
+                                        message: "Please select due date",
+                                        color: kRedColor);
+                                  } else if (selectedInvoiceTemplate.isEmpty) {
+                                    CustomSnackBar.showSnackBar(
+                                        context: context,
+                                        message: "Please select invoice template",
+                                        color: kRedColor);
+                                  } else if (selectedCurrency!.isEmpty) {
+                                    CustomSnackBar.showSnackBar(
+                                        context: context,
+                                        message: "Please select currency",
+                                        color: kRedColor);
+                                  } else {
+
+                                    CustomSnackBar.showSnackBar(
+                                        context: context,
+                                        message: "Save",
+                                        color: kRedColor);
+                                  }
                                 },
                                 label: const Text(
                                   'Save & Send',
@@ -744,6 +986,7 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
                                 backgroundColor: kPrimaryColor,
                               ),
                             ),
+
                           ],
                         ),
                       ],
@@ -759,4 +1002,260 @@ class _UpdateQuoteScreenState extends State<UpdateQuoteScreen> {
     );
   }
 
+  String getCurrencySymbol(String currencyCode) {
+    var format = NumberFormat.simpleCurrency(name: currencyCode);
+    return format.currencySymbol;
+  }
+
+  // Function to add a new product entry
+  void addProduct() {
+    if (productList.length < productLists.length) {
+      final selectedProduct = productLists[productList.length];
+
+      if (selectedProduct.productName != null &&
+          selectedProduct.unitPrice != null) {
+        setState(() {
+          productList.add(ProductEntry(productId: selectedProduct.id));
+        });
+      } else {
+        CustomSnackBar.showSnackBar(
+          context: context,
+          message: 'Selected product is incomplete.',
+          color: kPrimaryColor,
+        );
+      }
+    } else {
+      CustomSnackBar.showSnackBar(
+        context: context,
+        message: 'You cannot add more products.',
+        color: kPrimaryColor,
+      );
+    }
+  }
+
+  // Function to remove a product from the list
+  void removeProduct(int index) {
+    if (productList.length > 1) {
+      setState(() {
+        productList.removeAt(index);
+      });
+
+      // Recalculate the subtotal and the totals after product removal
+      if (productList.isEmpty) {
+        subTotal = "0.00";
+        showTotalAmount = "0.00";
+        showDiscount = "0.00";
+        showTaxes = "0.00";
+      } else {
+        calculateSubTotalAmount();
+      }
+
+      mDiscount();
+      mCalculateTax();
+      mTotalAmount();
+    }
+  }
+
+  void _showMultiSelectDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Select Taxes'),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return SingleChildScrollView(
+                child: Column(
+                  children: taxList.map((tax) {
+                    return CheckboxListTile(
+                      title: Text(
+                        '${tax.name ?? ''} - ${tax.taxValue ?? ''}',
+                        style: const TextStyle(color: kPrimaryColor),
+                      ),
+                      value: selectedTaxes.contains(
+                          '${tax.name ?? ''} - ${tax.taxValue ?? ''}'),
+                      onChanged: (bool? isSelected) {
+                        setState(() {
+                          if (isSelected == true) {
+                            selectedTaxes.add(
+                                '${tax.name ?? ''} - ${tax.taxValue ?? ''}');
+                          } else {
+                            selectedTaxes.remove(
+                                '${tax.name ?? ''} - ${tax.taxValue ?? ''}');
+                          }
+                          // Recalculate the total tax value
+                          totalTaxValue = _calculateTotalTaxValue();
+                          mCalculateTax();
+                          mTotalAmount();
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                setState(() {});
+              },
+              child: const Text('Done'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void mDiscount() {
+    double discountAmount = 0;
+
+    if (selectedDiscount == "Fixed") {
+      setState(() {
+        discountAmount = double.tryParse(discount.text) ?? 0;
+        showDiscount = discountAmount.toStringAsFixed(2);
+      });
+    } else if (selectedDiscount == "Percentage") {
+      setState(() {
+        double totalPrice = double.tryParse(subTotal.toString()) ?? 0;
+        double percentage = double.tryParse(discount.text) ?? 0;
+
+        if (percentage > 0 && totalPrice > 0) {
+          discountAmount = (percentage / 100) * totalPrice;
+          showDiscount = discountAmount.toStringAsFixed(2);
+        } else {
+          showDiscount = "0.00";
+        }
+      });
+    }
+  }
+
+  void mCalculateTax() {
+    double taxAmount = 0;
+
+    setState(() {
+      double totalPrice = double.tryParse(subTotal.toString()) ?? 0;
+      double? percentage = double.tryParse(totalTaxValue.toStringAsFixed(2)) ??
+          0;
+
+      if (percentage > 0 && totalPrice > 0) {
+        taxAmount = (percentage / 100) * totalPrice;
+        showTaxes = taxAmount.toStringAsFixed(2);
+      } else {
+        showTaxes = "0.00";
+      }
+    });
+  }
+
+  void mTotalAmount() {
+    double totalAmount = 0;
+
+    setState(() {
+      double totalPrice = double.tryParse(subTotal.toString()) ?? 0.0;
+      double? percentage = double.tryParse(showDiscount.toString()) ?? 0.0;
+      double? taxes = double.tryParse(showTaxes.toString()) ?? 0.0;
+
+      if (totalPrice > 0 && percentage > 0 && taxes > 0) {
+        totalAmount = totalPrice - percentage + taxes;
+        showTotalAmount = totalAmount.toStringAsFixed(2);
+      } else if (totalPrice > 0 && percentage > 0) {
+        totalAmount = totalPrice - percentage;
+        showTotalAmount = totalAmount.toStringAsFixed(2);
+      } else if (totalPrice > 0 && taxes > 0) {
+        totalAmount = totalPrice + taxes;
+        showTotalAmount = totalAmount.toStringAsFixed(2);
+      } else if (totalPrice > 0) {
+        totalAmount = totalPrice;
+        showTotalAmount = totalPrice.toStringAsFixed(2);
+      } else {
+        showTotalAmount = "0.00";
+      }
+    });
+  }
+
+  void calculateSubTotalAmount() {
+    double totalAmount = 0;
+
+    for (var product in productList) {
+      final amount = double.tryParse(product.amount) ?? 0;
+      totalAmount += amount;
+    }
+
+    setState(() {
+      subTotal = totalAmount.toStringAsFixed(2);
+    });
+
+    // Now update discount, tax, and total amount after recalculating subtotal
+    mDiscount();
+    mCalculateTax();
+    mTotalAmount();
+  }
+
+  void calculateAmount(int index) {
+    final quantity = double.tryParse(productList[index].quantity) ?? 0;
+    final price = double.tryParse(productList[index].price) ?? 0;
+
+    if (quantity != 0) {
+      final amount = quantity * price;
+      setState(() {
+        productList[index].amount = amount.toStringAsFixed(2);
+      });
+    } else {
+      setState(() {
+        productList[index].amount = price.toStringAsFixed(2);
+      });
+    }
+
+    calculateSubTotalAmount(); // Recalculate subtotal after amount change
+    mDiscount(); // Recalculate discount
+    mCalculateTax(); // Recalculate taxes
+    mTotalAmount(); // Recalculate total amount
+  }
+
+  double _calculateTotalTaxValue() {
+    double total = 0.0;
+    for (var selectedTax in selectedTaxes) {
+      final tax = taxList.firstWhere(
+            (tax) => '${tax.name ?? ''} - ${tax.taxValue ?? ''}' == selectedTax,
+        orElse: () => TaxData(name: '', taxValue: 0),
+      );
+      total += (tax.taxValue ?? 0).toDouble();
+    }
+    return total;
+  }
+
+}
+
+class ProductEntry {
+  String? productId;
+  String? productName;
+  String quantity;
+  String price;
+  String amount;
+
+  ProductEntry({
+    this.productId,
+    this.productName,
+    this.quantity = "1",
+    this.price = "",
+    this.amount = "0.00",
+  });
+
+  @override
+  String toString() {
+    return 'ProductEntry{productId: $productId, productName: $productName, quantity: $quantity, price: $price, amount: $amount}';
+  }
+
+  // Method to convert ProductEntry to a Map<String, dynamic>
+  Map<String, dynamic> toMap() {
+    return {
+      'productId': productId,
+      'productName': productName,
+      'qty': quantity,
+      'price': price,
+      'amount': amount,
+    };
+  }
 }
