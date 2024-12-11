@@ -157,11 +157,11 @@ class _InvoiceDashboardScreenState extends State<InvoiceDashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: kPrimaryColor,
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: Colors.transparent),
         title: const Text(
           "Invoice Dashboard",
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.transparent),
         ),
       ),
       body: isLoading

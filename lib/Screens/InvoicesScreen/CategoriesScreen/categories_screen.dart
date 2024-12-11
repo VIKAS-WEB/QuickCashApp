@@ -157,11 +157,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: kPrimaryColor,
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: Colors.transparent),
         title: const Text(
           "Categories",
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.transparent),
         ),
       ),
       body: SingleChildScrollView(

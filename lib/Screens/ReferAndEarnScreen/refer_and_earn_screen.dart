@@ -81,11 +81,11 @@ class _ReferAndEarnScreenState extends State<ReferAndEarnScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: kPrimaryColor,
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: Colors.transparent),
         title: const Text(
           "Refer & Earns",
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.transparent),
         ),
       ),
     body: isLoading ? const Center(

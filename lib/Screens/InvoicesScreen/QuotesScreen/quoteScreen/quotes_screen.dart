@@ -155,11 +155,11 @@ class _QuotesScreenState extends State<QuotesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: kPrimaryColor,
-        iconTheme: const IconThemeData(color: kWhiteColor),
+        backgroundColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: Colors.transparent),
         title: const Text(
           "Quotes",
-          style: TextStyle(color: kWhiteColor),
+          style: TextStyle(color: Colors.transparent),
         ),
       ),
       body: isLoading
