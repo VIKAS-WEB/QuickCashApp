@@ -5,7 +5,6 @@ import 'package:quickcash/Screens/SpotTradeScreen/recentsTradeModel/recentTradeM
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import 'package:quickcash/util/customSnackBar.dart';
-import 'package:quickcash/webSocket.dart';
 import 'package:web_socket_channel/io.dart';
 import 'dart:convert';
 
@@ -22,7 +21,7 @@ class _CardsScreenState extends State<SpotTradeScreen> {
   List<TradeDetail> recentTrades = [];
 
   String? selectedTransferType;
-  double sliderValue = 50;
+  double sliderValue = 25;
 
   String? mAccountBalance = '';
   String? mAccountCurrency = '';
@@ -532,7 +531,8 @@ class _CardsScreenState extends State<SpotTradeScreen> {
                                     divisions: 100,
                                     onChanged: (value) {
                                       setState(() {
-                                        sliderValue = value; // Update slider value dynamically
+                                        sliderValue = value;
+                                       // mSidePercentage(sliderValue);
                                       });
                                     },
                                   ),
@@ -719,6 +719,40 @@ class _CardsScreenState extends State<SpotTradeScreen> {
     );
   }
 
+  /*Future<void> mSidePercentage(double sliderValue) async {
+    print('SliderValue: $sliderValue');
+    print('24 Hour Change: $mTwentyFourHourChange');
+
+    // Convert the string to double using tryParse for mTwentyFourHourChange
+    double? mTwentyFourHourChangeDouble = double.tryParse(mTwentyFourHourChange!);
+
+    if (mTwentyFourHourChangeDouble == null) {
+      print('Invalid 24 Hour Change value');
+      return;
+    }
+
+    // Convert the string to double using tryParse for mAccountBalance
+    double? mBalance = double.tryParse(mAccountBalance!);
+
+    if (mBalance != null) {
+      // Calculate the percentage of mAccountBalance based on sliderValue
+      double percentage = (mBalance * sliderValue) / 100;
+      print('Percentage of Account Balance: $percentage');
+
+      // Check if percentage is non-zero to avoid division by zero
+      if (percentage != 0) {
+        double result = mTwentyFourHourChangeDouble / percentage;
+        print('Result of dividing 24 Hour Change by percentage: $result');
+      } else {
+        print('Percentage is zero, cannot divide by zero');
+      }
+    } else {
+      print('Invalid Account Balance');
+    }
+  }*/
+
+
 
 
 }
+
