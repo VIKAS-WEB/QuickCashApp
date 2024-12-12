@@ -48,6 +48,3 @@ class QuickCashApp extends StatelessWidget {
     );
   }
 }
-
-
-//https://quickcash.oyefin.com/storage/profile/66d6f4868f27287f8f7f2546/ownerProfile-173079761956539.jpg
