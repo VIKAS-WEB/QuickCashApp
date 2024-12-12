@@ -1,5 +1,6 @@
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/DashboardScreen/AllAccountsScreen/AccountDetailsScreen/accountDetailsScreen.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListApi.dart';
 import 'package:quickcash/constants.dart';
@@ -54,6 +55,11 @@ class _AllAccountsScreenState extends State<AllAccountsScreen>{
         errorMessage = error.toString();
       });
     }
+  }
+
+  String getCurrencySymbol(String currencyCode) {
+    var format = NumberFormat.simpleCurrency(name: currencyCode);
+    return format.currencySymbol;
   }
 
 
@@ -122,7 +128,7 @@ class _AllAccountsScreenState extends State<AllAccountsScreen>{
                                     shape: const Circle(),
                                   ),
                                   Text(
-                                    "${accountsData.currency}",
+                                    getCurrencySymbol(accountsData.currency!),
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,

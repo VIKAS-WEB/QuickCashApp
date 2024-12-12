@@ -1,6 +1,6 @@
 class AccountDetailsResponse {
   final String? name;
-  final double? amount; // Change to double to match API response
+  final double? amount;
   final String? accountNo;
   final int? ifscCode;
   final String? currency;
@@ -14,10 +14,13 @@ class AccountDetailsResponse {
   });
 
   factory AccountDetailsResponse.fromJson(Map<String, dynamic> json) {
+    var amount = json['data']?['amount'];
+    var fee = json['data']?['fee'];
+
     return AccountDetailsResponse(
       name: json['data']?['name'] as String?,
-      amount: json['data']?['amount'] as double?, // Ensure amount is mapped as double
-      accountNo: json['data']?['iban']?.toString(), // Ensure accountNo is string
+      amount: (amount is int) ? amount.toDouble() : amount as double?, // Convert amount to double
+      accountNo: json['data']?['iban']?.toString(),
       ifscCode: json['data']?['bic_code'] as int?,
       currency: json['data']?['currency'] as String?,
     );

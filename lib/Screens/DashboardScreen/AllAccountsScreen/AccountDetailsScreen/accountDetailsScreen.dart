@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/DashboardScreen/AllAccountsScreen/AccountDetailsScreen/model/accountDetailsApi.dart';  // Import your API cardModel
 
 import '../../../../constants.dart';
@@ -47,7 +48,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
       ifscCode?.text = response.ifscCode?.toString() ?? '0';
       currency.text = response.currency ?? "";
       name = response.name ?? "";
-      amount = response.amount;  // Assign amount directly (no need to cast)
+      amount = response.amount ?? 0.0;  // Assign amount directly (no need to cast)
 
       setState(() {
         isLoading = false;
@@ -78,6 +79,11 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
         color: kPrimaryColor,
       );
     });
+  }
+
+  String getCurrencySymbol(String currencyCode) {
+    var format = NumberFormat.simpleCurrency(name: currencyCode);
+    return format.currencySymbol;
   }
 
   @override
@@ -117,7 +123,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                   ),
                   Text(
                     amount != null
-                        ? "${currency.text} ${amount!.toStringAsFixed(2)}"
+                        ? "${getCurrencySymbol(currency.text)} ${amount!.toStringAsFixed(2)}"
                         : "${currency.text} 0.00", // Safely display the formatted amount
                     style: const TextStyle(
                         color: kPrimaryColor,

@@ -99,6 +99,11 @@ class _StatementDetailsScreenState extends State<StatementDetailsScreen>{
     }
   }
 
+  String getCurrencySymbol(String currencyCode) {
+    var format = NumberFormat.simpleCurrency(name: currencyCode);
+    return format.currencySymbol;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -347,7 +352,7 @@ class _StatementDetailsScreenState extends State<StatementDetailsScreen>{
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text("Trans Amt:", style: TextStyle(color: Colors.white)),
-                          Text("$fromCurrency $amount", style: const TextStyle(color: Colors.white)),
+                          Text("${getCurrencySymbol(fromCurrency!)} $amount", style: const TextStyle(color: Colors.white)),
                         ],
                       ),
                       const SizedBox(height: 8),

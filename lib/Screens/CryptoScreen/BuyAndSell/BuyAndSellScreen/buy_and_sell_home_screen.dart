@@ -81,6 +81,11 @@ class _BuyAndSellScreenState extends State<BuyAndSellScreen> {
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
+  String getCurrencySymbol(String currencyCode) {
+    var format = NumberFormat.simpleCurrency(name: currencyCode);
+    return format.currencySymbol;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -238,7 +243,7 @@ class _BuyAndSellScreenState extends State<BuyAndSellScreen> {
                                               fontWeight: FontWeight.bold)),
                                       Text(
                                         transaction.noOfCoin != null
-                                            ? '${transaction.currencyType} ${(double.tryParse(transaction.amount?.toString() ?? '0.00')?.toStringAsFixed(2) ?? '0.00')}'
+                                            ? '${getCurrencySymbol(transaction.currencyType!)} ${(double.tryParse(transaction.amount?.toString() ?? '0.00')?.toStringAsFixed(2) ?? '0.00')}'
                                             : '0.00',
                                         style: const TextStyle(fontSize: 16),
                                       )

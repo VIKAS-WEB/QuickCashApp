@@ -517,7 +517,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               shape: const Circle(),
                                             ),
                                             Text(
-                                              "${accountsData.currency}",
+                                              getCurrencySymbol(accountsData.currency!),
                                               style: TextStyle(
                                                 fontSize: 18,
                                                 fontWeight: FontWeight.bold,
