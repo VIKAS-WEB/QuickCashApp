@@ -564,7 +564,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                         if (invoiceLists.status == 'Unpaid' ||
                                             invoiceLists.status ==
                                                 'unpaid') ...[
-                                          Column(
+                                          /*Column(
                                             children: [
                                               IconButton(
                                                 icon: const Icon(
@@ -587,7 +587,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                                                     fontSize: 12),
                                               ),
                                             ],
-                                          ),
+                                          ),*/
                                           const SizedBox(
                                             width: smallPadding,
                                           ),

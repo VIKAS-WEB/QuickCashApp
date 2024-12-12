@@ -368,7 +368,7 @@ class _QuotesScreenState extends State<QuotesScreen> {
                                 MainAxisAlignment.end,
                                 children: [
                                   // Conditionally show the Edit icon based on status
-                                  Column(
+                                  /*Column(
                                     children: [
                                       IconButton(
                                         icon: const Icon(
@@ -390,7 +390,7 @@ class _QuotesScreenState extends State<QuotesScreen> {
                                             fontSize: 12),
                                       ),
                                     ],
-                                  ),
+                                  ),*/
 
                                   const SizedBox(
                                     width: smallPadding,
