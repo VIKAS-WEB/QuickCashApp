@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/SpotTradeScreen/recentsTradeModel/recentTradeApi.dart';
 import 'package:quickcash/Screens/SpotTradeScreen/recentsTradeModel/recentTradeModel.dart';
+import 'package:quickcash/Screens/SpotTradeScreen/tradingView/crypto_name_data_source.dart';
+import 'package:quickcash/Screens/SpotTradeScreen/tradingView/trading_view_html.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/core/extension/context_extension.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import 'package:quickcash/util/customSnackBar.dart';
 import 'package:web_socket_channel/io.dart';
@@ -36,6 +39,8 @@ class _CardsScreenState extends State<SpotTradeScreen> {
   String? mTwentyFourHourLow = '0';
   String? mTwentyFourHourVolume = '0';
   String? mTwentyFourHourVolumeUSDT = '0';
+  String? mTradingViewCurrency;
+  String? mTradingViewCoin = 'BTC';
 
 
   @override
@@ -44,6 +49,13 @@ class _CardsScreenState extends State<SpotTradeScreen> {
     mAccountBalance = AuthManager.getBalance();
     mRecentTradeDetails();
     initializeChannel();
+
+    if(mAccountCurrency == "EUR"){
+      mTradingViewCurrency = 'EUR';
+    }else{
+      mTradingViewCurrency = 'USD';
+    }
+
     super.initState();
   }
 
@@ -319,8 +331,17 @@ class _CardsScreenState extends State<SpotTradeScreen> {
                   ],
                 ),
               ),
+              const SizedBox(height: 35,),
 
-              const SizedBox(height: largePadding,),
+              SizedBox(
+                height: context.tradingViewWidgetHeight,
+                child: Padding(
+                  padding: context.smallTopPad,
+                  child: TradingViewWidgetHtml(cryptoName: CryptoNameDataSource.binanceSourceEuro(mTradingViewCoin!.toString(),mTradingViewCurrency!)),
+                ),
+              ),
+
+              const SizedBox(height: smallPadding,),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(defaultPadding),
@@ -700,6 +721,7 @@ class _CardsScreenState extends State<SpotTradeScreen> {
       onTap: () {
         setState(() {
           selectedTransferType = type;
+          mTradingViewCoin = type;
           setState(() {
             if(mAccountCurrency == "EUR"){
               String coin = '${selectedTransferType!.toLowerCase()}eur';
