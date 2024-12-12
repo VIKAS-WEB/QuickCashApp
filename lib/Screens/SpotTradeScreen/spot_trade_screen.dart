@@ -333,13 +333,26 @@ class _CardsScreenState extends State<SpotTradeScreen> {
               ),
               const SizedBox(height: 35,),
 
-              SizedBox(
-                height: context.tradingViewWidgetHeight,
-                child: Padding(
-                  padding: context.smallTopPad,
-                  child: TradingViewWidgetHtml(cryptoName: CryptoNameDataSource.binanceSourceEuro(mTradingViewCoin!.toString(),mTradingViewCurrency!)),
+          Container(
+            height: context.tradingViewWidgetHeight,
+            padding: const EdgeInsets.all(defaultPadding),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 4),
                 ),
-              ),
+              ],
+            ),
+            child: Padding(
+            padding: context.smallTopPad,
+            child: TradingViewWidgetHtml(cryptoName: CryptoNameDataSource.binanceSourceEuro(mTradingViewCoin!.toString(),mTradingViewCurrency!)),
+          ),
+          ),
 
               const SizedBox(height: smallPadding,),
               Container(
