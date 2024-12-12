@@ -31,7 +31,6 @@ class _CardsScreenState extends State<SpotTradeScreen> {
 
   bool isLoading = false;
 
-
   String selectedCoin = 'btcusdt';
   String? mTwentyFourHourChange = '0';
   String? mTwentyFourHourPercentage = '0';
@@ -42,7 +41,6 @@ class _CardsScreenState extends State<SpotTradeScreen> {
   String? mTradingViewCurrency;
   String? mTradingViewCoin = 'BTC';
 
-
   @override
   void initState() {
     mAccountCurrency = AuthManager.getCurrency();
@@ -50,9 +48,9 @@ class _CardsScreenState extends State<SpotTradeScreen> {
     mRecentTradeDetails();
     initializeChannel();
 
-    if(mAccountCurrency == "EUR"){
+    if (mAccountCurrency == "EUR") {
       mTradingViewCurrency = 'EUR';
-    }else{
+    } else {
       mTradingViewCurrency = 'USD';
     }
 
@@ -95,30 +93,33 @@ class _CardsScreenState extends State<SpotTradeScreen> {
       isLoading = true;
     });
 
-    try{
+    try {
       final response = await _recentTradeApi.recentTradeApi();
 
-      if(response.tradeDetails !=null && response.tradeDetails!.isNotEmpty){
+      if (response.tradeDetails != null && response.tradeDetails!.isNotEmpty) {
         setState(() {
           isLoading = false;
           recentTrades = response.tradeDetails!;
         });
-      }else{
+      } else {
         setState(() {
           isLoading = false;
-          CustomSnackBar.showSnackBar(context: context, message: 'We are facing some issue.', color: kPrimaryColor);
+          CustomSnackBar.showSnackBar(
+              context: context,
+              message: 'We are facing some issue.',
+              color: kPrimaryColor);
         });
       }
-
     } catch (error) {
       setState(() {
         isLoading = false;
-        CustomSnackBar.showSnackBar(context: context, message: 'Something went wrong', color: kPrimaryColor);
+        CustomSnackBar.showSnackBar(
+            context: context,
+            message: 'Something went wrong',
+            color: kPrimaryColor);
       });
     }
-
   }
-
 
 // Function to format the timestamp
   String formatTimestamp(int? timestamp) {
@@ -132,7 +133,6 @@ class _CardsScreenState extends State<SpotTradeScreen> {
     return DateFormat('hh:mm:ss a').format(dateTime);
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -144,301 +144,78 @@ class _CardsScreenState extends State<SpotTradeScreen> {
           style: TextStyle(color: Colors.transparent),
         ),
       ),
-      body: isLoading ? const Center(
-        child: CircularProgressIndicator(
-          color: kPrimaryColor,
-        ),
-      ) : SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(defaultPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: smallPadding),
-              GestureDetector(
-                onTap: () => _showTransferTypeDropDown(context),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(defaultPadding),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 8,
-                        spreadRadius: 1,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          if (selectedTransferType != null)
-                            ClipOval(
-                              child: Image.network(
-                                _getImageForTransferType(selectedTransferType!),
-                                height: 30,
-                                width: 30,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Icon(Icons.broken_image,
-                                      color: Colors.red);
-                                },
-                              ),
-                            ),
-                          const SizedBox(width: defaultPadding),
-                          Text(
-                            selectedTransferType != null
-                                ? '$selectedTransferType$mAccountCurrency'
-                                : 'Coin',
-                            style: const TextStyle(color: kPrimaryColor, fontSize: 15, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      const Icon(Icons.arrow_drop_down, color: kPrimaryColor),
-                    ],
-                  ),
-                ),
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: kPrimaryColor,
               ),
-
-              const SizedBox(height: smallPadding),
-              Container(
-                width: double.infinity,
+            )
+          : SingleChildScrollView(
+              child: Padding(
                 padding: const EdgeInsets.all(defaultPadding),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                      spreadRadius: 1,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child:  Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text("24h Change", style: TextStyle(color: kPurpleColor)),
-                    const SizedBox(height: 5),
-                    Text(
-                        "$mTwentyFourHourChange  $mTwentyFourHourPercentage%",
-                        style: TextStyle(
-                            color: double.tryParse(mTwentyFourHourPercentage!) != null && double.tryParse(mTwentyFourHourPercentage!)! < 0
-                                ? kRedColor
-                                : kGreenColor,
-                            fontSize: 16
-                        )
-                    ),
-                    const SizedBox(height: smallPadding),
-                    const Divider(color: kPrimaryLightColor),
-                    const Text("24h High", style: TextStyle(color: kPurpleColor)),
-                    const SizedBox(height: 5),
-                    Text("$mTwentyFourHourHigh", style: const TextStyle(fontSize: 16)),
-                    const SizedBox(height: smallPadding),
-                    const Divider(color: kPrimaryLightColor),
-                    const Text("24h Low", style: TextStyle(color: kPurpleColor)),
-                    const SizedBox(height: 5),
-                    Text("$mTwentyFourHourLow", style: const TextStyle(fontSize: 16)),
-                    const SizedBox(height: smallPadding),
-                    const Divider(color: kPrimaryLightColor),
-                    const Text("24h Volume", style: TextStyle(color: kPurpleColor)),
-                    const SizedBox(height: 5),
-                    Text("$mTwentyFourHourVolume", style: const TextStyle(fontSize: 16)),
-                    const SizedBox(height: smallPadding),
-                    const Divider(color: kPrimaryLightColor),
-                    const Text("24h Volume(USDT)", style: TextStyle(color: kPurpleColor)),
-                    const SizedBox(height: 5),
-                    Text("$mTwentyFourHourVolumeUSDT", style: const TextStyle(fontSize: 16)),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: largePadding),
-              Container(
-                width: double.infinity,
-                height: 418,
-                padding: const EdgeInsets.all(defaultPadding),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                      spreadRadius: 1,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("Recent Trades", style: TextStyle(color: kPrimaryColor, fontSize: 17, fontWeight: FontWeight.bold)),
                     const SizedBox(height: smallPadding),
-                    // Wrap ListView in a Container or SizedBox with a defined height
-                    SizedBox(
-                      height: 350, // Adjust this height as needed
-                      child: ListView.builder(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        itemCount: recentTrades.length,
-                        itemBuilder: (context, index) {
-                          final trade = recentTrades[index];
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: smallPadding),
-                            padding: const EdgeInsets.all(defaultPadding),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: kPurpleColor, width: 1),
+                    GestureDetector(
+                      onTap: () => _showTransferTypeDropDown(context),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(defaultPadding),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                              offset: const Offset(0, 4),
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
                               children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text("Price ($mAccountCurrency):", style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
-                                    Text("${trade.price}", style: const TextStyle(color: kPrimaryColor)),
-                                  ],
-                                ),
-                                const SizedBox(height: smallPadding),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text("Qty (BTC):", style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
-                                    Text("${trade.qty}", style: const TextStyle(color: kPrimaryColor)),
-                                  ],
-                                ),
-                                const SizedBox(height: smallPadding),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text("Time:", style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold)),
-                                    Text(formatTimestamp(trade.time), style: const TextStyle(color: kPrimaryColor)),
-                                  ],
+                                if (selectedTransferType != null)
+                                  ClipOval(
+                                    child: Image.network(
+                                      _getImageForTransferType(
+                                          selectedTransferType!),
+                                      height: 30,
+                                      width: 30,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return const Icon(Icons.broken_image,
+                                            color: Colors.red);
+                                      },
+                                    ),
+                                  ),
+                                const SizedBox(width: defaultPadding),
+                                Text(
+                                  selectedTransferType != null
+                                      ? '$selectedTransferType$mAccountCurrency'
+                                      : 'Coin',
+                                  style: const TextStyle(
+                                      color: kPrimaryColor,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
-                          );
-                        },
+                            const Icon(Icons.arrow_drop_down,
+                                color: kPrimaryColor),
+                          ],
+                        ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 35,),
 
-          Container(
-            height: context.tradingViewWidgetHeight,
-            padding: const EdgeInsets.all(defaultPadding),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 8,
-                  spreadRadius: 1,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Padding(
-            padding: context.smallTopPad,
-            child: TradingViewWidgetHtml(cryptoName: CryptoNameDataSource.binanceSourceEuro(mTradingViewCoin!.toString(),mTradingViewCurrency!)),
-          ),
-          ),
 
-              const SizedBox(height: smallPadding,),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(defaultPadding),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                      spreadRadius: 1,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Center(
-                      child: Text("Spot", style: TextStyle(color: kPrimaryColor, fontSize: 17, fontWeight: FontWeight.bold)),
-                    ),
-                    const SizedBox(height: smallPadding,),
-                    const Divider(color: kPurpleColor,),
-                    const SizedBox(height: defaultPadding,),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        SizedBox(
-                          width: 100,
-                          height: 45,
-                          child: FloatingActionButton.extended(
-                            onPressed: () {
-
-                            },
-                            label: const Text(
-                              'Limit',
-                              style: TextStyle(color: Colors.white, fontSize: 15),
-                            ),
-                            backgroundColor: kPrimaryColor,
-                          ),
-                        ),
-                        const SizedBox(width: defaultPadding),
-                        SizedBox(
-                          width: 100,
-                          height: 45,
-                          child: FloatingActionButton.extended(
-                            onPressed: () {
-
-                            },
-                            label: const Text(
-                              'Market',
-                              style: TextStyle(color: Colors.white, fontSize: 15),
-                            ),
-                            backgroundColor: kPrimaryColor,
-                          ),
-                        ),
-                        const SizedBox(width: defaultPadding),
-                        SizedBox(
-                          width: 110,
-                          height: 45,
-                          child: FloatingActionButton.extended(
-                            onPressed: () {
-                              // Add your onPressed code here!
-                              /*Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const CardsListScreen()),
-                              );*/
-                            },
-                            label: const Text(
-                              'Stop Limit',
-                              style: TextStyle(color: Colors.white, fontSize: 15),
-                            ),
-                            backgroundColor: kPrimaryColor,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // Balance
-                    const SizedBox(height: defaultPadding,),
+                    /*const SizedBox(height: smallPadding),
                     Container(
                       width: double.infinity,
-                      height: 55.0,
                       padding: const EdgeInsets.all(defaultPadding),
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -451,80 +228,61 @@ class _CardsScreenState extends State<SpotTradeScreen> {
                             offset: const Offset(0, 4),
                           ),
                         ],
-                      ),// Replace with your desired color
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text("$mAccountCurrency Balance",style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold, fontSize: 15),),
-
-                          Text("$mAccountBalance $mAccountCurrency",style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold, fontSize: 15),),
+                          const Text("24h Change",
+                              style: TextStyle(color: kPurpleColor)),
+                          const SizedBox(height: 5),
+                          Text(
+                              "$mTwentyFourHourChange  $mTwentyFourHourPercentage%",
+                              style: TextStyle(
+                                  color: double.tryParse(
+                                                  mTwentyFourHourPercentage!) !=
+                                              null &&
+                                          double.tryParse(
+                                                  mTwentyFourHourPercentage!)! <
+                                              0
+                                      ? kRedColor
+                                      : kGreenColor,
+                                  fontSize: 16)),
+                          const SizedBox(height: smallPadding),
+                          const Divider(color: kPrimaryLightColor),
+                          const Text("24h High",
+                              style: TextStyle(color: kPurpleColor)),
+                          const SizedBox(height: 5),
+                          Text("$mTwentyFourHourHigh",
+                              style: const TextStyle(fontSize: 16)),
+                          const SizedBox(height: smallPadding),
+                          const Divider(color: kPrimaryLightColor),
+                          const Text("24h Low",
+                              style: TextStyle(color: kPurpleColor)),
+                          const SizedBox(height: 5),
+                          Text("$mTwentyFourHourLow",
+                              style: const TextStyle(fontSize: 16)),
+                          const SizedBox(height: smallPadding),
+                          const Divider(color: kPrimaryLightColor),
+                          const Text("24h Volume",
+                              style: TextStyle(color: kPurpleColor)),
+                          const SizedBox(height: 5),
+                          Text("$mTwentyFourHourVolume",
+                              style: const TextStyle(fontSize: 16)),
+                          const SizedBox(height: smallPadding),
+                          const Divider(color: kPrimaryLightColor),
+                          const Text("24h Volume(USDT)",
+                              style: TextStyle(color: kPurpleColor)),
+                          const SizedBox(height: 5),
+                          Text("$mTwentyFourHourVolumeUSDT",
+                              style: const TextStyle(fontSize: 16)),
                         ],
                       ),
                     ),
-
-                    // Price
-                    const SizedBox(height: defaultPadding,),
+                    const SizedBox(height: largePadding),
                     Container(
                       width: double.infinity,
-                      height: 55.0,
+                      height: 418,
                       padding: const EdgeInsets.all(defaultPadding),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: kPurpleColor, width: 1),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            spreadRadius: 1,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text("Price",style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold, fontSize: 15),),
-
-                          Text("$mTwentyFourHourChange  $mAccountCurrency",style: const TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold, fontSize: 15),),
-                        ],
-                      ),
-                    ),
-
-                    // No of coins
-                    const SizedBox(height: defaultPadding,),
-                    Container(
-                      width: double.infinity,
-                      height: 55.0,
-                      padding: const EdgeInsets.all(defaultPadding),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: kPurpleColor, width: 1),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            spreadRadius: 1,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text("No of Coins",style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold, fontSize: 15),),
-
-                          Text("BTC",style: TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold, fontSize: 15),),
-                        ],
-                      ),
-                    ),
-
-                    // Range
-                    const SizedBox(height: defaultPadding,),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16.0),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
@@ -540,57 +298,93 @@ class _CardsScreenState extends State<SpotTradeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            "Amount Range",
-                            style: TextStyle(fontSize: 16, color: kPrimaryColor, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Text("0%", style: TextStyle(fontSize: 12, color: kPrimaryColor, fontWeight: FontWeight.bold)),
-                              Expanded(
-                                child: SliderTheme(
-                                  data: SliderTheme.of(context).copyWith(
-                                    activeTrackColor: kPurpleColor,
-                                    inactiveTrackColor: kPrimaryLightColor,
-                                    thumbColor: kPrimaryColor,
-                                    overlayColor: Colors.black.withOpacity(0.1),
-                                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
-                                    trackHeight: 4.0,
+                          const Text("Recent Trades",
+                              style: TextStyle(
+                                  color: kPrimaryColor,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold)),
+                          const SizedBox(height: smallPadding),
+                          // Wrap ListView in a Container or SizedBox with a defined height
+                          SizedBox(
+                            height: 350, // Adjust this height as needed
+                            child: ListView.builder(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              itemCount: recentTrades.length,
+                              itemBuilder: (context, index) {
+                                final trade = recentTrades[index];
+                                return Container(
+                                  margin: const EdgeInsets.only(
+                                      bottom: smallPadding),
+                                  padding: const EdgeInsets.all(defaultPadding),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                        color: kPurpleColor, width: 1),
                                   ),
-                                  child: Slider(
-                                    value: sliderValue,
-                                    min: 0,
-                                    max: 100,
-                                    divisions: 100,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        sliderValue = value;
-                                       // mSidePercentage(sliderValue);
-                                      });
-                                    },
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text("Price ($mAccountCurrency):",
+                                              style: const TextStyle(
+                                                  color: kPrimaryColor,
+                                                  fontWeight: FontWeight.bold)),
+                                          Text("${trade.price}",
+                                              style: const TextStyle(
+                                                  color: kPrimaryColor)),
+                                        ],
+                                      ),
+                                      const SizedBox(height: smallPadding),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text("Qty (BTC):",
+                                              style: TextStyle(
+                                                  color: kPrimaryColor,
+                                                  fontWeight: FontWeight.bold)),
+                                          Text("${trade.qty}",
+                                              style: const TextStyle(
+                                                  color: kPrimaryColor)),
+                                        ],
+                                      ),
+                                      const SizedBox(height: smallPadding),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text("Time:",
+                                              style: TextStyle(
+                                                  color: kPrimaryColor,
+                                                  fontWeight: FontWeight.bold)),
+                                          Text(formatTimestamp(trade.time),
+                                              style: const TextStyle(
+                                                  color: kPrimaryColor)),
+                                        ],
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              const Text("100%", style: TextStyle(fontSize: 12, color: kPrimaryColor, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                          Center(
-                            child:  Text("${sliderValue.toInt()}%", style: const TextStyle(fontSize: 12, color: kPrimaryColor, fontWeight: FontWeight.bold)),
+                                );
+                              },
+                            ),
                           ),
                         ],
                       ),
-                    ),
+                    ),*/
 
-                    // Total Balance
-                    const SizedBox(height: defaultPadding,),
+                    const SizedBox(
+                      height: smallPadding,
+                    ),
                     Container(
-                      width: double.infinity,
-                      height: 55.0,
+                      height: context.tradingViewWidgetHeight,
                       padding: const EdgeInsets.all(defaultPadding),
                       decoration: BoxDecoration(
-                        color: kPrimaryColor,
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
@@ -600,73 +394,413 @@ class _CardsScreenState extends State<SpotTradeScreen> {
                             offset: const Offset(0, 4),
                           ),
                         ],
-                      ),// Replace with your desired color
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text("Total",style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),),
-
-                          Text("214.5093297443351 USD",style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),),
-                        ],
+                      ),
+                      child: Padding(
+                        padding: context.smallTopPad,
+                        child: TradingViewWidgetHtml(
+                            cryptoName: CryptoNameDataSource.binanceSourceEuro(
+                                mTradingViewCoin!.toString(),
+                                mTradingViewCurrency!)),
                       ),
                     ),
-
-                    //Buy And Sell Button
-                    const SizedBox(height: 35,),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-
-                        const SizedBox(width: largePadding,),
-
-                        SizedBox(
-                          width: 130,
-                          height: 45,
-                          child: FloatingActionButton.extended(
-                            onPressed: () {
-
-                            },
-                            label: const Text(
-                              'Buy',
-                              style: TextStyle(color: Colors.white, fontSize: 15),
-                            ),
-                            backgroundColor: kGreenColor,
+                    const SizedBox(
+                      height: smallPadding,
+                    ),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(defaultPadding),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                            offset: const Offset(0, 4),
                           ),
-                        ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Center(
+                            child: Text("Spot",
+                                style: TextStyle(
+                                    color: kPrimaryColor,
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.bold)),
+                          ),
+                          const SizedBox(
+                            height: smallPadding,
+                          ),
+                          const Divider(
+                            color: kPurpleColor,
+                          ),
+                          const SizedBox(
+                            height: defaultPadding,
+                          ),
 
-                        const SizedBox(width: defaultPadding),
-                        SizedBox(
-                          width: 130,
-                          height: 45,
-                          child: FloatingActionButton.extended(
-                            onPressed: () {
-                              // Add your onPressed code here!
-                              /*Navigator.push(
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              SizedBox(
+                                width: 100,
+                                height: 45,
+                                child: FloatingActionButton.extended(
+                                  onPressed: () {},
+                                  label: const Text(
+                                    'Limit',
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 15),
+                                  ),
+                                  backgroundColor: kPrimaryColor,
+                                ),
+                              ),
+                              const SizedBox(width: defaultPadding),
+                              SizedBox(
+                                width: 100,
+                                height: 45,
+                                child: FloatingActionButton.extended(
+                                  onPressed: () {},
+                                  label: const Text(
+                                    'Market',
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 15),
+                                  ),
+                                  backgroundColor: kPrimaryColor,
+                                ),
+                              ),
+                              const SizedBox(width: defaultPadding),
+                              SizedBox(
+                                width: 110,
+                                height: 45,
+                                child: FloatingActionButton.extended(
+                                  onPressed: () {
+                                    // Add your onPressed code here!
+                                    /*Navigator.push(
                                 context,
                                 MaterialPageRoute(builder: (context) => const CardsListScreen()),
                               );*/
-                            },
-                            label: const Text(
-                              'Sell',
-                              style: TextStyle(color: Colors.white, fontSize: 15),
-                            ),
-                            backgroundColor: kRedColor,
+                                  },
+                                  label: const Text(
+                                    'Stop Limit',
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 15),
+                                  ),
+                                  backgroundColor: kPrimaryColor,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
 
-                        const SizedBox(width: largePadding,),
+                          // Balance
+                          const SizedBox(
+                            height: defaultPadding,
+                          ),
+                          Container(
+                            width: double.infinity,
+                            height: 55.0,
+                            padding: const EdgeInsets.all(defaultPadding),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            // Replace with your desired color
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "$mAccountCurrency Balance",
+                                  style: const TextStyle(
+                                      color: kPrimaryColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15),
+                                ),
+                                Text(
+                                  "$mAccountBalance $mAccountCurrency",
+                                  style: const TextStyle(
+                                      color: kPrimaryColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15),
+                                ),
+                              ],
+                            ),
+                          ),
 
-                      ],
+                          // Price
+                          const SizedBox(
+                            height: defaultPadding,
+                          ),
+                          Container(
+                            width: double.infinity,
+                            height: 55.0,
+                            padding: const EdgeInsets.all(defaultPadding),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: kPurpleColor, width: 1),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  "Price",
+                                  style: TextStyle(
+                                      color: kPrimaryColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15),
+                                ),
+                                Text(
+                                  "$mTwentyFourHourChange  $mAccountCurrency",
+                                  style: const TextStyle(
+                                      color: kPrimaryColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // No of coins
+                          const SizedBox(
+                            height: defaultPadding,
+                          ),
+                          Container(
+                            width: double.infinity,
+                            height: 55.0,
+                            padding: const EdgeInsets.all(defaultPadding),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: kPurpleColor, width: 1),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "No of Coins",
+                                  style: TextStyle(
+                                      color: kPrimaryColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15),
+                                ),
+                                Text(
+                                  "BTC",
+                                  style: TextStyle(
+                                      color: kPrimaryColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Range
+                          const SizedBox(
+                            height: defaultPadding,
+                          ),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16.0),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Amount Range",
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      color: kPrimaryColor,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    const Text("0%",
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            color: kPrimaryColor,
+                                            fontWeight: FontWeight.bold)),
+                                    Expanded(
+                                      child: SliderTheme(
+                                        data: SliderTheme.of(context).copyWith(
+                                          activeTrackColor: kPurpleColor,
+                                          inactiveTrackColor:
+                                              kPrimaryLightColor,
+                                          thumbColor: kPrimaryColor,
+                                          overlayColor:
+                                              Colors.black.withOpacity(0.1),
+                                          thumbShape:
+                                              const RoundSliderThumbShape(
+                                                  enabledThumbRadius: 10),
+                                          trackHeight: 4.0,
+                                        ),
+                                        child: Slider(
+                                          value: sliderValue,
+                                          min: 0,
+                                          max: 100,
+                                          divisions: 100,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              sliderValue = value;
+                                              // mSidePercentage(sliderValue);
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text("100%",
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            color: kPrimaryColor,
+                                            fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                                Center(
+                                  child: Text("${sliderValue.toInt()}%",
+                                      style: const TextStyle(
+                                          fontSize: 12,
+                                          color: kPrimaryColor,
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Total Balance
+                          const SizedBox(
+                            height: defaultPadding,
+                          ),
+                          Container(
+                            width: double.infinity,
+                            height: 55.0,
+                            padding: const EdgeInsets.all(defaultPadding),
+                            decoration: BoxDecoration(
+                              color: kPrimaryColor,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            // Replace with your desired color
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Total",
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15),
+                                ),
+                                Text(
+                                  "214.5093297443351 USD",
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          //Buy And Sell Button
+                          const SizedBox(
+                            height: 35,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const SizedBox(
+                                width: largePadding,
+                              ),
+                              SizedBox(
+                                width: 130,
+                                height: 45,
+                                child: FloatingActionButton.extended(
+                                  onPressed: () {},
+                                  label: const Text(
+                                    'Buy',
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 15),
+                                  ),
+                                  backgroundColor: kGreenColor,
+                                ),
+                              ),
+                              const SizedBox(width: defaultPadding),
+                              SizedBox(
+                                width: 130,
+                                height: 45,
+                                child: FloatingActionButton.extended(
+                                  onPressed: () {
+                                    // Add your onPressed code here!
+                                    /*Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const CardsListScreen()),
+                              );*/
+                                  },
+                                  label: const Text(
+                                    'Sell',
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 15),
+                                  ),
+                                  backgroundColor: kRedColor,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: largePadding,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-
                   ],
                 ),
               ),
-
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
@@ -700,14 +834,22 @@ class _CardsScreenState extends State<SpotTradeScreen> {
         return ListView(
           children: [
             const SizedBox(height: 25),
-            _buildTransferOptions('BTC', 'https://assets.coincap.io/assets/icons/btc@2x.png'),
-            _buildTransferOptions('BNB', 'https://assets.coincap.io/assets/icons/bnb@2x.png'),
-            _buildTransferOptions('ADA', 'https://assets.coincap.io/assets/icons/ada@2x.png'),
-            _buildTransferOptions('SOL', 'https://assets.coincap.io/assets/icons/sol@2x.png'),
-            _buildTransferOptions('DOGE', 'https://assets.coincap.io/assets/icons/doge@2x.png'),
-            _buildTransferOptions('LTC', 'https://assets.coincap.io/assets/icons/ltc@2x.png'),
-            _buildTransferOptions('ETH', 'https://assets.coincap.io/assets/icons/eth@2x.png'),
-            _buildTransferOptions('SHIB', 'https://assets.coincap.io/assets/icons/shib@2x.png'),
+            _buildTransferOptions(
+                'BTC', 'https://assets.coincap.io/assets/icons/btc@2x.png'),
+            _buildTransferOptions(
+                'BNB', 'https://assets.coincap.io/assets/icons/bnb@2x.png'),
+            _buildTransferOptions(
+                'ADA', 'https://assets.coincap.io/assets/icons/ada@2x.png'),
+            _buildTransferOptions(
+                'SOL', 'https://assets.coincap.io/assets/icons/sol@2x.png'),
+            _buildTransferOptions(
+                'DOGE', 'https://assets.coincap.io/assets/icons/doge@2x.png'),
+            _buildTransferOptions(
+                'LTC', 'https://assets.coincap.io/assets/icons/ltc@2x.png'),
+            _buildTransferOptions(
+                'ETH', 'https://assets.coincap.io/assets/icons/eth@2x.png'),
+            _buildTransferOptions(
+                'SHIB', 'https://assets.coincap.io/assets/icons/shib@2x.png'),
           ],
         );
       },
@@ -735,13 +877,14 @@ class _CardsScreenState extends State<SpotTradeScreen> {
         setState(() {
           selectedTransferType = type;
           mTradingViewCoin = type;
+          mRecentTradeDetails();
           setState(() {
-            if(mAccountCurrency == "EUR"){
+            if (mAccountCurrency == "EUR") {
               String coin = '${selectedTransferType!.toLowerCase()}eur';
               selectedCoin = coin;
               channel.sink.close();
               initializeChannel();
-            }else{
+            } else {
               String coin = '${selectedTransferType!.toLowerCase()}usdt';
               selectedCoin = coin;
               channel.sink.close();
@@ -754,7 +897,7 @@ class _CardsScreenState extends State<SpotTradeScreen> {
     );
   }
 
-  /*Future<void> mSidePercentage(double sliderValue) async {
+/*Future<void> mSidePercentage(double sliderValue) async {
     print('SliderValue: $sliderValue');
     print('24 Hour Change: $mTwentyFourHourChange');
 
@@ -785,9 +928,4 @@ class _CardsScreenState extends State<SpotTradeScreen> {
       print('Invalid Account Balance');
     }
   }*/
-
-
-
-
 }
-
