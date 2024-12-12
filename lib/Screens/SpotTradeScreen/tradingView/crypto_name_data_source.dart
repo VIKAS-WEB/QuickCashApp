@@ -27,15 +27,16 @@ new TradingView.widget({
   "width": "100%",
   "height": 1180,
   "symbol": "$name",
-  "interval": "D",
+  "interval": "5",
   "timezone": "Etc/UTC",
-  "theme": "dark",
+  "theme": "light",
   "style": "1",
-  "locale": "en",
-  "toolbar_bg": "#121536",
-  "backgroundColor": "rgba(18, 21, 54, 1)",
+  "locale": "en", 
   "enable_publishing": false,
-  "save_image": false,
+  "save_image": true,
+  "hide_volume": true,
+  "allow_symbol_change": false,
+  "calendar": true,
   "container_id": "tradingview_4418d"
   });
 </script>
