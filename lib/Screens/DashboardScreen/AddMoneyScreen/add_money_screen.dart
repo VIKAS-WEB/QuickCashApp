@@ -172,7 +172,7 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
 
   void _handlePaymentError(PaymentFailureResponse response) {
     showPaymentPopupMessage(context, false, 'Payment Failed!');
-    mAddPaymentSuccess("", "succeeded", "Razorpay");
+    mAddPaymentSuccess("", "cancelled", "Razorpay");
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {}
@@ -205,13 +205,15 @@ class _AddMoneyScreen extends State<AddMoneyScreen> {
 
       if (response.message == "Payment has been done Successfully !!!") {
         setState(() {
-          String totalAmount = '$mToCurrencySymbol $mAmountCharge';
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddPaymentSuccessScreen(transactionId: paymentId, amount: totalAmount),
-            ),
-          );
+          if(status == 'succeeded'){
+            String totalAmount = '$mToCurrencySymbol $mAmountCharge';
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AddPaymentSuccessScreen(transactionId: paymentId, amount: totalAmount),
+              ),
+            );
+          }
 
           isAddLoading = false;
         });
