@@ -131,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 builder: (context) => IconButton(
                   icon: const Icon(Icons.menu),
                   onPressed: () {
-                    Scaffold.of(context).openDrawer();
+                    Scaffold.of(context).openDrawer();  
                   },
                   color: kPrimaryColor,
                   iconSize: 30,
@@ -139,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            if(AuthManager.getKycStatus() !="completed")
+            if(AuthManager.getKycStatus() != "completed")
             Positioned(
               top: 48,
               right: 80,

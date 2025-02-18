@@ -66,11 +66,11 @@ class ExchangeMoneyData {
 
   factory ExchangeMoneyData.fromJson(Map<String, dynamic> json) {
     return ExchangeMoneyData(
-      rate: _parseDouble(json['rate'])!,
+      rate: _parseDouble(json['rate']),
       totalFees: _parseDouble(json['totalFees']),
-      totalCharge: _parseDouble(json['totalCharge'])!,
-      convertedAmount: _parseDouble(json['convertedAmount'])!,
-      sourceAccountBalance: _parseDouble(json['sourceAccountBalance'])!,
+      totalCharge: _parseDouble(json['totalCharge']),
+      convertedAmount: _parseDouble(json['convertedAmount']),
+      sourceAccountBalance: _parseDouble(json['sourceAccountBalance']),
       sourceAccountCountryCode: json['sourceAccountCountryCode'] as String? ?? 'Unknown',  // Handle null
       sourceAccountNo: json['sourceAccountNo'] as String? ?? 'Unknown',  // Handle null
       transferAccountCountryCode: json['transferAccountCountryCode'] as String? ?? 'Unknown',  // Handle null

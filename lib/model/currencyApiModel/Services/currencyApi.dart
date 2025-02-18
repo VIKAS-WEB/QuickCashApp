@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
+import 'package:quickcash/model/currencyApiModel/Model/currencyModel.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import '../../../../util/apiConstants.dart';
-import 'currencyModel.dart';
 
 class CurrencyApi {
   final Dio _dio = Dio();
@@ -22,7 +22,8 @@ class CurrencyApi {
       if (response.statusCode == 200 || response.statusCode == 201) {
         return CurrencyResponse.fromJson(response.data);
       } else {
-        throw Exception('Failed to authenticate user: ${response.statusMessage}');
+        throw Exception(
+            'Failed to authenticate user: ${response.statusMessage}');
       }
     } on DioException catch (e) {
       throw Exception('Dio error: ${e.response?.data ?? e.message}');

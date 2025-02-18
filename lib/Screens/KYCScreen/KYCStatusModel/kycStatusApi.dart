@@ -29,6 +29,7 @@ class KycStatusApi {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        print(response.statusMessage);
         return KycStatusResponse.fromJson(response.data);
       } else {
         throw Exception('Failed to fetch data: ${response.statusMessage}');

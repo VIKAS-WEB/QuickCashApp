@@ -4,6 +4,9 @@ class TransactionListDetails {
   final String? transactionType;
   final String? transactionAmount;
   final String? trxId;
+  final String? to_currency;
+  final String? conversionAmount;
+  final String? conversionAmounttext;
   final double? balance;
   final String? transactionStatus;
   final double? amount;
@@ -11,7 +14,10 @@ class TransactionListDetails {
   final String? fromCurrency;
 
   TransactionListDetails({
+    this.to_currency,
     this.transactionDate,
+    this.conversionAmount,
+    this.conversionAmounttext,
     this.transactionId,
     this.transactionType,
     this.transactionAmount,
@@ -26,6 +32,9 @@ class TransactionListDetails {
   factory TransactionListDetails.fromJson(Map<String, dynamic> json) {
     return TransactionListDetails(
       transactionDate: json['createdAt'] as String?,
+      to_currency: json['to_currency'] as String?,
+      conversionAmount: json['conversionAmount']?.toString(),
+      conversionAmounttext: json['conversionAmountText'] as String?,
       transactionId: json['trx'] as String?,
       transactionType: json['trans_type'] as String?,
       transactionAmount: json['amountText'] as String?,
@@ -37,9 +46,8 @@ class TransactionListDetails {
       amount: (json['amount'] is int
           ? (json['amount'] as int).toDouble()
           : json['amount']) as double?,
-      fees: (json['fee'] is int
-          ? (json['fee'] as int).toDouble()
-          : json['fee']) as double?,
+      fees: (json['fee'] is int ? (json['fee'] as int).toDouble() : json['fee'])
+          as double?,
       fromCurrency: json['from_currency'] as String?,
     );
   }
@@ -55,7 +63,8 @@ class TransactionListResponse {
   factory TransactionListResponse.fromJson(Map<String, dynamic> json) {
     return TransactionListResponse(
       transactionList: (json['data'] as List<dynamic>?)
-          ?.map((item) => TransactionListDetails.fromJson(item as Map<String, dynamic>))
+          ?.map((item) =>
+              TransactionListDetails.fromJson(item as Map<String, dynamic>))
           .toList(),
     );
   }

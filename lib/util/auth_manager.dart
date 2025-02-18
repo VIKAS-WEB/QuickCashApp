@@ -81,7 +81,6 @@ class AuthManager {
     return _sharedPref.getString('otp') ?? '';
   }
 
-
   // Save Currency
   static Future<void> saveCurrency(String otp) async {
     await _sharedPref.setString('currency', otp);
@@ -99,17 +98,15 @@ class AuthManager {
   static String getBalance() {
     return _sharedPref.getString('balance') ?? '';
   }
-
-
-
-
+  
+  
   // Access Token
   static Future<void> saveToken(String token) async {
     await _sharedPref.setString('access_token', token);
     authChangeNotifier.value = token;
   }
 
-  static String getToken(){
+  static String getToken() {
     return _sharedPref.getString('access_token') ?? '';
   }
 
@@ -126,5 +123,4 @@ class AuthManager {
     String token = readAuth();
     return token.isNotEmpty;
   }
-
 }

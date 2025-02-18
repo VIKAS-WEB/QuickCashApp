@@ -23,12 +23,13 @@ class PayRecipientsScreen extends StatefulWidget {
 class _PayRecipientsScreen extends State<PayRecipientsScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final ExchangeCurrencyApi _exchangeCurrencyApi = ExchangeCurrencyApi();
-  final RecipientMakePaymentApi _recipientMakePaymentApi = RecipientMakePaymentApi();
+  final RecipientMakePaymentApi _recipientMakePaymentApi =
+      RecipientMakePaymentApi();
 
   final TextEditingController mSendAmountController = TextEditingController();
-  final TextEditingController mReceiveAmountController = TextEditingController();
-  
-  
+  final TextEditingController mReceiveAmountController =
+      TextEditingController();
+
   final TextEditingController mFullName = TextEditingController();
   final TextEditingController mEmail = TextEditingController();
   final TextEditingController mMobileNo = TextEditingController();
@@ -55,7 +56,6 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
   String? mReceiveCurrency = 'Select Currency';
   double? mReceiveCurrencyAmount = 0.0;
   String? mReceiveCurrencySymbol = '';
-
 
   // Send Currency Set
   Future<void> mSelectedSendCurrency(mSelectedSendCountry,
@@ -103,7 +103,8 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
           isLoading = false;
           mTotalCharge = response.data.totalFees;
           mTotalPayable = response.data.totalCharge.toString();
-          mReceiveAmountController.text = response.data.convertedAmount.toStringAsFixed(2);
+          mReceiveAmountController.text =
+              response.data.convertedAmount.toStringAsFixed(2);
         });
       } else {
         setState(() {
@@ -120,7 +121,7 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
       });
     }
   }
-  
+
   Future<void> mMakePayment() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -128,10 +129,10 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
       });
 
       try {
-        String amountText = '$mSendCurrencySymbol ${mSendAmountController
-            .text}';
-        String conversionAmountText = '$mReceiveCurrencySymbol ${mReceiveAmountController
-            .text}';
+        String amountText =
+            '$mSendCurrencySymbol ${mSendAmountController.text}';
+        String conversionAmountText =
+            '$mReceiveCurrencySymbol ${mReceiveAmountController.text}';
 
         final request = RecipientMakePaymentRequest(
             userId: AuthManager.getUserId(),
@@ -152,10 +153,13 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
             bankName: mBankName.text);
         final response = await _recipientMakePaymentApi.makePaymentApi(request);
 
-        if(response.message == "Receipient is added Successfully!!!"){
+        if (response.message == "Receipient is added Successfully!!!") {
           setState(() {
             isAddLoading = false;
-            CustomSnackBar.showSnackBar(context: context, message: "Recipient is added Successfully ", color: kPrimaryColor);
+            CustomSnackBar.showSnackBar(
+                context: context,
+                message: "Recipient is added Successfully ",
+                color: kPrimaryColor);
             Navigator.of(context).pop();
             Navigator.push(
               context,
@@ -164,17 +168,22 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
               ),
             );
           });
-        }else{
+        } else {
           setState(() {
             isAddLoading = false;
-            CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue", color: kPrimaryColor);
+            CustomSnackBar.showSnackBar(
+                context: context,
+                message: "We are facing some issue",
+                color: kPrimaryColor);
           });
         }
-
       } catch (error) {
         setState(() {
           isAddLoading = false;
-          CustomSnackBar.showSnackBar(context: context, message: "Something went wrong!", color: kPrimaryColor);
+          CustomSnackBar.showSnackBar(
+              context: context,
+              message: "Something went wrong!",
+              color: kPrimaryColor);
         });
       }
     }
@@ -264,14 +273,6 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                                     color: kPrimaryColor,
                                                   ),
                                                 ),
-                                                Text(
-                                                  '${mSendCurrencyAmount?.toStringAsFixed(2)}',
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 14,
-                                                    color: kPrimaryColor,
-                                                  ),
-                                                ),
                                               ],
                                             ),
                                           ),
@@ -281,6 +282,25 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                       ),
                                     ),
                                   ),
+                                ),
+                                SizedBox(
+                                  height: smallPadding,
+                                ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Send Avg Balance = ',
+                                      style: TextStyle(color: kPrimaryColor),
+                                    ),
+                                    Text(
+                                      '${mSendCurrencyAmount?.toStringAsFixed(2)}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                        color: kPrimaryColor,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                                 const SizedBox(
                                   height: largePadding,
@@ -308,7 +328,7 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                     }
                                     return null;
                                   },
-                                  maxLines: 2,
+                                  maxLines: 3,
                                   minLines: 1,
                                   onChanged: (value) {
                                     if (mSendCurrency != "Select Currency") {
@@ -316,13 +336,7 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                           "Select Currency") {
                                         if (mSendAmountController
                                             .text.isNotEmpty) {
-                                          if (mSendAmountController.text ==
-                                              mSendCurrencyAmount
-                                                  .toString() ||
-                                              double.parse(
-                                                  mSendAmountController
-                                                      .text) <=
-                                                  mSendCurrencyAmount!) {
+                                          if (mSendAmountController.text == mSendCurrencyAmount.toString() || double.parse(mSendAmountController.text) <= mSendCurrencyAmount!) {
                                             setState(() {
                                               mExchangeMoneyApi();
                                             });
@@ -331,7 +345,7 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                               CustomSnackBar.showSnackBar(
                                                   context: context,
                                                   message:
-                                                  "Please enter a valid amount",
+                                                      "Please enter a valid amount",
                                                   color: kPrimaryColor);
                                             });
                                           }
@@ -340,21 +354,21 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                           CustomSnackBar.showSnackBar(
                                               context: context,
                                               message:
-                                              "Please enter sender amount",
+                                                  "Please enter sender amount",
                                               color: kPrimaryColor);
                                         }
                                       } else {
                                         CustomSnackBar.showSnackBar(
                                             context: context,
                                             message:
-                                            "Please select Recipient will receive currency",
+                                                "Please select Recipient will receive currency",
                                             color: kPrimaryColor);
                                       }
                                     } else {
                                       CustomSnackBar.showSnackBar(
                                           context: context,
                                           message:
-                                          "Please select send currency",
+                                              "Please select send currency",
                                           color: kPrimaryColor);
                                     }
                                   },
@@ -447,14 +461,14 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                                     color: kPrimaryColor,
                                                   ),
                                                 ),
-                                                Text(
-                                                  '${mReceiveCurrencyAmount?.toStringAsFixed(2)}',
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 14,
-                                                    color: kPrimaryColor,
-                                                  ),
-                                                ),
+                                                // Text(
+                                                //   '${mReceiveCurrencyAmount?.toStringAsFixed(2)}',
+                                                //   style: const TextStyle(
+                                                //     fontWeight: FontWeight.bold,
+                                                //     fontSize: 14,
+                                                //     color: kPrimaryColor,
+                                                //   ),
+                                                // ),
                                               ],
                                             ),
                                           ),
@@ -721,13 +735,15 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                           },
                         ),
 
-                        const SizedBox(height: largePadding,),
-                        if (isAddLoading) const Center(
-                          child: CircularProgressIndicator(
-                            color: kPrimaryColor,
-                          ),
-                        ), // Show loading indicator
-
+                        const SizedBox(
+                          height: largePadding,
+                        ),
+                        if (isAddLoading)
+                          const Center(
+                            child: CircularProgressIndicator(
+                              color: kPrimaryColor,
+                            ),
+                          ), // Show loading indicator
 
                         const SizedBox(height: 35),
                         Padding(

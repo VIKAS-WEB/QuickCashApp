@@ -160,13 +160,12 @@ class _UpdateDetailsScreenState extends State<UpdateDetailsScreen> {
                         color: kPrimaryColor,
                       ),
                     // Show loading indicator
-                    if (errorMessage !=
-                        null) // Show error message if there's an error
-                      Text(errorMessage!,
-                          style: const TextStyle(color: Colors.red)),
-                    const SizedBox(
-                      height: defaultPadding,
-                    ),
+                    // if (errorMessage != null) // Show error message if there's an error
+                    //   Text(errorMessage!,
+                    //   style: const TextStyle(color: Colors.red)),
+                    //   const SizedBox(
+                    //   height: defaultPadding,
+                    // ),
                     // User Name
                     TextFormField(
                       controller: name,
@@ -178,7 +177,7 @@ class _UpdateDetailsScreenState extends State<UpdateDetailsScreen> {
                       style: const TextStyle(color: kPrimaryColor),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your full name';
+                        return 'Please enter your full name';
                         }
                         return null;
                       },

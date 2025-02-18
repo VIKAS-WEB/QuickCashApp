@@ -5,8 +5,8 @@ import 'package:quickcash/Screens/InvoicesScreen/InvoiceDashboardScreen/AddInvoi
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/model/productApi.dart';
 import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/model/productModel.dart';
 import 'package:quickcash/constants.dart';
-import 'package:quickcash/model/currencyApiModel/currencyApi.dart';
-import 'package:quickcash/model/currencyApiModel/currencyModel.dart';
+import 'package:quickcash/model/currencyApiModel/Model/currencyModel.dart';
+import 'package:quickcash/model/currencyApiModel/Services/currencyApi.dart';
 import 'package:quickcash/model/taxApi/taxApi.dart';
 import 'package:quickcash/model/taxApi/taxApiModel.dart';
 import 'package:quickcash/util/customSnackBar.dart';

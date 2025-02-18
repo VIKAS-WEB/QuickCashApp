@@ -5,12 +5,11 @@ import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteScreen/AddQuo
 import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/quoteScreen/AddQuoteModel/addQuoteModel.dart';
 import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart'; //
+import 'package:quickcash/model/currencyApiModel/Model/currencyModel.dart';
+import 'package:quickcash/model/currencyApiModel/Services/currencyApi.dart';
 import 'package:quickcash/model/taxApi/taxApi.dart';
 import 'package:quickcash/model/taxApi/taxApiModel.dart';
 import 'package:quickcash/util/auth_manager.dart';
-
-import '../../../../model/currencyApiModel/currencyApi.dart';
-import '../../../../model/currencyApiModel/currencyModel.dart';
 import '../../../../util/customSnackBar.dart';
 import '../../../HomeScreen/home_screen.dart';
 import '../../ClientsScreen/ClientsScreen/model/clientsApi.dart';

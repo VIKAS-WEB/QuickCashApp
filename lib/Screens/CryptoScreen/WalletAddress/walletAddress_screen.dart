@@ -237,8 +237,14 @@ class _AddNewCoinBottomSheet extends State<AddNewCoinBottomSheet>{
           CustomSnackBar.showSnackBar(context: context, message: 'Wallet Address Added Successfully!', color: kGreenColor);
 
           Navigator.pop(context);
+
           isLoading = false;
-        });
+           // Reload the entire WalletAddressScreen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const WalletAddressScreen()),
+        );
+      });
       }else{
         setState(() {
           CustomSnackBar.showSnackBar(context: context, message: 'We are facing some issue', color: kRedColor);

@@ -85,7 +85,7 @@ class _KycHomeScreenState extends State<KycHomeScreen> {
                           documentType: selectedDocument,
                           documentNumber: _documentsNoController.text,
                           addressDocumentType: selectedResidentialDocument,
-                          status: "Pending",
+                          status: "Processed",
                           emailVerified: true,
                           primaryPhoneVerified: true,
                           additionalPhoneVerified: true,

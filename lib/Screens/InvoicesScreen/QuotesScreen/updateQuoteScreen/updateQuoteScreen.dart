@@ -4,8 +4,8 @@ import 'package:quickcash/Screens/InvoicesScreen/ProductsScreen/ProductScreen/mo
 import 'package:quickcash/Screens/InvoicesScreen/QuotesScreen/updateQuoteScreen/quoteDetailsModel/quoteDetailsApi.dart';
 import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart'; //
-import 'package:quickcash/model/currencyApiModel/currencyApi.dart';
-import 'package:quickcash/model/currencyApiModel/currencyModel.dart';
+import 'package:quickcash/model/currencyApiModel/Model/currencyModel.dart';
+import 'package:quickcash/model/currencyApiModel/Services/currencyApi.dart';
 import 'package:quickcash/model/taxApi/taxApi.dart';
 import 'package:quickcash/model/taxApi/taxApiModel.dart';
 

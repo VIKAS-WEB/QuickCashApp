@@ -5,7 +5,9 @@ import '../../LoginScreen/login_screen.dart';
 import '../../SignupScreen/signup_screen.dart';
 
 class LoginAndSignupBtn extends StatelessWidget {
-  const LoginAndSignupBtn({super.key,});
+  const LoginAndSignupBtn({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

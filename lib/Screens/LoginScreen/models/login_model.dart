@@ -18,25 +18,27 @@ class LoginResponse {
   final String token;
   final String name;
   final String email;
-  final String ownerProfile;
+  final String? ownerProfile; // Nullable because it can be null in the response
   final bool kycStatus;
 
-  LoginResponse(
-      {required this.userId,
-      required this.token,
-      required this.name,
-      required this.email,
-      required this.ownerProfile,
-      required this.kycStatus});
+  LoginResponse({
+    required this.userId,
+    required this.token,
+    required this.name,
+    required this.email,
+    this.ownerProfile, // Nullable field
+    required this.kycStatus,
+  });
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
     return LoginResponse(
-      userId: json['user_id'],
-      token: json['token'],
-      name: json['data']?['name'] as String,
-      email: json['data']?['email'] as String,
-      ownerProfile: json['data']?['ownerProfile'] as String,
-      kycStatus: json['data']?['kycstatus'] as bool,
+      userId: json['user_id'] ?? '',
+      token: json['token'] ?? '',
+      name: json['data']?['name'] ?? '', // Defaults to an empty string if null
+      email: json['data']?['email'] ?? '', // Defaults to an empty string if null
+      ownerProfile: json['data']?['ownerProfile'], // Nullable, no default
+      kycStatus: json['data']?['kycstatus'] ?? false, // Defaults to false if null
     );
   }
 }
+

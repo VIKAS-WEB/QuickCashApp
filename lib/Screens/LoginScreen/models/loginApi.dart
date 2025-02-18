@@ -14,10 +14,19 @@ class LoginApi {
           'email': email,
           'password': password,
         },
+        //options: Options(headers: {'Content-Type': 'application/x-www-form-urlencoded'}),
       );
 
-      if (response.statusCode == 200) {
-        return LoginResponse.fromJson(response.data);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print("API Response Data: ${response.data}");
+
+        if (response.data != null) {
+          return LoginResponse.fromJson(response.data);
+          
+        } else {
+          throw Exception('Unexpected error: Reponse Data is null');
+        }
+        //return LoginResponse.fromJson(response.data);
       } else {
         throw Exception('Failed to login: ${response.statusMessage}');
       }

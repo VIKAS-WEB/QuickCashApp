@@ -5,10 +5,10 @@ import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/BuyAndSellScreen/crypt
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/BuyAndSellScreen/cryptoSellFetchCoinPriceModel/cryptoSellFetchCoinPriceApi.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/BuyAndSellScreen/cryptoSellFetchCoinPriceModel/cryptoSellFetchCoinPriceModel.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/model/currencyApiModel/Model/currencyModel.dart';
+import 'package:quickcash/model/currencyApiModel/Services/currencyApi.dart';
 import 'package:quickcash/util/customSnackBar.dart';
 
-import '../../../../model/currencyApiModel/currencyApi.dart';
-import '../../../../model/currencyApiModel/currencyModel.dart';
 import 'confirm_buy_screen.dart';
 
 class CryptoBuyAnsSellScreen extends StatefulWidget {
@@ -1054,11 +1054,11 @@ class _CryptoBuyAnsSellScreenState extends State<CryptoBuyAnsSellScreen> {
             _buildTransferOptions(
                 'DOGE', 'https://assets.coincap.io/assets/icons/doge@2x.png'),
             _buildTransferOptions(
-                'LTC', 'https://assets.coincap.io/assets/icons/ltc@2x.png'),
-            _buildTransferOptions(
-                'ETH', 'https://assets.coincap.io/assets/icons/eth@2x.png'),
-            _buildTransferOptions(
-                'SHIB', 'https://assets.coincap.io/assets/icons/shib@2x.png'),
+                'BCH', 'https://assets.coincap.io/assets/icons/bch@2x.png'),
+            // _buildTransferOptions(
+            //     'ETH', 'https://assets.coincap.io/assets/icons/eth@2x.png'),
+            // _buildTransferOptions(
+            //     'SHIB', 'https://assets.coincap.io/assets/icons/shib@2x.png'),
           ],
         );
       },

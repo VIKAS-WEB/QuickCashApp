@@ -220,7 +220,7 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
                                 color: kPrimaryColor),
                           ),
                           Text(
-                            "1$mFromCurrencySymbol = ${mFromRate?.toStringAsFixed(2)}",
+                            "1$mFromCurrencySymbol = $mToCurrencySymbol${mFromRate?.toStringAsFixed(5)}",
                             style: const TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold),
                           ),

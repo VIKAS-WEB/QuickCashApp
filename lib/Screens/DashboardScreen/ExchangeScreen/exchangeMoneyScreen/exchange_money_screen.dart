@@ -132,6 +132,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
         setState(() {
           isLoading = false;
           isReviewOrder = true;
+          mFromRate = response.data.rate;
           mFromTotalFees = response.data.totalFees;
           mToAmountController.text = response.data.convertedAmount.toStringAsFixed(2);
         });
@@ -151,7 +152,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
         isReviewOrder = false;
         CustomSnackBar.showSnackBar(
             context: context,
-            message: "Something went wrong!",
+            message: error.toString(),
             color: kPrimaryColor);
       });
     }
@@ -244,7 +245,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen> {
                                     }else{
                                       CustomSnackBar.showSnackBar(
                                           context: context,
-                                          message: "Please enter a valid amount",
+                                          message: "You Don't Have Sufficient Balance To Exchange Money",
                                           color: kPrimaryColor);
                                     }
                                   } else {

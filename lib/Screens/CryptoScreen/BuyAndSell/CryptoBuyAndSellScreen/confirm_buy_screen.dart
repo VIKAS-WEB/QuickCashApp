@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/cryptoSellModel/cryptoSellModel/cryptoSellApi.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/cryptoSellModel/cryptoSellModel/cryptoSellModel.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/TransactionSuccessScreen/transactionSuccessScreen.dart';
+import 'package:quickcash/Screens/CryptoScreen/WalletAddress/walletAddress_screen.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/auth_manager.dart';
 
@@ -40,8 +41,10 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
   final CryptoBuyWalletAddressApi _cryptoBuyWalletAddressApi =
       CryptoBuyWalletAddressApi();
   final CryptoBuyAddApi _cryptoBuyAddApi = CryptoBuyAddApi();
-  final CryptoTransactionGetDetailsApi _cryptoTransactionGetDetailsApi = CryptoTransactionGetDetailsApi();
-  final RequestWalletAddressApi _requestWalletAddressApi = RequestWalletAddressApi();
+  final CryptoTransactionGetDetailsApi _cryptoTransactionGetDetailsApi =
+      CryptoTransactionGetDetailsApi();
+  final RequestWalletAddressApi _requestWalletAddressApi =
+      RequestWalletAddressApi();
   final CryptoSellAddApi _cryptoSellAddApi = CryptoSellAddApi();
 
   final TextEditingController walletAddress = TextEditingController();
@@ -115,12 +118,14 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
           walletAddress.text = response.data.addresses.first.address;
           isLoading = false;
         });
-      }else if(response.message == "Wallet Address is not available please request wallet address"){
+      } else if (response.message ==
+          "Wallet Address is not available please request wallet address") {
         CustomSnackBar.showSnackBar(
             context: context,
-            message: "Wallet Address is not available please request wallet address",
+            message:
+                "Wallet Address is not available please request wallet address",
             color: kPrimaryColor);
-      }else {
+      } else {
         setState(() {
           isLoading = false;
           CustomSnackBar.showSnackBar(
@@ -142,24 +147,25 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
   }
 
   // Request Wallet Address api ---
-  Future<void> mRequestWalletAddress() async{
+  Future<void> mRequestWalletAddress() async {
     setState(() {
       isLoading = true;
     });
 
-    try{
+    try {
       String coinName = '${mCoin}_TEST';
-      final request = RequestWalletAddressRequest(userId: AuthManager.getUserId(), coinType: coinName);
-      final response = await _requestWalletAddressApi.requestWalletAddressApi(request);
+      final request = RequestWalletAddressRequest(
+          userId: AuthManager.getUserId(), coinType: coinName);
+      final response =
+          await _requestWalletAddressApi.requestWalletAddressApi(request);
 
-      if(response.message == "Wallet Address data is added !!!"){
+      if (response.message == "Wallet Address data is added !!!") {
         setState(() {
           isLoading = false;
           isWalletAddressRequest = false;
           walletAddress.text = response.data;
         });
-
-      }else{
+      } else {
         setState(() {
           isLoading = false;
           CustomSnackBar.showSnackBar(
@@ -168,37 +174,42 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
               color: kPrimaryColor);
         });
       }
-
-    }catch (error) {
+    } catch (error) {
       setState(() {
         isLoading = false;
         isWalletAddressRequest = true;
         CustomSnackBar.showSnackBar(
-            context: context,
-            message: "Something went wrong!",
-            color: kPrimaryColor);
+            context: context, message: "$error", color: kPrimaryColor);
       });
     }
   }
 
   // Crypto Sell Add Api ----
-  Future<void> mCryptoSellAddApi() async{
+  Future<void> mCryptoSellAddApi() async {
     setState(() {
       isUpdateLoading = true;
     });
 
-    try{
+    try {
       int? fees = mFees?.toInt();
       String coinType = '${mCoin}_TEST';
-      final request = CryptoSellRequest(userId: AuthManager.getUserId(), amount: mAmount!, coinType: coinType, currencyType: mCurrency!, fees: fees ?? 0, noOfCoins: mGetAmount!, side: "sell", status: "pending");
+      final request = CryptoSellRequest(
+          userId: AuthManager.getUserId(),
+          amount: mAmount!,
+          coinType: coinType,
+          currencyType: mCurrency!,
+          fees: fees ?? 0,
+          noOfCoins: mGetAmount!,
+          side: "sell",
+          status: "pending");
       final response = await _cryptoSellAddApi.cryptoSellAddApi(request);
 
-      if(response.message == "Crypto Transactions Successfully updated!!!"){
+      if (response.message == "Crypto Transactions Successfully updated!!!") {
         setState(() {
           isUpdateLoading = false;
-          mTransactionDetails(response.data.id,"Crypto Sell");
+          mTransactionDetails(response.data.id, "Crypto Sell");
         });
-      }else{
+      } else {
         setState(() {
           isUpdateLoading = false;
           CustomSnackBar.showSnackBar(
@@ -208,8 +219,7 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
           );
         });
       }
-
-    }catch (error) {
+    } catch (error) {
       setState(() {
         isUpdateLoading = false;
         CustomSnackBar.showSnackBar(
@@ -219,13 +229,12 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
         );
       });
     }
-
   }
 
   // Crypto Buy Add Api -
   Future<void> mCryptoBuyAddApi() async {
     if (selectedTransferType != null) {
-      if(walletAddress.text.isNotEmpty){
+      if (walletAddress.text.isNotEmpty) {
         setState(() {
           isUpdateLoading = true;
         });
@@ -255,7 +264,7 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
               isUpdateLoading = false;
               mCryptoSellAddTransactionId = response.data.id;
 
-              mTransactionDetails(response.data.id,"Crypto Buy");
+              mTransactionDetails(response.data.id, "Crypto Buy");
             });
           } else if (response.message == "All fields are mandatory") {
             setState(() {
@@ -275,19 +284,18 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
             isUpdateLoading = false;
             CustomSnackBar.showSnackBar(
               context: context,
-              message: "Something went wrong!",
+              message: "$error",
               color: kPrimaryColor,
             );
           });
         }
-      }else{
+      } else {
         CustomSnackBar.showSnackBar(
           context: context,
           message: "Please Request Wallet Address!",
           color: kPrimaryColor,
         );
       }
-
     } else {
       CustomSnackBar.showSnackBar(
         context: context,
@@ -297,17 +305,17 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
     }
   }
 
-
   // Crypto Transaction Details api ----
-  Future<void> mTransactionDetails(String id, String mCryptoType) async{
+  Future<void> mTransactionDetails(String id, String mCryptoType) async {
     setState(() {
       isLoading = true;
     });
 
-    try{
-      final response = await _cryptoTransactionGetDetailsApi.cryptoTransactionGetDetailsApiApi(id);
+    try {
+      final response = await _cryptoTransactionGetDetailsApi
+          .cryptoTransactionGetDetailsApiApi(id);
 
-      if(response.message == "list are fetched Successfully"){
+      if (response.message == "list are fetched Successfully") {
         setState(() {
           isLoading = false;
           Navigator.push(
@@ -322,8 +330,7 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
             ),
           );
         });
-
-      }else{
+      } else {
         setState(() {
           isLoading = false;
           CustomSnackBar.showSnackBar(
@@ -333,20 +340,17 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
           );
         });
       }
-
-    }catch (error) {
+    } catch (error) {
       setState(() {
         isLoading = false;
         CustomSnackBar.showSnackBar(
           context: context,
-          message: "Something went wrong!",
+          message: '$error',
           color: kPrimaryColor,
         );
       });
     }
-
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -602,23 +606,33 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
 
           const SizedBox(height: largePadding),
           isWalletAddressRequest
-              ?Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              SizedBox(
-                width: 220,
-                child: FloatingActionButton.extended(
-                  onPressed: isLoading ? null : mRequestWalletAddress,
-                  backgroundColor: kPrimaryColor,
-                  label: const Text(
-                    'Request Wallet Address',
-                    style:
-                    TextStyle(color: kWhiteColor, fontSize: 15),
-                  ),
-                ),
-              ),
-            ],
-          ): Container(),
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    SizedBox(
+                      width: 220,
+                      child: FloatingActionButton.extended(
+                        onPressed: isLoading
+                            ? null
+                            : () {
+                                // Directly navigate to Wallet Address Screen
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => WalletAddressScreen(),
+                                  ),
+                                );
+                              },
+                        backgroundColor: kPrimaryColor,
+                        label: const Text(
+                          'Request Wallet Address',
+                          style: TextStyle(color: kWhiteColor, fontSize: 15),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : Container(),
 
           const SizedBox(
             height: defaultPadding,
@@ -808,7 +822,6 @@ class _ConfirmBuyScreenState extends State<ConfirmBuyScreen> {
                 color: kPrimaryColor,
               ),
             ), // Show loading indicator
-
 
           const SizedBox(height: 55.0),
           Padding(

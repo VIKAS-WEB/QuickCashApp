@@ -5,11 +5,11 @@ import 'package:quickcash/Screens/CardsScreen/addCardModel/addCardApi.dart';
 import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListApi.dart';
 import 'package:quickcash/Screens/CardsScreen/cardListModel/cardListModel.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/model/currencyApiModel/Model/currencyModel.dart';
+import 'package:quickcash/model/currencyApiModel/Services/currencyApi.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import 'package:quickcash/util/customSnackBar.dart';
 
-import '../../model/currencyApiModel/currencyApi.dart';
-import '../../model/currencyApiModel/currencyModel.dart';
 
 class CardsScreen extends StatefulWidget {
   const CardsScreen({super.key});

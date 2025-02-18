@@ -2,6 +2,7 @@
 class AccountsListsData {
   final String? accountId;
   final String? country;
+  final String? Accountname;
   final String? currency;
   final String? iban;
   final bool? status;
@@ -9,6 +10,7 @@ class AccountsListsData {
 
   AccountsListsData({
     this.accountId,
+    this.Accountname,
     this.country,
     this.currency,
     this.iban,
@@ -19,6 +21,7 @@ class AccountsListsData {
   factory AccountsListsData.fromJson(Map<String, dynamic> json) {
     return AccountsListsData(
       accountId: json['_id'] as String?,
+      Accountname: json['name'] as String?,
       country: json['country'] as String?,
       currency: json['currency'] as String?,
       iban: json['iban'] as String?,
