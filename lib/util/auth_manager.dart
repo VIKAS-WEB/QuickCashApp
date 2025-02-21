@@ -82,8 +82,8 @@ class AuthManager {
   }
 
   // Save Currency
-  static Future<void> saveCurrency(String otp) async {
-    await _sharedPref.setString('currency', otp);
+  static Future<void> saveCurrency(String currency) async {
+    await _sharedPref.setString('currency', currency);
   }
 
   static String getCurrency() {
@@ -91,15 +91,23 @@ class AuthManager {
   }
 
   // Save Balance
-  static Future<void> saveAccountBalance(String otp) async {
-    await _sharedPref.setString('balance', otp);
+  static Future<void> saveAccountBalance(String balance) async {
+    await _sharedPref.setString('balance', balance);
   }
 
   static String getBalance() {
     return _sharedPref.getString('balance') ?? '';
   }
-  
-  
+
+  // Save Selected Account ID (New Method)
+  static Future<void> saveSelectedAccountId(String accountId) async {
+    await _sharedPref.setString('selected_account_id', accountId);
+  }
+
+  static String getSelectedAccountId() {
+    return _sharedPref.getString('selected_account_id') ?? '';
+  }
+
   // Access Token
   static Future<void> saveToken(String token) async {
     await _sharedPref.setString('access_token', token);
