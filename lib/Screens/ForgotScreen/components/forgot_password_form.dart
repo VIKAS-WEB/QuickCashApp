@@ -290,7 +290,7 @@ class _ForgotPasswordState extends State<ForgotPasswordForm> {
                 }
                 // Regex for basic email validation
                 final regex =
-                    RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+                    RegExp(r'^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{3,}$');
                 if (!regex.hasMatch(value)) {
                   return 'Please enter a valid email address';
                 }

@@ -113,9 +113,9 @@ class _SignUpFormState extends State<SignUpForm> {
   }
 
   bool _isValidEmail(String email) {
-    final regex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$');
+    final regex = RegExp(r'^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{3,}$');
     return regex.hasMatch(email);
-  }
+}
 
   void _generateAndSendOtp(String email) async {
     print("OTP generation triggered for $email");
@@ -312,8 +312,7 @@ class _SignUpFormState extends State<SignUpForm> {
                   return 'Please enter your email';
                 }
                 // Regex for valid email
-                final regex = RegExp(
-                  r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                final regex = RegExp(r'^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{3,}$'
                 );
                 if (!regex.hasMatch(value.trim())) {
                   return 'Please enter a valid email address';
