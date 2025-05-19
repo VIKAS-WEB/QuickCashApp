@@ -311,7 +311,14 @@ class _StatementDetailsScreenState extends State<StatementDetailsScreen>{
                             style: ButtonStyle(
                               backgroundColor: WidgetStateProperty.all(Colors.white),
                             ),
-                            child: Text(status ?? '', style: const TextStyle(color: Colors.green)),
+                            child: Text(
+  (status == null || status!.isEmpty)
+      ? 'Unknown'
+      : (status!.toLowerCase() == 'succeeded'
+          ? 'Success'
+          : '${status![0].toUpperCase()}${status!.substring(1).toLowerCase()}'),
+  style: TextStyle(color: Colors.green),
+),
                           ),
                         ],
                       ),
@@ -377,7 +384,14 @@ class _StatementDetailsScreenState extends State<StatementDetailsScreen>{
                             style: ButtonStyle(
                               backgroundColor: WidgetStateProperty.all(Colors.white),
                             ),
-                            child: Text(status ?? '', style: const TextStyle(color: Colors.green)),
+                            child: Text(
+  (status == null || status!.isEmpty)
+      ? 'Unknown'
+      : (status!.toLowerCase() == 'succeeded'
+          ? 'Success'
+          : '${status![0].toUpperCase()}${status!.substring(1).toLowerCase()}'),
+  style: TextStyle(color: Colors.green),
+                            ),
                           ),
                         ],
                       ),
@@ -391,5 +405,4 @@ class _StatementDetailsScreenState extends State<StatementDetailsScreen>{
       ),
     );
   }
-
 }

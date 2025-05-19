@@ -61,6 +61,14 @@ class AddPaymentSuccessResponse {
       message: json['message'] as String,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'status': status,
+      'orderStatus': orderStatus,
+      'message': message,
+    };
+  }
 }
 
 

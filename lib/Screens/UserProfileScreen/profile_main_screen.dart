@@ -43,7 +43,7 @@ class _ProfileMainScreen extends State<ProfileMainScreen> {
           children: [
             // Padding to avoid overlapping with the status bar
             Padding(
-              padding: const EdgeInsets.only(top: 80.0), // Adjust as needed
+              padding: const EdgeInsets.only(top: 0.0), // Adjust as needed
               child: TabBar(
                 isScrollable: true,
                 tabs: <Widget>[

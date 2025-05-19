@@ -1,4 +1,3 @@
-// add_money_provider.dart
 import 'package:flutter/material.dart';
 
 class AddMoneyProvider with ChangeNotifier {
@@ -31,7 +30,7 @@ class AddMoneyProvider with ChangeNotifier {
   void setDepositFees(double value) {
     _depositFees = value;
     print('Set depositFees to: $_depositFees');
-    notifyListeners(); // Ensure UI updates
+    notifyListeners();
   }
 
   void setAmountCharge(String value) {

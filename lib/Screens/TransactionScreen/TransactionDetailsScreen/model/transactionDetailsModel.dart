@@ -1,4 +1,3 @@
-
 class UserProfileRequest {
   UserProfileRequest();
 }
@@ -21,6 +20,14 @@ class SenderDetail {
       senderAddress: json['address'] as String?,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': senderName,
+      'iban': senderAccountNumber,
+      'address': senderAddress,
+    };
+  }
 }
 
 class ReceiverDetail {
@@ -41,12 +48,22 @@ class ReceiverDetail {
       receiverAddress: json['address'] as String?,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': receiverName,
+      'iban': receiverAccountNumber,
+      'address': receiverAddress,
+    };
+  }
 }
 
 class TransactionDetailsListResponse {
   final String? trx;
+  final String? toCurrency;
   final String? fromCurrency;
   final String? requestedDate;
+  final double? conversionAmount;
   final String? amountText;
   final double? fee;
   final double? billAmount;
@@ -58,6 +75,8 @@ class TransactionDetailsListResponse {
 
   TransactionDetailsListResponse({
     this.trx,
+    this.toCurrency,
+    this.conversionAmount,
     this.fromCurrency,
     this.requestedDate,
     this.amountText,
@@ -71,33 +90,54 @@ class TransactionDetailsListResponse {
   });
 
   factory TransactionDetailsListResponse.fromJson(Map<String, dynamic> json) {
-    // Parsing `data` field (list of transaction records)
-    var data = json['data'] as List<dynamic>;
+    if (json['data'] == null || json['data'] is! List || (json['data'] as List).isEmpty) {
+      return TransactionDetailsListResponse();
+    }
+
+    var data = json['data'][0] as Map<String, dynamic>;
 
     return TransactionDetailsListResponse(
-      trx: data[0]['trx'] as String?,
-      fromCurrency: data[0]['from_currency'] as String,
-      requestedDate: data[0]['createdAt'] as String?,
-      fee: (data[0]['fee'] is int)
-          ? (data[0]['fee'] as int).toDouble()
-          : data[0]['fee'] as double?,
-
-      billAmount: (data[0]['amount'] is int)
-          ? (data[0]['amount'] as int).toDouble()
-          : data[0]['amount'] as double?,
-
-      amountText: data[0]['amountText'] as String?,
-
-      transactionType: data[0]['trans_type'] as String?,
-      extraType: data[0]['extraType'] as String?,
-      status: data[0]['status'] as String?,
-
-      senderDetail: (data[0]['senderAccountDetails'] as List<dynamic>?)
-          ?.map((item) => SenderDetail.fromJson(item as Map<String, dynamic>))
-          .toList(),
-      receiverDetail: (data[0]['transferAccountDetails'] as List<dynamic>?)
-          ?.map((item) => ReceiverDetail.fromJson(item as Map<String, dynamic>))
-          .toList(),
+      trx: data['trx'] as String?,
+      fromCurrency: data['from_currency'] as String?,
+      toCurrency: data['to_currency'] as String?,
+      conversionAmount: (data['conversionAmount'] is int)
+          ? (data['conversionAmount'] as int).toDouble()
+          : data['conversionAmount'] as double?,
+      requestedDate: data['createdAt'] as String?,
+      fee: (data['fee'] is int) ? (data['fee'] as int).toDouble() : data['fee'] as double?,
+      billAmount: (data['amount'] is int) ? (data['amount'] as int).toDouble() : data['amount'] as double?,
+      amountText: data['amountText'] as String?,
+      transactionType: data['trans_type'] as String?,
+      extraType: data['extraType'] as String?,
+      status: data['status'] as String?,
+      senderDetail: (data['senderAccountDetails'] is List)
+          ? (data['senderAccountDetails'] as List)
+              .map((item) => SenderDetail.fromJson(item as Map<String, dynamic>))
+              .toList()
+          : [],
+      receiverDetail: (data['transferAccountDetails'] is List)
+          ? (data['transferAccountDetails'] as List)
+              .map((item) => ReceiverDetail.fromJson(item as Map<String, dynamic>))
+              .toList()
+          : [],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'trx': trx,
+      'from_currency': fromCurrency,
+      'to_currency': toCurrency,
+      'conversionAmount': conversionAmount,
+      'createdAt': requestedDate,
+      'fee': fee,
+      'amount': billAmount,
+      'amountText': amountText,
+      'trans_type': transactionType,
+      'extraType': extraType,
+      'status': status,
+      'senderAccountDetails': senderDetail?.map((e) => e.toJson()).toList(),
+      'transferAccountDetails': receiverDetail?.map((e) => e.toJson()).toList(),
+    };
   }
 }

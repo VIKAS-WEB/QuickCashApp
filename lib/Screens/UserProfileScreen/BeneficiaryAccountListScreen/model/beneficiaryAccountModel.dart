@@ -7,7 +7,7 @@ class BeneficiaryAccountListDetails {
   final String? currency;
   final String? iban;
   final String? bic;
-  final int? balance;
+  final double? balance;
 
   BeneficiaryAccountListDetails({
     this.currency,
@@ -21,7 +21,7 @@ class BeneficiaryAccountListDetails {
       currency: json['currency'] as String?,
       iban: json['iban'] as String?,
       bic: json['bic_code'] as String?,
-      balance: json['amount'] as int?,
+      balance: (json['amount'] as num?)?.toDouble(),
     );
   }
 }

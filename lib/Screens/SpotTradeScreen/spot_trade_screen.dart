@@ -136,14 +136,14 @@ class _CardsScreenState extends State<SpotTradeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        iconTheme: const IconThemeData(color: Colors.transparent),
-        title: const Text(
-          "Spot Trade",
-          style: TextStyle(color: Colors.transparent),
-        ),
-      ),
+      // appBar: AppBar(
+      //   backgroundColor: Colors.transparent,
+      //   iconTheme: const IconThemeData(color: Colors.transparent),
+      //   title: const Text(
+      //     "Spot Trade",
+      //     style: TextStyle(color: Colors.transparent),
+      //   ),
+      // ),
       body: isLoading
           ? const Center(
         child: CircularProgressIndicator(

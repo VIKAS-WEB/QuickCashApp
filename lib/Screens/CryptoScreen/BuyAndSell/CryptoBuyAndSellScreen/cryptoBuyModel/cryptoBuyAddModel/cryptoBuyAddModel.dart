@@ -29,7 +29,7 @@ class CryptoBuyAddRequest {
       'amount': amount,
       'coin': coinType,
       'currencyType': currencyType,
-      'fees': fees,
+      'fee': fees,
       'noOfCoins': noOfCoins,
       'paymentType': paymentType,
       'side': side,

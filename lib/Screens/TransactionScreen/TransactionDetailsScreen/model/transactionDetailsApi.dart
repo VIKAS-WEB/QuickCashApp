@@ -8,14 +8,6 @@ class TransactionDetailsListApi {
 
   TransactionDetailsListApi() {
     _dio.options.baseUrl = ApiConstants.baseUrl;
-
-
-    /*_dio.interceptors.add(LogInterceptor(
-      request: true,
-      requestBody: true,
-      responseBody: true,
-      responseHeader: true,
-    ));*/
   }
 
   Future<TransactionDetailsListResponse> transactionDetailsListApi(String trxID) async {
@@ -29,7 +21,19 @@ class TransactionDetailsListApi {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return TransactionDetailsListResponse.fromJson(response.data);
+        // Ensure response is a Map<String, dynamic>
+        if (response.data is Map<String, dynamic>) {
+          final responseData = response.data as Map<String, dynamic>;
+
+          // Check if 'data' exists and is a non-empty list
+          if (responseData.containsKey('data') &&
+              responseData['data'] is List &&
+              (responseData['data'] as List).isNotEmpty) {
+            return TransactionDetailsListResponse.fromJson(responseData);
+          }
+        }
+        // Return empty response if no valid data
+        return TransactionDetailsListResponse();
       } else {
         throw Exception('Failed to fetch data: ${response.statusMessage}');
       }

@@ -34,33 +34,53 @@ class ExchangeResult {
     required this.convertedAmount,
   });
 
-  factory ExchangeResult.fromJson(Map<String, dynamic> json) {
+  factory ExchangeResult.fromJson(Map<String, dynamic>? json) {
+    // If json is null, return a default/fallback instance
+    if (json == null) {
+      return ExchangeResult(
+        from: '',
+        to: '',
+        amountToConvert: 0.0,
+        convertedAmount: 0.0,
+      );
+    }
+
     return ExchangeResult(
-      from: json['from'] as String,
-      to: json['to'] as String,
-      amountToConvert: (json['amountToConvert'] as num).toDouble(),
-      convertedAmount: (json['convertedAmount'] as num).toDouble(),
+      from: json['from'] as String? ?? '', // Default to empty string if null
+      to: json['to'] as String? ?? '',
+      amountToConvert: (json['amountToConvert'] as num?)?.toDouble() ?? 0.0,
+      convertedAmount: (json['convertedAmount'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }
-
 /// Response model for the currency conversion.
 class ExchangeResponse {
   final bool success;
   final List<dynamic> validationMessage;
-  final ExchangeResult result;
+  final ExchangeResult? result; // Make result nullable
 
   ExchangeResponse({
     required this.success,
     required this.validationMessage,
-    required this.result,
+    this.result, // Allow result to be null
   });
 
-  factory ExchangeResponse.fromJson(Map<String, dynamic> json) {
+  factory ExchangeResponse.fromJson(Map<String, dynamic>? json) {
+    // Handle null or invalid JSON
+    if (json == null) {
+      return ExchangeResponse(
+        success: false,
+        validationMessage: [],
+        result: null,
+      );
+    }
+
     return ExchangeResponse(
-      success: json['success'] as bool,
-      validationMessage: json['validationMessage'] ?? [],
-      result: ExchangeResult.fromJson(json['result'] as Map<String, dynamic>),
+      success: json['success'] as bool? ?? false, // Default to false if null
+      validationMessage: json['validationMessage'] as List<dynamic>? ?? [],
+      result: json['result'] != null
+          ? ExchangeResult.fromJson(json['result'] as Map<String, dynamic>?)
+          : null, // Pass null if result is absent
     );
   }
 }

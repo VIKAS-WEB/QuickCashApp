@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/DashboardScreen/ExchangeScreen/reviewExchangeMoneyScreen/addExchangeModel/addExchangeMoneyModel.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/auth_manager.dart';
+import 'package:dio/dio.dart'; // For DioException handling
+import 'package:quickcash/util/currency_utils.dart';
 import '../../../../util/customSnackBar.dart';
 import '../../../HomeScreen/home_screen.dart';
 import 'addExchangeModel/addExchangeApi.dart';
@@ -28,8 +30,8 @@ class ReviewExchangeMoneyScreen extends StatefulWidget {
   final String? toCurrencySymbol;
   final String? toExchangedAmount;
 
-
-  const ReviewExchangeMoneyScreen({super.key,
+  const ReviewExchangeMoneyScreen({
+    super.key,
     this.fromAccountId,
     this.fromCountry,
     this.fromCurrency,
@@ -45,11 +47,11 @@ class ReviewExchangeMoneyScreen extends StatefulWidget {
     this.toIban,
     this.toAmount,
     this.toCurrencySymbol,
-    this.toExchangedAmount});
+    this.toExchangedAmount,
+  });
 
   @override
-  State<ReviewExchangeMoneyScreen> createState() =>
-      _ReviewExchangeMoneyScreen();
+  State<ReviewExchangeMoneyScreen> createState() => _ReviewExchangeMoneyScreen();
 }
 
 class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
@@ -75,87 +77,129 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
   String? mToIban;
   double? mToAmount;
   String? mToCurrencySymbol;
-  double? mToRate;
   String? mToExchangedAmount;
 
   @override
   void initState() {
-    mSetReviewData();
     super.initState();
+    mSetReviewData();
   }
 
   Future<void> mSetReviewData() async {
-    // From Data
-    mFromAccountId = widget.fromAccountId;
-    mFromCountry = widget.fromCountry;
-    mFromCurrency = widget.fromCurrency;
-    mFromIban = widget.fromIban;
-    mFromAmount = widget.fromAmount;
-    mFromCurrencySymbol = widget.fromCurrencySymbol;
-    mFromTotalFees = widget.fromTotalFees;
-    mFromRate = widget.fromRate;
-    mExchangeAmount = widget.fromExchangeAmount;
+    setState(() {
+      // From Data
+      mFromAccountId = widget.fromAccountId;
+      mFromCountry = widget.fromCountry;
+      mFromCurrency = widget.fromCurrency;
+      mFromIban = widget.fromIban;
+      mFromAmount = widget.fromAmount;
+      mFromCurrencySymbol = widget.fromCurrencySymbol;
+      mFromTotalFees = widget.fromTotalFees;
+      mFromRate = widget.fromRate;
+      mExchangeAmount = widget.fromExchangeAmount;
 
+      if (mExchangeAmount != null && mFromTotalFees != null) {
+        double exchangeAmount = double.tryParse(mExchangeAmount!) ?? 0.0;
+        mTotalCharge = exchangeAmount + (mFromTotalFees ?? 0.0);
+      }
 
-    if (mExchangeAmount != null && mFromTotalFees != null) {
-      double exchangeAmount = double.tryParse(mExchangeAmount!) ?? 0.0;  // Default to 0.0 if parse fails
-      mTotalCharge = exchangeAmount + (mFromTotalFees ?? 0.0);
-    }
-
-    // To Data
-    mToAccountId = widget.toAccountId;
-    mToCountry = widget.toCountry;
-    mToCurrency = widget.toCurrency;
-    mToIban = widget.toIban;
-    mToAmount = widget.toAmount;
-    mToCurrencySymbol = widget.toCurrencySymbol;
-    mToExchangedAmount = widget.toExchangedAmount;
+      // To Data
+      mToAccountId = widget.toAccountId;
+      mToCountry = widget.toCountry;
+      mToCurrency = widget.toCurrency;
+      mToIban = widget.toIban;
+      mToAmount = widget.toAmount;
+      mToCurrencySymbol = widget.toCurrencySymbol;
+      mToExchangedAmount = widget.toExchangedAmount;
+    });
   }
 
-
-  // Add Exchange api ************************
+  // Add Exchange API
   Future<void> mAddExchangeApi() async {
     setState(() {
       isLoading = true;
     });
 
-    try{
+    try {
+      String info = 'Convert ${mFromCurrency ?? 'Unknown'} to ${mToCurrency ?? 'Unknown'}';
+      String amountText = '${mToCurrencySymbol ?? ''} ${mToExchangedAmount ?? '0.00'}';
 
-      String info = 'Convert $mFromCurrency to $mToCurrency';
-      String amountText = '$mToCurrencySymbol $mToExchangedAmount';
+      if (mFromAccountId == null || mToAccountId == null || mExchangeAmount == null || mToExchangedAmount == null) {
+        throw Exception("Missing required exchange details");
+      }
 
-      final request = AddExchangeRequest(userId: AuthManager.getUserId(), sourceAccount: mToAccountId!, transferAccount: mFromAccountId!, transType: "Exchange", fee: mFromTotalFees!, info: info, country: mToCountry!, fromAmount: mFromAmount!, amount: mToExchangedAmount!, amountText: amountText, fromAmountText: mFromAmount!.toStringAsFixed(2), fromCurrency: mFromCurrency!, toCurrency: mToCurrency!, status: "Success");
+      print("mExchangeAmount: $mExchangeAmount");
+      print("mToExchangedAmount: $mToExchangedAmount");
+
+      double exchangeAmount = double.tryParse(mExchangeAmount!) ?? 0.0;
+
+      // Validate inputs
+      if (mExchangeAmount!.isEmpty || double.tryParse(mExchangeAmount!) == null) {
+        throw Exception("Invalid exchange amount: $mExchangeAmount");
+      }
+      if (mToExchangedAmount!.isEmpty || double.tryParse(mToExchangedAmount!) == null) {
+        throw Exception("Invalid exchanged amount: $mToExchangedAmount");
+      }
+
+      final request = AddExchangeRequest(
+        userId: AuthManager.getUserId(),
+        sourceAccount: mFromAccountId!, // Corrected: Source loses money
+        transferAccount: mToAccountId!, // Corrected: Target gains money
+        transType: "Exchange",
+        fee: mFromTotalFees ?? 0.0,
+        info: info,
+        country: mToCountry ?? 'Unknown',
+        fromAmount: exchangeAmount, // Amount deducted from source
+        amount: mToExchangedAmount!, // Sent as String per working model
+        amountText: amountText,
+        fromAmountText: exchangeAmount.toStringAsFixed(2),
+        fromCurrency: mFromCurrency ?? 'Unknown',
+        toCurrency: mToCurrency ?? 'Unknown',
+        status: "Success",
+      );
+
+      print("Request Payload: ${request.toJson()}");
       final response = await _addExchangeApi.addExchangeApi(request);
+      print("API Response: ${response.toString()}");
 
-      if(response.message == "Transaction is added Successfully!!!"){
+      if (response.message == "Transaction is added Successfully!!!") {
         setState(() {
           isLoading = false;
-          CustomSnackBar.showSnackBar(context: context, message: "Exchange has been done Successfully", color: kPrimaryColor);
+          CustomSnackBar.showSnackBar(
+            context: context,
+            message: "Exchange has been done Successfully",
+            color: kGreenColor,
+          );
           Navigator.of(context).pop();
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const HomeScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
           );
         });
-      }else{
+      } else {
         setState(() {
           isLoading = false;
-          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kPrimaryColor);
+          CustomSnackBar.showSnackBar(
+            context: context,
+            message: "We are facing some issue!",
+            color: kPrimaryColor,
+          );
         });
       }
-
-    }catch (error) {
+    } catch (error) {
+      print("Error in mAddExchangeApi: $error");
+      if (error is DioException && error.response != null) {
+        print("Server Response Data: ${error.response!.data}");
+      }
       setState(() {
         isLoading = false;
         CustomSnackBar.showSnackBar(
-            context: context,
-            message: "Something went wrong!",
-            color: kPrimaryColor);
+          context: context,
+          message: "Something went wrong! $error",
+          color: kPrimaryColor,
+        );
       });
     }
-
   }
 
   @override
@@ -194,21 +238,14 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
                                 color: kPrimaryColor),
                           ),
                           Text(
-                            "$mFromCurrencySymbol $mExchangeAmount",
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
+                            "${mFromCurrencySymbol ?? ''} ${mExchangeAmount ?? '0.00'}",
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 8,
-                      ),
-                      const Divider(
-                        color: kPrimaryLightColor,
-                      ),
-                      const SizedBox(
-                        height: 8,
-                      ),
+                      const SizedBox(height: 8),
+                      const Divider(color: kPrimaryLightColor),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -220,21 +257,14 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
                                 color: kPrimaryColor),
                           ),
                           Text(
-                            "1$mFromCurrencySymbol = $mToCurrencySymbol${mFromRate?.toStringAsFixed(5)}",
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
+                            "1${mFromCurrencySymbol ?? ''} = ${mToCurrencySymbol ?? ''}${mFromRate?.toStringAsFixed(5) ?? '0'}",
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 8,
-                      ),
-                      const Divider(
-                        color: kPrimaryLightColor,
-                      ),
-                      const SizedBox(
-                        height: 8,
-                      ),
+                      const SizedBox(height: 8),
+                      const Divider(color: kPrimaryLightColor),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -246,21 +276,14 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
                                 color: kPrimaryColor),
                           ),
                           Text(
-                            "$mFromCurrencySymbol $mFromTotalFees",
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
+                            "${mFromCurrencySymbol ?? ''} ${mFromTotalFees?.toStringAsFixed(2) ?? '0.00'}",
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 8,
-                      ),
-                      const Divider(
-                        color: kPrimaryLightColor,
-                      ),
-                      const SizedBox(
-                        height: 8,
-                      ),
+                      const SizedBox(height: 8),
+                      const Divider(color: kPrimaryLightColor),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -272,22 +295,15 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
                                 color: kPrimaryColor),
                           ),
                           Text(
-                            "$mFromCurrencySymbol $mTotalCharge",
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
+                            "${mFromCurrencySymbol ?? ''} ${mTotalCharge?.toStringAsFixed(2) ?? '0.00'}",
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 8,
-                      ),
-                      const Divider(
-                        color: kPrimaryLightColor,
-                      ),
-                      const SizedBox(
-                        height: 8,
-                      ),
-                       Row(
+                      const SizedBox(height: 8),
+                      const Divider(color: kPrimaryLightColor),
+                      const SizedBox(height: 8),
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
@@ -298,9 +314,8 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
                                 color: kPrimaryColor),
                           ),
                           Text(
-                            "$mToCurrencySymbol $mToExchangedAmount",
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
+                            "${mToCurrencySymbol ?? ''} ${mToExchangedAmount ?? '0.00'}",
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -320,59 +335,53 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
                     children: [
                       const Text(
                         "Source Account",
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: kPrimaryColor),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: kPrimaryColor),
                       ),
                       const SizedBox(height: defaultPadding),
                       Card(
                         elevation: 1.0,
                         color: kPrimaryLightColor,
-                        margin: const EdgeInsets.symmetric(
-                            vertical: 0, horizontal: 0),
+                        margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
                         child: Padding(
                           padding: const EdgeInsets.all(defaultPadding),
                           child: Row(
                             children: [
-                              CountryFlag.fromCountryCode(
-                                width: 55,
-                                height: 55,
-                                mFromCountry!,
-                                shape: const Circle(),
-                              ),
+                             // Use EU flag for EUR, country flag for others
+                              if (mFromCurrency?.toUpperCase() == 'EUR')
+                                getEuFlagWidget()
+                              else
+                                CountryFlag.fromCountryCode(
+                                  width: 55,
+                                  height: 55,
+                                  mFromCountry ?? 'US', // Fallback to 'US'
+                                  shape: const Circle(),
+                                ),
                               const SizedBox(width: defaultPadding),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '$mFromCurrency Account',
+                                      '${mFromCurrency ?? ''} Account',
                                       style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                        color: kPrimaryColor,
-                                      ),
-                                    ),
-                                     Text(
-                                      mFromIban!,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                      ),
-                                       maxLines: 2,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: kPrimaryColor),
                                     ),
                                     Text(
-                                      "$mFromCurrencySymbol ${mFromAmount?.toStringAsFixed(2)}",
+                                      mFromIban ?? 'N/A',
+                                      style: const TextStyle(fontSize: 14),
+                                      maxLines: 2,
+                                    ),
+                                    Text(
+                                      "${mFromCurrencySymbol ?? ''} ${mFromAmount?.toStringAsFixed(2) ?? '0.00'}",
                                       style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
+                                          fontWeight: FontWeight.bold, fontSize: 16),
                                       maxLines: 2,
                                     ),
                                   ],
                                 ),
                               ),
-
                             ],
                           ),
                         ),
@@ -381,30 +390,25 @@ class _ReviewExchangeMoneyScreen extends State<ReviewExchangeMoneyScreen> {
                   ),
                 ),
               ),
-
-              const SizedBox(height: largePadding,),
-              if (isLoading) const Center(
-                child: CircularProgressIndicator(
-                  color: kPrimaryColor,
+              const SizedBox(height: largePadding),
+              if (isLoading)
+                const Center(
+                  child: CircularProgressIndicator(color: kPrimaryColor),
                 ),
-              ), // Show loading indicator
-
-
               const SizedBox(height: 30),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 50),
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: kPrimaryColor,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                   onPressed: isLoading ? null : mAddExchangeApi,
-                  child: const Text('Exchange',
-                      style: TextStyle(color: Colors.white, fontSize: 16)),
+                  child: const Text(
+                    'Exchange',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
                 ),
               ),
             ],

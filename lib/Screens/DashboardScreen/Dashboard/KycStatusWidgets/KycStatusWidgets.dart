@@ -4,10 +4,16 @@ import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/auth_manager.dart';
 
 class CheckKycStatus extends StatelessWidget {
+  // Callback to refresh KYC status
+  Future<void> _refreshKycStatus() async {
+    // Simulate a network call or refresh logic (replace with actual logic)
+    await Future.delayed(Duration(seconds: 1));
+    // Add actual logic to fetch updated KYC status from AuthManager or a server here
+  }
+
   @override
   Widget build(BuildContext context) {
     String kycStatus = AuthManager.getKycStatus();
-
     Widget? kycWidget = _buildKycStatusWidget(kycStatus, context);
 
     if (kycWidget == null) {
@@ -20,13 +26,19 @@ class CheckKycStatus extends StatelessWidget {
         elevation: 4.0,
         color: Colors.white,
         margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
-        child: Padding(
-          padding: const EdgeInsets.all(defaultPadding),
-          child: Column(
-            children: [
-              const SizedBox(height: largePadding),
-              kycWidget,
-            ],
+        child: RefreshIndicator(
+          onRefresh: _refreshKycStatus, // Triggered when user pulls to refresh
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(), // Ensures scrolling is always enabled
+            child: Padding(
+              padding: const EdgeInsets.all(defaultPadding),
+              child: Column(
+                children: [
+                  const SizedBox(height: largePadding),
+                  kycWidget,
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -114,12 +126,17 @@ Widget _buildImage(String imagePath) {
   );
 }
 
-Widget _buildText(String text, {double fontSize = 16, bool isBold = false, Color color = Colors.black}) {
+Widget _buildText(String text,
+    {double fontSize = 16, bool isBold = false, Color color = Colors.black}) {
   return Center(
     child: Text(
       text,
       textAlign: TextAlign.center,
-      style: TextStyle(fontSize: fontSize, fontWeight: isBold ? FontWeight.bold : FontWeight.normal, color: color),
+      style: TextStyle(
+        fontSize: fontSize,
+        fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+        color: color,
+      ),
     ),
   );
 }

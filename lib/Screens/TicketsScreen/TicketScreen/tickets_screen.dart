@@ -77,7 +77,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
       ),
       body: Column(
         children: [
-          const SizedBox(height: defaultPadding),
+          const SizedBox(height: 0),
 
           // Create Ticket Button
         Padding(

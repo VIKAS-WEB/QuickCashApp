@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // For SystemChrome
+import 'package:quickcash/Screens/CardsScreen/CardSelection.dart';
 import 'package:quickcash/Screens/CardsScreen/card_screen.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/BuyAndSellScreen/buy_and_sell_home_screen.dart';
 import 'package:quickcash/Screens/CryptoScreen/WalletAddress/walletAddress_screen.dart';
@@ -22,7 +24,6 @@ import 'package:quickcash/Screens/TransactionScreen/TransactionScreen/transactio
 import 'package:quickcash/Screens/UserProfileScreen/profile_main_screen.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/customSnackBar.dart';
-
 import '../../util/auth_manager.dart';
 import '../KYCScreen/kycHomeScreen.dart';
 
@@ -37,6 +38,38 @@ class _HomeScreenState extends State<HomeScreen> {
   var currentPage = DrawerSections.dashboard;
   bool isCryptoExpanded = false; // Track submenu state for Crypto
   bool isInvoicesExpanded = false; // Track submenu state for Invoices
+  int _selectedIndex = 0; // Track the selected index for the bottom navigation bar
+
+  @override
+  void initState() {
+    super.initState();
+    // Set status bar style to avoid overlap
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+    ));
+  }
+
+  // Map the bottom navigation bar index to DrawerSections
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+      switch (index) {
+        case 0:
+          currentPage = DrawerSections.dashboard; // Home
+          break;
+        case 1:
+          currentPage = DrawerSections.transaction; // Transactions
+          break;
+        case 2:
+          currentPage = DrawerSections.cards; // Cards
+          break;
+        case 3:
+          currentPage = DrawerSections.userProfile; // Profile
+          break;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
         container = const DashboardScreen();
         break;
       case DrawerSections.cards:
-        container = const CardsScreen();
+        container =  CardSelectionScreen();
         break;
       case DrawerSections.transaction:
         container = const TransactionScreen();
@@ -88,9 +121,6 @@ class _HomeScreenState extends State<HomeScreen> {
       case DrawerSections.quotes:
         container = const QuotesScreen();
         break;
-     /* case DrawerSections.invoiceTemplates:
-        container = const InvoiceTemplatesScreen();
-        break;*/
       case DrawerSections.invoicesSub:
         container = const InvoicesScreen();
         break;
@@ -111,7 +141,8 @@ class _HomeScreenState extends State<HomeScreen> {
       onWillPop: () async {
         if (currentPage != DrawerSections.dashboard) {
           setState(() {
-            currentPage = DrawerSections.dashboard; // Go back to Dashboard
+            currentPage = DrawerSections.dashboard;
+            _selectedIndex = 0; // Reset to Home when back is pressed
           });
           return false; // Prevent default back action
         } else {
@@ -119,9 +150,38 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       },
       child: Scaffold(
+        resizeToAvoidBottomInset: true,
         body: Stack(
           children: [
-            container, // Your main content
+            // Main content
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 60.0), // Space for the custom top bar
+                child: container,
+              ),
+            ),
+
+            // Gradient overlay for fade effect
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 110, // Adjust height to cover the fade area
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.white30, // Match your background color
+                      Colors.white, // Slightly transparent
+                      Colors.white12, // Fully transparent at the bottom
+                    ],
+                    stops: [0.0, 0.5, 1.0], // Adjust stops for smoother transition
+                  ),
+                ),
+              ),
+            ),
 
             // Positioned widgets for menu and logout icons
             Positioned(
@@ -131,45 +191,63 @@ class _HomeScreenState extends State<HomeScreen> {
                 builder: (context) => IconButton(
                   icon: const Icon(Icons.menu),
                   onPressed: () {
-                    Scaffold.of(context).openDrawer();  
+                    Scaffold.of(context).openDrawer();
                   },
                   color: kPrimaryColor,
                   iconSize: 30,
                 ),
               ),
             ),
-
-            if(AuthManager.getKycStatus() != "completed")
             Positioned(
-              top: 48,
-              right: 80,
-              child: GestureDetector(
-                onTap: () {
-                  if(AuthManager.getKycDocFront().isNotEmpty){
-                    CustomSnackBar.showSnackBar(context: context, message: "Your details are already submitted, Admin will approve after review your kyc details!", color: kPrimaryColor);
-                  }else{
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const KycHomeScreen(),
-                      ),
-                    );
-                  }
+              top: 40,
+              right: 120,
+              child: IconButton(
+                icon: const Icon(Icons.notifications),
+                onPressed: () {
+                  // Add notification functionality here if needed
                 },
-                child: Image.asset(
-                  "assets/icons/kycpending.png",
-                  width: 30,
-                  height: 30,
-                ),
+                color: kPrimaryColor,
+                iconSize: 25,
               ),
-            )
+            ),
+            if (AuthManager.getKycStatus() != "completed")
+              Positioned(
+                top: 48,
+                right: 80,
+                child: GestureDetector(
+                  onTap: () {
+                    if (AuthManager.getKycDocFront().isNotEmpty) {
+                      CustomSnackBar.showSnackBar(
+                          context: context,
+                          message:
+                              "Your details are already submitted, Admin will approve after review your kyc details!",
+                          color: kPrimaryColor);
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const KycHomeScreen(),
+                        ),
+                      );
+                    }
+                  },
+                  child: Image.asset(
+                    "assets/icons/kycpending.png",
+                    width: 30,
+                    height: 30,
+                  ),
+                ),
+              )
             else
               Positioned(
                 top: 48,
                 right: 80,
                 child: GestureDetector(
                   onTap: () {
-                    CustomSnackBar.showSnackBar(context: context, message: "KYC Verified", color: kPrimaryColor);
+                    CustomSnackBar.showSnackBar(
+                        context: context,
+                        message: "KYC Verified",
+                        color: kPrimaryColor);
                   },
                   child: Image.asset(
                     "assets/icons/kycverify.png",
@@ -185,31 +263,16 @@ class _HomeScreenState extends State<HomeScreen> {
               right: 10,
               child: IconButton(
                 icon: const Icon(Icons.logout),
-                onPressed: () {
-                  mLogoutDialog();
+                onPressed: () async {
+                  bool shouldLogout = await mLogoutDialog(); // Show logout dialog
+                  if (shouldLogout) {
+                    // Additional actions after logout can be added here if needed
+                  }
                 },
                 color: kPrimaryColor,
-                iconSize: 30,
+                iconSize: 25,
               ),
             ),
-
-            // Centered text between the icons
-            /*const Positioned(
-              top: 50,
-              left: 50,
-              right: 50,
-              child: Center(
-                child: Text(
-                  'Dashboard',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: kPrimaryColor,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),*/
           ],
         ),
         drawer: Drawer(
@@ -222,62 +285,186 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
+        bottomNavigationBar: BottomNavigationBar(
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.receipt),
+              label: 'Transactions',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.wallet),
+              label: 'Cards',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          selectedItemColor: kWhiteColor,
+          unselectedItemColor: Colors.white54,
+          onTap: _onItemTapped,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: kPrimaryColor,
+        ),
       ),
-
     );
   }
 
   Future<bool> _showExitDialog() async {
     return (await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Exit"),
-        content: const Text("Do you really want to exit?"),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false), // No
-            child: const Text("No"),
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Exit"),
+            content: const Text("Do you really want to exit?"),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false), // No
+                child: const Text("No"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true), // Yes
+                child: const Text("Yes"),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true), // Yes
-            child: const Text("Yes"),
-          ),
-        ],
-      ),
-    )) ??
+        )) ??
         false;
   }
 
   Future<bool> mLogoutDialog() async {
     return (await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Logout"),
-        content: const Text("Do you really want to Logout?"),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false), // No, return false
-            child: const Text("No"),
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: kWhiteColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            contentPadding: const EdgeInsets.all(20),
+            content: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: 250, // Reduced maxWidth to make the dialog narrower
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Character image
+                  Image.asset(
+                    'assets/images/logout.png', // Replace with your asset path
+                    height: 50,
+                    width: 50,
+                  ),
+                  const SizedBox(height: 20),
+                  // Title
+                  const Text(
+                    'Are You Logging Out?',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                  // Subtitle
+                  const Text(
+                    'Come back soon!!',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  // Buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Cancel Button
+                      SizedBox(
+                        width: 100, // Reduced width
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(false); // Dismiss dialog, return false
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white, // Background color
+                            foregroundColor: Colors.black, // Text/icon color
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              side: const BorderSide(
+                                color: kPrimaryColor, // Border color for Cancel button
+                                width: 1.5, // Border width
+                              ),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10, // Reduced horizontal padding
+                              vertical: 8, // Reduced vertical padding to reduce height
+                            ),
+                            minimumSize: const Size(0, 36), // Reduced minimum height
+                          ),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(
+                              fontSize: 14, // Reduced font size
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10), // Add spacing between buttons
+                      // Log Out Button
+                      SizedBox(
+                        width: 100, // Reduced width
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            // Log the user out
+                            AuthManager.logout();
+                            Navigator.of(context).pop(true); // Close dialog, return true
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LoginScreen(),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: kPrimaryColor, // Teal background
+                            foregroundColor: Colors.white, // Text/icon color
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              side: const BorderSide(
+                                color: kPrimaryColor, // Darker teal border for Log Out button
+                                width: 1.5, // Border width
+                              ),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10, // Reduced horizontal padding
+                              vertical: 8, // Reduced vertical padding to reduce height
+                            ),
+                            minimumSize: const Size(0, 36), // Reduced minimum height
+                          ),
+                          child: const Text(
+                            'Log Out',
+                            style: TextStyle(
+                              fontSize: 14, // Reduced font size
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
-          TextButton(
-            onPressed: () async {
-              // Log the user out
-              AuthManager.logout();  // Make sure to call logout function here
-              // Pop the dialog and return true (indicating a successful logout)
-              Navigator.of(context).pop(true);
-              // Navigate to the login screen
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()), // replace HomeScreen with your actual home screen
-              );
-            },
-            child: const Text("Yes"),
-          ),
-        ],
-      ),
-    )) ?? false; // In case of dialog dismiss, return false
+        )) ?? false; // No trailing comma after false
   }
-
 
   Widget mMyDrawerList() {
     return Container(
@@ -287,7 +474,8 @@ class _HomeScreenState extends State<HomeScreen> {
           menuItem(
             1,
             "Dashboard",
-            Image.asset("assets/icons/menu_dashboard.png", width: 24, height: 24),
+            Image.asset("assets/icons/menu_dashboard.png",
+                width: 24, height: 24),
             currentPage == DrawerSections.dashboard,
           ),
           menuItem(
@@ -299,13 +487,15 @@ class _HomeScreenState extends State<HomeScreen> {
           menuItem(
             3,
             "Transaction",
-            Image.asset("assets/icons/menu_transaction.png", width: 24, height: 24),
+            Image.asset("assets/icons/menu_transaction.png",
+                width: 24, height: 24),
             currentPage == DrawerSections.transaction,
           ),
           menuItem(
             4,
             "Statement",
-            Image.asset("assets/icons/menu_statement.png", width: 24, height: 24),
+            Image.asset("assets/icons/menu_statement.png",
+                width: 24, height: 24),
             currentPage == DrawerSections.statement,
           ),
           menuItem(
@@ -317,31 +507,31 @@ class _HomeScreenState extends State<HomeScreen> {
             isExpanded: isCryptoExpanded,
             onTap: () {
               setState(() {
-                isCryptoExpanded = !isCryptoExpanded; // Toggle the submenu
+                isCryptoExpanded = !isCryptoExpanded;
                 if (isCryptoExpanded) {
-                  isInvoicesExpanded = false; // Collapse Invoices if Crypto is expanded
+                  isInvoicesExpanded = false;
                 }
               });
             },
           ),
           if (isCryptoExpanded) ...[
-
             submenuItem(
               " - Buy / Sell",
-                  () {
+              () {
                 Navigator.pop(context);
                 setState(() {
                   currentPage = DrawerSections.buySell;
+                  _selectedIndex = 0; // Reset to Home for non-bottom-nav pages
                 });
               },
             ),
-
             submenuItem(
               " - Wallet Address",
-                  () {
+              () {
                 Navigator.pop(context);
                 setState(() {
                   currentPage = DrawerSections.walletAddress;
+                  _selectedIndex = 0; // Reset to Home for non-bottom-nav pages
                 });
               },
             ),
@@ -349,13 +539,15 @@ class _HomeScreenState extends State<HomeScreen> {
           menuItem(
             6,
             "User Profile",
-            Image.asset("assets/icons/menu_userprofile.png", width: 24, height: 24),
+            Image.asset("assets/icons/menu_userprofile.png",
+                width: 24, height: 24),
             currentPage == DrawerSections.userProfile,
           ),
           menuItem(
             7,
             "Spot Trade",
-            Image.asset("assets/icons/menu_spot_trade.png", width: 24, height: 24),
+            Image.asset("assets/icons/menu_spot_trade.png",
+                width: 24, height: 24),
             currentPage == DrawerSections.spotTrade,
           ),
           menuItem(
@@ -367,7 +559,8 @@ class _HomeScreenState extends State<HomeScreen> {
           menuItem(
             9,
             "Refer & Earn",
-            Image.asset("assets/icons/menu_refer_reward.png", width: 24, height: 24),
+            Image.asset("assets/icons/menu_refer_reward.png",
+                width: 24, height: 24),
             currentPage == DrawerSections.referAndEarn,
           ),
           menuItem(
@@ -379,9 +572,9 @@ class _HomeScreenState extends State<HomeScreen> {
             isExpanded: isInvoicesExpanded,
             onTap: () {
               setState(() {
-                isInvoicesExpanded = !isInvoicesExpanded; // Toggle the submenu
+                isInvoicesExpanded = !isInvoicesExpanded;
                 if (isInvoicesExpanded) {
-                  isCryptoExpanded = false; // Collapse Crypto if Invoices is expanded
+                  isCryptoExpanded = false;
                 }
               });
             },
@@ -389,91 +582,91 @@ class _HomeScreenState extends State<HomeScreen> {
           if (isInvoicesExpanded) ...[
             submenuItem(
               " - Invoice Dashboard",
-                  () {
+              () {
                 Navigator.pop(context);
                 setState(() {
                   currentPage = DrawerSections.invoiceDashboard;
+                  _selectedIndex = 0; // Reset to Home for non-bottom-nav pages
                 });
               },
             ),
             submenuItem(
               " - Clients",
-                  () {
+              () {
                 Navigator.pop(context);
                 setState(() {
                   currentPage = DrawerSections.clients;
+                  _selectedIndex = 0; // Reset to Home for non-bottom-nav pages
                 });
               },
             ),
             submenuItem(
               " - Categories",
-                  () {
+              () {
                 Navigator.pop(context);
                 setState(() {
                   currentPage = DrawerSections.categories;
+                  _selectedIndex = 0; // Reset to Home for non-bottom-nav pages
                 });
               },
             ),
             submenuItem(
               " - Products",
-                  () {
+              () {
                 Navigator.pop(context);
                 setState(() {
                   currentPage = DrawerSections.products;
+                  _selectedIndex = 0; // Reset to Home for non-bottom-nav pages
                 });
               },
             ),
             submenuItem(
               " - Quotes",
-                  () {
+              () {
                 Navigator.pop(context);
                 setState(() {
                   currentPage = DrawerSections.quotes;
+                  _selectedIndex = 0; // Reset to Home for non-bottom-nav pages
                 });
               },
             ),
-            /*submenuItem(
-              " - Templates",
-                  () {
-                Navigator.pop(context);
-                setState(() {
-                  currentPage = DrawerSections.invoiceTemplates;
-                });
-              },
-            ),*/
             submenuItem(
               " - Invoices",
-                  () {
+              () {
                 Navigator.pop(context);
                 setState(() {
                   currentPage = DrawerSections.invoicesSub;
+                  _selectedIndex = 0; // Reset to Home for non-bottom-nav pages
                 });
               },
             ),
             submenuItem(
               " - Manual Invoice Payment",
-                  () {
+              () {
                 Navigator.pop(context);
                 setState(() {
                   currentPage = DrawerSections.manualInvoicePayment;
+                  _selectedIndex = 0; // Reset to Home for non-bottom-nav pages
                 });
               },
             ),
             submenuItem(
               " - Invoice Transactions",
-                  () {
+              () {
                 Navigator.pop(context);
                 setState(() {
                   currentPage = DrawerSections.invoiceTransactions;
+                  _selectedIndex = 0; // Reset to Home for non-bottom-nav pages
                 });
               },
             ),
             submenuItem(
               " - Settings",
-                  () {
+              () {
                 Navigator.pop(context);
                 setState(() {
                   currentPage = DrawerSections.settings;
+                  _selectedIndex = 0; // Reset to Home for non-bottom-nav pages
                 });
               },
             ),
@@ -483,7 +676,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget menuItem(int id, String title, Widget icon, bool selected, {bool isDropdown = false, bool isExpanded = false, Function()? onTap}) {
+  Widget menuItem(int id, String title, Widget icon, bool selected,
+      {bool isDropdown = false, bool isExpanded = false, Function()? onTap}) {
     return Material(
       color: selected ? kPrimaryLightColor : Colors.transparent,
       child: InkWell(
@@ -493,6 +687,18 @@ class _HomeScreenState extends State<HomeScreen> {
           } else {
             setState(() {
               currentPage = DrawerSections.values[id - 1];
+              // Update _selectedIndex based on the selected page
+              if (currentPage == DrawerSections.dashboard) {
+                _selectedIndex = 0;
+              } else if (currentPage == DrawerSections.transaction) {
+                _selectedIndex = 1;
+              } else if (currentPage == DrawerSections.cards) {
+                _selectedIndex = 2;
+              } else if (currentPage == DrawerSections.userProfile) {
+                _selectedIndex = 3;
+              } else {
+                _selectedIndex = 0; // Default to Home for other pages
+              }
               Navigator.pop(context); // Close the drawer
             });
           }
@@ -503,7 +709,11 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               icon,
               const SizedBox(width: 20),
-              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: kPrimaryColor)),
+              Text(title,
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: kPrimaryColor)),
               const Spacer(),
               if (isDropdown)
                 Icon(isExpanded ? Icons.arrow_drop_up : Icons.arrow_drop_down),
@@ -516,19 +726,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget submenuItem(String title, Function() onTap) {
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        onTap();
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 40),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.start, // Aligns to the left
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: kPrimaryColor)),
+            Text(title,
+                style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    color: kPrimaryColor)),
           ],
         ),
       ),
     );
   }
-
 }
 
 enum DrawerSections {
@@ -549,7 +764,6 @@ enum DrawerSections {
   categories,
   products,
   quotes,
-  /*invoiceTemplates,*/
   invoicesSub,
   manualInvoicePayment,
   invoiceTransactions,

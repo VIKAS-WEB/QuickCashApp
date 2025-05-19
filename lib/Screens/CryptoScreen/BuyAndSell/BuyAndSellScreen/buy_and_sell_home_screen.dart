@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/BuyAndSellScreen/model/buyAndSellListApi.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/BuyAndSellScreen/model/buyAndSellListModel.dart';
@@ -82,6 +83,7 @@ class _BuyAndSellScreenState extends State<BuyAndSellScreen> {
   }
 
   String getCurrencySymbol(String currencyCode) {
+    if (currencyCode == "AWG") return 'ƒ';
     var format = NumberFormat.simpleCurrency(name: currencyCode);
     return format.currencySymbol;
   }
@@ -89,14 +91,15 @@ class _BuyAndSellScreenState extends State<BuyAndSellScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        iconTheme: const IconThemeData(color: Colors.transparent),
-        title: const Text(
-          "Buy / Sell Exchange",
-          style: TextStyle(color: Colors.transparent),
-        ),
-      ),
+      resizeToAvoidBottomInset: true,
+      // appBar: AppBar(
+      //   backgroundColor: Colors.transparent,
+      //   iconTheme: const IconThemeData(color: Colors.transparent),
+      //   title: const Text(
+      //     "Buy / Sell Exchange",
+      //     style: TextStyle(color: Colors.transparent),
+      //   ),
+      // ),
       body: Column(
         children: [
           const SizedBox(height: defaultPadding),
@@ -117,13 +120,19 @@ class _BuyAndSellScreenState extends State<BuyAndSellScreen> {
                               builder: (context) =>
                                   const CryptoBuyAnsSellScreen()),
                         );
-                      }else{
-                        CustomSnackBar.showSnackBar(context: context, message: "Your KYC is not completed", color: kPrimaryColor);
+                      } else {
+                        CustomSnackBar.showSnackBar(
+                            context: context,
+                            message: "Your KYC is not completed",
+                            color: kPrimaryColor);
                       }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: kPrimaryColor,
                       padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)
+                      )
                     ),
                     child: const Text('Buy / Sell',
                         style: TextStyle(color: Colors.white, fontSize: 15)),
@@ -137,10 +146,7 @@ class _BuyAndSellScreenState extends State<BuyAndSellScreen> {
           Expanded(
             child: isLoading
                 ? const Center(
-                    child: CircularProgressIndicator(
-                      color: kPrimaryColor,
-                    ),
-                  )
+                    child: SpinKitWaveSpinner(color: kPrimaryColor, size: 75))
                 : cryptoTransactions.isNotEmpty
                     ? ListView.builder(
                         itemCount: cryptoTransactions.length,
@@ -160,7 +166,7 @@ class _BuyAndSellScreenState extends State<BuyAndSellScreen> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        "Coin:   ${transaction.coinName!.split('_')[0]}",
+                                        "Coin: ${transaction.coinName!.split('_')[0]}",
                                         style: const TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold),

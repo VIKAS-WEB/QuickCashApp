@@ -1,12 +1,16 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:country_picker/country_picker.dart';
+import 'package:lottie/lottie.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import 'package:quickcash/Screens/SignupScreen/components/OtpField.dart';
 import 'package:quickcash/Screens/SignupScreen/model/signupApi.dart';
 import 'package:quickcash/util/customSnackBar.dart';
+import 'package:flutter/gestures.dart'; // For TapGestureRecognizer
+import 'package:url_launcher/url_launcher.dart'; // For launching URLs
 
 import '../../../components/check_already_have_an_account.dart';
 import '../../../constants.dart';
@@ -26,7 +30,9 @@ class _SignUpFormState extends State<SignUpForm> {
   bool isVerified = false;
   int generateOtp = 0;
   bool _obsecureText = true;
-  bool isOtpLoading = false;
+  bool isLoading = false;
+
+  Timer? _debounce;
 
   void _togglePasswordVisibilty() {
     setState(() {
@@ -42,17 +48,24 @@ class _SignUpFormState extends State<SignUpForm> {
 
   final SignUpApi _signUpApi = SignUpApi();
 
-  bool isLoading = false;
   String? errorMessage;
 
-   bool _isPasswordValid(String password) {
-  final regex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%&*,.?])(?=.*[0-9]).{8,}$');
-  return regex.hasMatch(password);
-}
+  bool _isPasswordValid(String password) {
+    final regex =
+        RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%&*,.?])(?=.*[0-9]).{8,}$');
+    return regex.hasMatch(password);
+  }
+
+  bool _isValidEmail(String email) {
+    final regex = RegExp(r'^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$');
+    bool isValid = regex.hasMatch(email.trim());
+    print('Email: $email, Valid: $isValid');
+    return isValid;
+  }
 
   Future<void> mSignUp() async {
     if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save(); // Save form field values to variables
+      _formKey.currentState!.save();
       if (selectedCountry != null && selectedCountry != "Select Country") {
         setState(() {
           isLoading = true;
@@ -62,17 +75,10 @@ class _SignUpFormState extends State<SignUpForm> {
         try {
           final response = await _signUpApi.signup(
               fullName!, email!, password!, selectedCountry!, "");
-
-          setState(() {
-            isLoading = false;
-          });
-
-          // Save user ID and token to SharedPreferences
           await AuthManager.saveUserId(response.userId!);
           await AuthManager.saveToken(response.token!);
           await AuthManager.saveUserName(response.name!);
           await AuthManager.saveUserEmail(response.email!);
-          //Navigate to HomeScreen (uncomment this and replace with actual HomeScreen)
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -80,14 +86,24 @@ class _SignUpFormState extends State<SignUpForm> {
         } catch (error) {
           setState(() {
             isLoading = false;
-            errorMessage = error.toString();
+            errorMessage = "Signup failed: ${error.toString()}";
           });
+          CustomSnackBar.showSnackBar(
+            context: context,
+            message: "Signup failed: ${error.toString()}",
+            color: kRedColor,
+          );
         }
       } else {
         setState(() {
+          isLoading = false;
           errorMessage = "Please select a country.";
         });
       }
+    } else {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -101,101 +117,95 @@ class _SignUpFormState extends State<SignUpForm> {
   void dispose() {
     _emailController.removeListener(_onEmailChanged);
     _emailController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
   void _onEmailChanged() {
-    final email = _emailController.text;
-    if (_isValidEmail(email) && !isVerified && email.length > 6) {
-      Future.delayed(const Duration(milliseconds: 500));
-      _generateAndSendOtp(email);
-    }
+    final email = _emailController.text.trim();
+    print('Email changed: $email');
+
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+    _debounce = Timer(const Duration(milliseconds: 1000), () {
+      if (_isValidEmail(email) && !isVerified && email.isNotEmpty) {
+        print('Email is valid and complete: $email, triggering OTP');
+        if (!isLoading) {
+          _generateAndSendOtp(email);
+        } else {
+          print('Form already loading, skipping OTP: $email');
+        }
+      } else {
+        print('Email invalid, already verified, or empty: $email');
+        setState(() {
+          errorMessage = _isValidEmail(email)
+              ? null
+              : "Please enter a valid email address";
+        });
+      }
+    });
   }
 
-  bool _isValidEmail(String email) {
-    final regex = RegExp(r'^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{3,}$');
-    return regex.hasMatch(email);
-}
-
   void _generateAndSendOtp(String email) async {
-    print("OTP generation triggered for $email");
     setState(() {
-      isOtpLoading = true;
-      generateOtp =
-          Random().nextInt(9000) + 1000; // Generate random 4-digit OTP
+      isLoading = true;
+      errorMessage = null;
     });
-    print("Generated OTP: $generateOtp");
 
     try {
-      isOtpLoading = false;
-      // Show progress indicator dialog
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) {
           return Center(
-            child: CircularProgressIndicator(color: kPrimaryColor),
+            child: Lottie.asset(
+              'assets/lottie/emailLoading.json',
+              width: 250,
+              height: 250,
+              fit: BoxFit.cover,
+            ),
           );
         },
       );
 
       await _sendOtpToEmail(email, generateOtp);
 
-      //print("OTP sent successfully to $email");
-
       CustomSnackBar.showSnackBar(
         context: context,
-        message: 'OTP Sent Succesfully to $email',
-        color: kGreenColor, // Set the color of the SnackBar
+        message: 'OTP Sent Successfully to $email',
+        color: kGreenColor,
       );
 
-      isOtpLoading = false; 
-
-      // Dismiss progress dialog
       Navigator.of(context).pop();
-
       _showOtpDialog(email);
     } catch (e) {
-      //print("Failed to send OTP: $e");
-      isOtpLoading = false;
-      // Dismiss progress dialog
       Navigator.of(context).pop();
-
       setState(() {
-        CustomSnackBar.showSnackBar(
-          context: context,
-          message: "Failed to send OTP: $e",
-          color: kGreenColor, // Set the color of the SnackBar
-        );
-
-        //errorMessage = "Failed To Send OTP Please Try Again.";
+        isLoading = false;
+        errorMessage = "Failed to send OTP: ${e.toString()}";
       });
-    } finally {
-      setState(() {
-        isOtpLoading = false;
-      });
+      CustomSnackBar.showSnackBar(
+        context: context,
+        message: "Failed to send OTP: ${e.toString()}",
+        color: kRedColor,
+      );
     }
   }
 
   Future<void> _sendOtpToEmail(String email, int otp) async {
-    // Your SMTP server credentials
-    String username = 'shivamg@itio.in'; // Replace with your email
-    String password =
-        '08F302E2946734E5198AC39C662EDFDA76BE'; // Replace with your email password or app-specific password
-
-    // SMTP server configuration
+    String username = 'shivamg@itio.in';
+    String password = '08F302E2946734E5198AC39C662EDFDA76BE';
     final smtpServer = SmtpServer(
-      'smtp.elasticemail.com', // Use your SMTP server (e.g., Gmail's server)
-      port: 2525, // SMTP port
+      'smtp.elasticemail.com',
+      port: 2525,
       username: username,
       password: password,
     );
 
-    // Email content
     final message = Message()
       ..from = Address(username, 'quickcash')
-      ..recipients.add(email) // Recipient email
-      ..subject = 'quickcash OTP Verification' // Email subject
+      ..recipients.add(email)
+      ..subject = 'quickcash OTP Verification'
       ..html = '''
       <div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2">
         <div style="margin:50px auto;width:70%;padding:20px 0">
@@ -204,9 +214,7 @@ class _SignUpFormState extends State<SignUpForm> {
           </div>
           <p style="font-size:1.1em">Hi,</p>
           <p>Thank you for choosing quickcash. Use the following OTP to Verify Your Email ID. OTP is valid for 5 minutes:</p>
-          <h2 style="background: #00466a;margin: 0 auto;width: max-content;padding: 0 10px;color: #fff;border-radius: 4px;">
-            $otp
-          </h2>
+          <h2 style="background: #00466a;margin: 0 auto;width: max-content;padding: 0 10px;color: #fff;border-radius: 4px;">$otp</h2>
           <p style="font-size:0.9em;">Regards,<br/>quickcash</p>
           <hr style="border:none;border-top:1px solid #eee" />
         </div>
@@ -214,19 +222,16 @@ class _SignUpFormState extends State<SignUpForm> {
     ''';
 
     try {
-      // Send the email
       final sendReport = await send(message, smtpServer);
       print('Email sent: ${sendReport.toString()}');
     } catch (e) {
       print('Error sending email: $e');
+      rethrow;
     }
-
-    print("Sending OTP $otp to email $email");
   }
 
   void _showOtpDialog(String email) {
     showDialog(
-      //useSafeArea: true,
       context: context,
       barrierDismissible: false,
       builder: (context) {
@@ -238,15 +243,10 @@ class _SignUpFormState extends State<SignUpForm> {
           child: SizedBox(
             height: 450,
             width: 600,
-            child: Dialog(
-              backgroundColor: Colors.transparent,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
-              child: OTPSCREEN(
-                email: email,
-                generatedOtp: generateOtp,
-                onVerified: _onOtpVerified,
-              ),
+            child: OTPSCREEN(
+              email: email,
+              generatedOtp: generateOtp,
+              onVerified: _onOtpVerified,
             ),
           ),
         );
@@ -255,71 +255,82 @@ class _SignUpFormState extends State<SignUpForm> {
   }
 
   void _onOtpVerified(bool success) {
-    Navigator.of(context).pop(); // Close the dialog
+    Navigator.of(context).pop();
     if (success) {
       setState(() {
-        isVerified = true; // Mark the email as verified
+        isVerified = true;
+        isLoading = false;
       });
+    } else {
+      setState(() {
+        isLoading = false;
+        errorMessage = "OTP verification failed. Please try again.";
+      });
+      CustomSnackBar.showSnackBar(
+        context: context,
+        message: "OTP verification failed. Please try again.",
+        color: kRedColor,
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        children: [
-          TextFormField(
-            keyboardType: TextInputType.text,
-            textInputAction: TextInputAction.next,
-            cursorColor: kPrimaryColor,
-            style: const TextStyle(
-                color: kPrimaryColor, fontWeight: FontWeight.w500),
-            onSaved: (value) {
-              fullName = value;
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your full name';
-              }
-
-              return null;
-            },
-            decoration: const InputDecoration(
-              hintText: "Full Name",
-              hintStyle: TextStyle(color: kHintColor),
-              prefixIcon: Padding(
-                padding: EdgeInsets.all(defaultPadding),
-                child: Icon(Icons.person),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: defaultPadding),
-            child: TextFormField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.done,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextFormField(
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.next,
               cursorColor: kPrimaryColor,
-              style: TextStyle(
-                  color: isVerified ? Colors.black26 : kPrimaryColor,
-                  fontWeight: FontWeight.w500),
+              style: const TextStyle(
+                  color: kPrimaryColor, fontWeight: FontWeight.w500),
               onSaved: (value) {
-                email = value;
+                fullName = value;
               },
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your email';
-                }
-                // Regex for valid email
-                final regex = RegExp(r'^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{3,}$'
-                );
-                if (!regex.hasMatch(value.trim())) {
-                  return 'Please enter a valid email address';
+                  return 'Please enter your full name';
                 }
                 return null;
               },
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
+                hintText: "Full Name",
+                hintStyle: TextStyle(color: kHintColor),
+                prefixIcon: Padding(
+                  padding: EdgeInsets.all(defaultPadding),
+                  child: Icon(Icons.person),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: defaultPadding),
+              child: TextFormField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.done,
+                cursorColor: kPrimaryColor,
+                style: TextStyle(
+                  color: isVerified ? Colors.black26 : kPrimaryColor,
+                  fontWeight: FontWeight.w500,
+                ),
+                onSaved: (value) {
+                  email = value;
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your email';
+                  }
+                  if (!_isValidEmail(value)) {
+                    return 'Please enter a valid email (e.g., abc@gmail.com)';
+                  }
+                  return null;
+                },
+                decoration: InputDecoration(
                   hintText: "Your Email",
                   hintStyle: const TextStyle(color: kHintColor),
                   prefixIcon: Padding(
@@ -329,117 +340,195 @@ class _SignUpFormState extends State<SignUpForm> {
                       color: isVerified ? Colors.black26 : kPrimaryColor,
                     ),
                   ),
-                  suffixIcon: isVerified
-                      ? const Icon(
-                          Icons.check_circle,
-                          color: Colors.green,
-                        )
+                  suffixIcon: null,
+                  fillColor: isVerified ? Colors.black12 : kPrimaryLightColor,
+                  filled: true,
+                  errorText: _emailController.text.isNotEmpty &&
+                          !isVerified &&
+                          !_isValidEmail(_emailController.text)
+                      ? "Please enter a valid email address"
                       : null,
-                  fillColor: isVerified ? Colors.black12 : kPrimaryLightColor),
-              enabled: !isVerified,
-            ),
-          ),
-          TextFormField(
-            textInputAction: TextInputAction.done,
-            obscureText: _obsecureText,
-            cursorColor: kPrimaryColor,
-            style: const TextStyle(
-                color: kPrimaryColor, fontWeight: FontWeight.w500),
-            onSaved: (value) {
-              password = value;
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your password';
-              }
-              if (!_isPasswordValid(value)) {
-                return 'Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character.';
-              }
-              return null;
-            },
-            decoration: InputDecoration(
-              hintText: "Your Password",
-              hintStyle: const TextStyle(color: kHintColor),
-              prefixIcon: const Padding(
-                padding: EdgeInsets.all(defaultPadding),
-                child: Icon(Icons.lock),
+                ),
               ),
-              suffixIcon: IconButton(
+            ),
+            TextFormField(
+              textInputAction: TextInputAction.done,
+              obscureText: _obsecureText,
+              cursorColor: kPrimaryColor,
+              style: const TextStyle(
+                  color: kPrimaryColor, fontWeight: FontWeight.w500),
+              onSaved: (value) {
+                password = value;
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your password';
+                }
+                if (!_isPasswordValid(value)) {
+                  return 'Password must contain at least one lowercase, uppercase, number, and special character.';
+                }
+                return null;
+              },
+              decoration: InputDecoration(
+                hintText: "Your Password",
+                hintStyle: const TextStyle(color: kHintColor),
+                prefixIcon: const Padding(
+                  padding: EdgeInsets.all(defaultPadding),
+                  child: Icon(Icons.lock),
+                ),
+                suffixIcon: IconButton(
                   onPressed: _togglePasswordVisibilty,
                   icon: Icon(
                     _obsecureText ? Icons.visibility : Icons.visibility_off,
                     color: kPrimaryColor,
-                  )),
-            ),
-          ),
-          const SizedBox(
-            height: defaultPadding,
-          ),
-          GestureDetector(
-            onTap: () {
-              showCountryPicker(
-                context: context,
-                onSelect: (Country country) {
-                  setState(() {
-                    selectedCountry = country.name; // Set the selected country
-                  });
-                  // ScaffoldMessenger.of(context).showSnackBar(
-                  //   SnackBar(content: Text('Selected Country: ${country.name}')),
-                  // );
-                },
-              );
-            },
-            child: TextFormField(
-              textInputAction: TextInputAction.done,
-              enabled: false, // Disable direct text entry
-              controller: TextEditingController(text: selectedCountry),
-              cursorColor: kPrimaryColor,
-              style: const TextStyle(
-                  color: kPrimaryColor, fontWeight: FontWeight.w500),
-              decoration: InputDecoration(
-                hintText: selectedCountry ?? "Select Country",
-                hintStyle: const TextStyle(color: kHintColor),
-                prefixIcon: const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Icon(Icons.flag),
-                ),
-                suffixIcon: const Icon(
-                  Icons.arrow_drop_down,
-                  color: kPrimaryColor,
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: defaultPadding / 2),
-          const SizedBox(height: 40),
-          if (isLoading)
-            const CircularProgressIndicator(
-              color: kPrimaryColor,
-            ), // Show loading indicator
-          if (errorMessage != null) // Show error message if there's an error
-            Text(errorMessage!, style: const TextStyle(color: Colors.red)),
-          const SizedBox(
-            height: defaultPadding,
-          ),
-          ElevatedButton(
-            onPressed: isLoading ? null : mSignUp,
-            child: const Text("Sign Up"),
-          ),
-          const SizedBox(height: defaultPadding),
-          AlreadyHaveAnAccountCheck(
-            login: false,
-            press: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const LoginScreen();
+            const SizedBox(height: defaultPadding),
+            GestureDetector(
+              onTap: () {
+                showCountryPicker(
+                  context: context,
+                  onSelect: (Country country) {
+                    setState(() {
+                      selectedCountry = country.name;
+                    });
                   },
+                );
+              },
+              child: TextFormField(
+                textInputAction: TextInputAction.done,
+                enabled: false,
+                controller: TextEditingController(text: selectedCountry),
+                cursorColor: kPrimaryColor,
+                style: const TextStyle(
+                    color: kPrimaryColor, fontWeight: FontWeight.w500),
+                decoration: InputDecoration(
+                  hintText: selectedCountry ?? "Select Country",
+                  hintStyle: const TextStyle(color: kHintColor),
+                  prefixIcon: const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Icon(Icons.flag),
+                  ),
+                  suffixIcon: const Icon(
+                    Icons.arrow_drop_down,
+                    color: kPrimaryColor,
+                  ),
                 ),
-              );
-            },
-          ),
-        ],
+              ),
+            ),
+            const SizedBox(height: 40),
+            if (isLoading)
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Center(
+                  child: Lottie.asset(
+                    'assets/lottie/loading.json',
+                    width: 100,
+                    height: 100,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+            if (errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            const SizedBox(height: defaultPadding),
+            ElevatedButton(
+              onPressed: isLoading ? null : mSignUp,
+              child: const Text("Sign Up"),
+            ),
+            const SizedBox(height: defaultPadding),
+            AlreadyHaveAnAccountCheck(
+              login: false,
+              press: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return const LoginScreen();
+                    },
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 50),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Red curved arrow
+               
+                const SizedBox(width: 10),
+                // RichText for clickable and bold links
+                Expanded(
+                  child: RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.black87,
+                      ),
+                      children: [
+                        const TextSpan(text: 'By Continuing, you agree to our\n'),
+                        TextSpan(
+                          text: 'Terms and Conditions',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: kPrimaryColor,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () async {
+                              const url = 'https://yourwebsite.com/terms'; // Replace with your Terms URL
+                              final uri = Uri.parse(url);
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(uri);
+                              } else {
+                                CustomSnackBar.showSnackBar(
+                                  context: context,
+                                  message: "Could not open Terms and Conditions",
+                                  color: kRedColor,
+                                );
+                              }
+                            },
+                        ),
+                        const TextSpan(text: ' and have read our '),
+                        TextSpan(
+                          text: 'Privacy Policy',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: kPrimaryColor,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () async {
+                              const url = 'https://yourwebsite.com/privacy'; // Replace with your Privacy Policy URL
+                              final uri = Uri.parse(url);
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(uri);
+                              } else {
+                                CustomSnackBar.showSnackBar(
+                                  context: context,
+                                  message: "Could not open Privacy Policy",
+                                  color: kRedColor,
+                                );
+                              }
+                            },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

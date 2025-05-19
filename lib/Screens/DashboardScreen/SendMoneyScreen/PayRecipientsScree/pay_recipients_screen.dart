@@ -7,6 +7,7 @@ import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/PayRecipientsS
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/PayRecipientsScree/makePaymentModel/makePaymentApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/PayRecipientsScree/makePaymentModel/makePaymentModel.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/util/currency_utils.dart';
 
 import '../../../../util/auth_manager.dart';
 import '../../../../util/customSnackBar.dart';
@@ -253,12 +254,17 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                           const EdgeInsets.all(defaultPadding),
                                       child: Row(
                                         children: [
-                                          CountryFlag.fromCountryCode(
-                                            width: 35,
-                                            height: 35,
-                                            mSendCountry!,
-                                            shape: const Circle(),
-                                          ),
+                                          // Use EU flag for EUR, country flag for others
+                                          if (mSendCurrency?.toUpperCase() ==
+                                              'EUR')
+                                            getEuFlagWidget()
+                                          else
+                                            CountryFlag.fromCountryCode(
+                                              width: 35,
+                                              height: 35,
+                                              mSendCountry!,
+                                              shape: const Circle(),
+                                            ),
                                           const SizedBox(width: defaultPadding),
                                           Expanded(
                                             child: Column(
@@ -283,17 +289,17 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                     ),
                                   ),
                                 ),
-                                SizedBox(
+                                const SizedBox(
                                   height: smallPadding,
                                 ),
                                 Row(
                                   children: [
-                                    Text(
+                                    const Text(
                                       'Send Avg Balance = ',
                                       style: TextStyle(color: kPrimaryColor),
                                     ),
                                     Text(
-                                      '${mSendCurrencyAmount?.toStringAsFixed(2)}',
+                                      '${getCurrencySymbol(mSendCurrency!)}${mSendCurrencyAmount?.toStringAsFixed(2) ?? '0.00'}',
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 14,
@@ -308,6 +314,11 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                 TextFormField(
                                   controller: mSendAmountController,
                                   decoration: InputDecoration(
+                                    prefix: Text(
+                                      '${getCurrencySymbol(mSendCurrency!)} ',
+                                      style:
+                                          const TextStyle(color: kPrimaryColor),
+                                    ),
                                     labelText: 'Send',
                                     labelStyle:
                                         const TextStyle(color: kPrimaryColor),
@@ -336,7 +347,12 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                           "Select Currency") {
                                         if (mSendAmountController
                                             .text.isNotEmpty) {
-                                          if (mSendAmountController.text == mSendCurrencyAmount.toString() || double.parse(mSendAmountController.text) <= mSendCurrencyAmount!) {
+                                          if (mSendAmountController.text ==
+                                                  mSendCurrencyAmount
+                                                      .toString() ||
+                                              double.parse(mSendAmountController
+                                                      .text) <=
+                                                  mSendCurrencyAmount!) {
                                             setState(() {
                                               mExchangeMoneyApi();
                                             });
@@ -441,12 +457,17 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                           const EdgeInsets.all(defaultPadding),
                                       child: Row(
                                         children: [
-                                          CountryFlag.fromCountryCode(
-                                            width: 35,
-                                            height: 35,
-                                            mReceiveCountry!,
-                                            shape: const Circle(),
-                                          ),
+                                          // Use EU flag for EUR, country flag for others (corrected for mReceiveCurrency)
+                                          if (mReceiveCurrency?.toUpperCase() ==
+                                              'EUR')
+                                            getEuFlagWidget()
+                                          else
+                                            CountryFlag.fromCountryCode(
+                                              width: 35,
+                                              height: 35,
+                                              mReceiveCountry!,
+                                              shape: const Circle(),
+                                            ),
                                           const SizedBox(width: defaultPadding),
                                           Expanded(
                                             child: Column(
@@ -486,6 +507,11 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                   controller: mReceiveAmountController,
                                   readOnly: true,
                                   decoration: InputDecoration(
+                                    prefix: Text(
+                                      '${getCurrencySymbol(mReceiveCurrency!)} ',
+                                      style:
+                                          const TextStyle(color: kPrimaryColor),
+                                    ),
                                     labelText: 'Recipient will receive',
                                     labelStyle:
                                         const TextStyle(color: kPrimaryColor),
@@ -1007,12 +1033,19 @@ class _SendCurrencyBottomSheetState extends State<SendCurrencyBottomSheet> {
                                                       MainAxisAlignment
                                                           .spaceBetween,
                                                   children: [
-                                                    CountryFlag.fromCountryCode(
-                                                      width: 35,
-                                                      height: 35,
-                                                      accountsData.country!,
-                                                      shape: const Circle(),
-                                                    ),
+                                                    // Use EU flag for EUR, country flag for others
+                                                    if (accountsData.currency
+                                                            ?.toUpperCase() ==
+                                                        'EUR')
+                                                      getEuFlagWidget()
+                                                    else
+                                                      CountryFlag
+                                                          .fromCountryCode(
+                                                        width: 35,
+                                                        height: 35,
+                                                        accountsData.country!,
+                                                        shape: const Circle(),
+                                                      ),
                                                     Text(
                                                       "${accountsData.currency}",
                                                       style: TextStyle(
@@ -1028,33 +1061,34 @@ class _SendCurrencyBottomSheetState extends State<SendCurrencyBottomSheet> {
                                                 ),
                                                 const SizedBox(
                                                     height: defaultPadding),
+                                                // ignore: prefer_const_constructors
                                                 Row(
                                                   mainAxisAlignment:
                                                       MainAxisAlignment
                                                           .spaceBetween,
                                                   children: [
-                                                    Text(
-                                                      "Balance",
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: isSelected
-                                                            ? Colors.white
-                                                            : kPrimaryColor,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      "${accountsData.amount?.toStringAsFixed(2)}",
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: isSelected
-                                                            ? Colors.white
-                                                            : kPrimaryColor,
-                                                      ),
-                                                    ),
+                                                    // Text(
+                                                    //   "Balance",
+                                                    //   style: TextStyle(
+                                                    //     fontSize: 16,
+                                                    //     fontWeight:
+                                                    //         FontWeight.bold,
+                                                    //     color: isSelected
+                                                    //         ? Colors.white
+                                                    //         : kPrimaryColor,
+                                                    //   ),
+                                                    // ),
+                                                    // Text(
+                                                    //   "${accountsData.amount?.toStringAsFixed(2)}",
+                                                    //   style: TextStyle(
+                                                    //     fontSize: 16,
+                                                    //     fontWeight:
+                                                    //         FontWeight.bold,
+                                                    //     color: isSelected
+                                                    //         ? Colors.white
+                                                    //         : kPrimaryColor,
+                                                    //   ),
+                                                    // ),
                                                   ],
                                                 ),
                                               ],
@@ -1219,12 +1253,19 @@ class _ReceiveCurrencyBottomSheetState
                                                       MainAxisAlignment
                                                           .spaceBetween,
                                                   children: [
-                                                    CountryFlag.fromCountryCode(
-                                                      width: 35,
-                                                      height: 35,
-                                                      accountsData.country!,
-                                                      shape: const Circle(),
-                                                    ),
+                                                    // Use EU flag for EUR, country flag for others
+                                                    if (accountsData.currency
+                                                            ?.toUpperCase() ==
+                                                        'EUR')
+                                                      getEuFlagWidget()
+                                                    else
+                                                      CountryFlag
+                                                          .fromCountryCode(
+                                                        width: 35,
+                                                        height: 35,
+                                                        accountsData.country!,
+                                                        shape: const Circle(),
+                                                      ),
                                                     Text(
                                                       "${accountsData.currency}",
                                                       style: TextStyle(
@@ -1240,33 +1281,33 @@ class _ReceiveCurrencyBottomSheetState
                                                 ),
                                                 const SizedBox(
                                                     height: defaultPadding),
-                                                Row(
+                                                const Row(
                                                   mainAxisAlignment:
                                                       MainAxisAlignment
                                                           .spaceBetween,
                                                   children: [
-                                                    Text(
-                                                      "Balance",
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: isSelected
-                                                            ? Colors.white
-                                                            : kPrimaryColor,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      "${accountsData.amount?.toStringAsFixed(2)}",
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: isSelected
-                                                            ? Colors.white
-                                                            : kPrimaryColor,
-                                                      ),
-                                                    ),
+                                                    // Text(
+                                                    //   "Balance",
+                                                    //   style: TextStyle(
+                                                    //     fontSize: 16,
+                                                    //     fontWeight:
+                                                    //         FontWeight.bold,
+                                                    //     color: isSelected
+                                                    //         ? Colors.white
+                                                    //         : kPrimaryColor,
+                                                    //   ),
+                                                    // ),
+                                                    // Text(
+                                                    //   "${getCurrencySymbol(accountsData.currency)}${accountsData.amount?.toStringAsFixed(2) ?? '0.00'}",
+                                                    //   style: TextStyle(
+                                                    //     fontSize: 16,
+                                                    //     fontWeight:
+                                                    //         FontWeight.bold,
+                                                    //     color: isSelected
+                                                    //         ? Colors.white
+                                                    //         : kPrimaryColor,
+                                                    //   ),
+                                                    // ),
                                                   ],
                                                 ),
                                               ],

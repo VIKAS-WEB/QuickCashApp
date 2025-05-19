@@ -25,7 +25,7 @@ class CryptoSellRequest {
       'amount': amount,
       'coin': coinType,
       'currencyType': currencyType,
-      'fees': fees,
+      'fee': fees,
       'noOfCoins': noOfCoins,
       'side': side,
       'status': status,

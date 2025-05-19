@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/BuyAndSellScreen/model/buyAndSellListApi.dart';
 import 'package:quickcash/Screens/CryptoScreen/WalletAddress/model/walletAddressApi.dart';
@@ -17,21 +18,23 @@ class DashboardProvider extends ChangeNotifier {
   final TransactionListApi _transactionListApi = TransactionListApi();
   final AccountsListApi _accountsListApi = AccountsListApi();
   final CryptoListApi _cryptoListApi = CryptoListApi();
-  final AccountListTransactionApi _accountListTransactionApi = AccountListTransactionApi();
+  final AccountListTransactionApi _accountListTransactionApi =
+      AccountListTransactionApi();
   final RevenueListApi _revenueListApi = RevenueListApi();
   final KycStatusApi _kycStatusApi = KycStatusApi();
+
+  bool isTokenExpired = false;
 
   List<WalletAddressListsData> walletAddressList = [];
   List<AccountsListsData> accountsListData = [];
   List<CryptoListsData> cryptoListData = [];
   List<TransactionListDetails> transactionList = [];
 
-  int _selectedFiatIndex = -1;
-  int _selectedCryptoIndex = -1;
+  int _selectedFiatIndex = -1; // Default to no fiat selection
+  int _selectedCryptoIndex = -1; // Default to no crypto selection
   int _currentFiatPage = 0;
   int _currentCryptoPage = 0;
-  String? _selectedCardType = "";
-  CryptoListsData? selectedCryptoData;
+  String? _selectedCardType = "fiat"; // Changed to "fiat" to match segmented control
 
   bool isLoading = false;
   bool isTransactionLoading = false;
@@ -62,8 +65,20 @@ class DashboardProvider extends ChangeNotifier {
     initializeData();
   }
 
+  // Add this method to update selectedCardType
+  void setSelectedCardType(String type) {
+    _selectedCardType = type;
+    // Reset indices when switching sections to ensure proper behavior
+    if (type != "fiat") {
+      _selectedFiatIndex = -1;
+    }
+    if (type != "crypto") {
+      _selectedCryptoIndex = -1;
+    }
+    notifyListeners();
+  }
+
   Future<void> initializeData() async {
-    // Ensure AuthManager is initialized
     await AuthManager.init();
     if (AuthManager.getKycStatus() == "completed") {
       isLoading = true;
@@ -75,20 +90,89 @@ class DashboardProvider extends ChangeNotifier {
         fetchTransactionList(),
         fetchWalletAddresses(),
       ]);
-      _restoreSelectedAccount(); // Restore the last selected account or default to USD
+      _restoreSelectedAccount();
       isLoading = false;
       notifyListeners();
     }
     await fetchKycStatus();
+    if (AuthManager.isFreshLogin()) {
+      notifyListeners(); // Ensure UI updates after fresh login
+    }
+  }
+
+  // Reset all state to initial values
+  void resetState() {
+    isTokenExpired = false;
+    walletAddressList = [];
+    accountsListData = [];
+    cryptoListData = [];
+    transactionList = [];
+    _selectedFiatIndex = -1;
+    _selectedCryptoIndex = -1;
+    _currentFiatPage = 0;
+    _currentCryptoPage = 0;
+    _selectedCardType = "fiat"; // Reset to "fiat"
+    isLoading = false;
+    isTransactionLoading = false;
+    errorTransactionMessage = null;
+    errorMessage = null;
+    creditAmount = null;
+    debitAmount = null;
+    investingAmount = null;
+    earningAmount = null;
+    accountIdExchange = null;
+    accountName = null;
+    countryExchange = null;
+    currencyExchange = null;
+    ibanExchange = null;
+    statusExchange = null;
+    amountExchange = null;
+    mKycDocumentStatus = null;
+    notifyListeners();
+  }
+
+  // Call this after login to reset and reload data
+  Future<void> reloadAfterLogin() async {
+    print("reloadAfterLogin: Starting reset and reload"); // Debug
+    resetState();
+    await initializeData();
+    if (AuthManager.isFreshLogin()) {
+      print("reloadAfterLogin: Clearing fresh login flag"); // Debug
+      AuthManager.clearFreshLogin();
+    }
+    print("reloadAfterLogin: Completed"); // Debug
+  }
+
+  List<CryptoListsData> get filteredCryptoTransactions {
+    if (_selectedCardType != "crypto" ||
+        _selectedCryptoIndex < 0 ||
+        _selectedCryptoIndex >= walletAddressList.length) {
+      return cryptoListData;
+    }
+    String selectedCoin = walletAddressList[_selectedCryptoIndex]
+        .coin!
+        .split('_')[0]
+        .toUpperCase();
+    return cryptoListData
+        .where((transaction) =>
+            transaction.coinName?.toUpperCase().split('_')[0] == selectedCoin)
+        .toList();
   }
 
   Future<void> fetchWalletAddresses() async {
     try {
       final response = await _walletAddressApi.walletAddressApi();
       walletAddressList = response.walletAddressList ?? [];
-      errorMessage = walletAddressList.isEmpty ? "No Wallet Addresses Found" : null;
+      errorMessage =
+          walletAddressList.isEmpty ? "No Wallet Addresses Found" : null;
+      isTokenExpired = false;
     } catch (error) {
-      errorMessage = error.toString();
+      if (error is DioException && error.response?.statusCode == 403) {
+        isTokenExpired = true;
+        errorMessage = "Token has been expired / Missing Token";
+      } else {
+        errorMessage = error.toString();
+      }
     }
     notifyListeners();
   }
@@ -97,13 +181,22 @@ class DashboardProvider extends ChangeNotifier {
     try {
       final response = await _kycStatusApi.kycStatusApi();
       if (response.message == "kyc data are fetched Successfully") {
-        await AuthManager.saveKycStatus(response.kycStatusDetails!.first.kycStatus!);
+        await AuthManager.saveKycStatus(
+            response.kycStatusDetails!.first.kycStatus!);
         await AuthManager.saveKycId(response.kycStatusDetails!.first.kycId!);
-        await AuthManager.saveKycDocFront(response.kycStatusDetails!.first.documentPhotoFront!);
-        mKycDocumentStatus = response.kycStatusDetails!.first.documentPhotoFront;
+        await AuthManager.saveKycDocFront(
+            response.kycStatusDetails!.first.documentPhotoFront!);
+        mKycDocumentStatus =
+            response.kycStatusDetails!.first.documentPhotoFront;
       }
+      isTokenExpired = false;
     } catch (error) {
-      errorMessage = error.toString();
+      if (error is DioException && error.response?.statusCode == 403) {
+        isTokenExpired = true;
+        errorMessage = "Token has been expired / Missing Token";
+      } else {
+        errorMessage = error.toString();
+      }
     }
     notifyListeners();
   }
@@ -113,8 +206,15 @@ class DashboardProvider extends ChangeNotifier {
       final response = await _accountsListApi.accountsListApi();
       accountsListData = response.accountsList ?? [];
       errorMessage = accountsListData.isEmpty ? 'No Account Found' : null;
+      isTokenExpired = false;
     } catch (error) {
-      errorMessage = error.toString();
+      if (error is DioException && error.response?.statusCode == 403) {
+        isTokenExpired = true;
+        errorMessage = "Token has been expired / Missing Token";
+      } else {
+        errorMessage = error.toString();
+        isTokenExpired = true;
+      }
     }
     notifyListeners();
   }
@@ -124,8 +224,15 @@ class DashboardProvider extends ChangeNotifier {
       final response = await _cryptoListApi.cryptoListApi();
       cryptoListData = response.cryptoList ?? [];
       errorMessage = cryptoListData.isEmpty ? 'No Data' : null;
+      isTokenExpired = false;
     } catch (error) {
-      errorMessage = error.toString();
+      if (error is DioException && error.response?.statusCode == 403) {
+        isTokenExpired = true;
+        errorMessage = "Token has been expired / Missing Token";
+      } else {
+        errorMessage = error.toString();
+        isTokenExpired = true;
+      }
     }
     notifyListeners();
   }
@@ -136,23 +243,39 @@ class DashboardProvider extends ChangeNotifier {
     try {
       final response = await _transactionListApi.transactionListApi();
       transactionList = response.transactionList ?? [];
-      errorTransactionMessage = transactionList.isEmpty ? 'No Transaction List' : null;
+      errorTransactionMessage =
+          transactionList.isEmpty ? 'No Transaction List' : null;
+      isTokenExpired = false;
     } catch (error) {
-      errorTransactionMessage = error.toString();
+      if (error is DioException && error.response?.statusCode == 403) {
+        isTokenExpired = true;
+        errorTransactionMessage = "Token has been expired / Missing Token";
+      } else {
+        errorTransactionMessage = error.toString();
+      }
     }
     isTransactionLoading = false;
     notifyListeners();
   }
 
-  Future<void> fetchAccountListTransaction(String accountId, String currency) async {
+  Future<void> fetchAccountListTransaction(
+      String accountId, String currency) async {
     isTransactionLoading = true;
     notifyListeners();
     try {
-      final response = await _accountListTransactionApi.accountListTransaction(accountId, currency, AuthManager.getUserId());
+      final response = await _accountListTransactionApi.accountListTransaction(
+          accountId, currency, AuthManager.getUserId());
       transactionList = response.transactionList ?? [];
-      errorTransactionMessage = transactionList.isEmpty ? 'No Transaction List' : null;
+      errorTransactionMessage =
+          transactionList.isEmpty ? 'No Transaction List' : null;
+      isTokenExpired = false;
     } catch (error) {
-      errorTransactionMessage = error.toString();
+      if (error is DioException && error.response?.statusCode == 403) {
+        isTokenExpired = true;
+        errorTransactionMessage = "Token has been expired / Missing Token";
+      } else {
+        errorTransactionMessage = error.toString();
+      }
     }
     isTransactionLoading = false;
     notifyListeners();
@@ -165,36 +288,46 @@ class DashboardProvider extends ChangeNotifier {
       debitAmount = response.debitAmount ?? 0.0;
       investingAmount = response.investingAmount ?? 0.0;
       earningAmount = response.earningAmount ?? 0.0;
+      isTokenExpired = false;
     } catch (error) {
-      errorMessage = error.toString();
+      if (error is DioException && error.response?.statusCode == 403) {
+        isTokenExpired = true;
+        errorMessage = "Token has been expired / Missing Token";
+      } else {
+        errorMessage = error.toString();
+      }
     }
     notifyListeners();
   }
 
   void selectFiatCard(int index, AccountsListsData data) {
-    _selectedFiatIndex = index;
-    _selectedCryptoIndex = -1;
-    _selectedCardType = "fiat";
-    accountName = data.Accountname;
-    accountIdExchange = data.accountId;
-    countryExchange = data.country;
-    currencyExchange = data.currency;
-    ibanExchange = data.iban;
-    statusExchange = data.status;
-    amountExchange = data.amount;
-    AuthManager.saveCurrency(data.currency!);
-    AuthManager.saveAccountBalance(data.amount.toString());
-    AuthManager.saveSelectedAccountId(data.accountId!); // Use new method
-    fetchAccountListTransaction(data.accountId!, data.currency!);
-    notifyListeners();
+    if (index >= 0 && index < accountsListData.length) {
+      _selectedFiatIndex = index;
+      _selectedCryptoIndex = -1;
+      _selectedCardType = "fiat";
+      accountName = data.Accountname;
+      accountIdExchange = data.accountId;
+      countryExchange = data.country;
+      currencyExchange = data.currency;
+      ibanExchange = data.iban;
+      statusExchange = data.status;
+      amountExchange = data.amount;
+      AuthManager.saveCurrency(data.currency!);
+      AuthManager.saveAccountBalance(data.amount.toString());
+      AuthManager.saveSelectedAccountId(data.accountId!);
+      fetchAccountListTransaction(data.accountId!, data.currency!);
+      notifyListeners();
+    }
   }
 
   void selectCryptoCard(int index) {
-    _selectedCryptoIndex = index;
-    _selectedFiatIndex = -1;
-    _selectedCardType = "crypto";
-    AuthManager.saveSelectedAccountId(''); // Clear fiat selection
-    notifyListeners();
+    if (index >= 0 && index < walletAddressList.length) {
+      _selectedCryptoIndex = index;
+      _selectedFiatIndex = -1;
+      _selectedCardType = "crypto";
+      AuthManager.saveSelectedAccountId('');
+      notifyListeners();
+    }
   }
 
   void updateFiatPage(int index) {
@@ -217,28 +350,42 @@ class DashboardProvider extends ChangeNotifier {
       fetchTransactionList(),
       fetchWalletAddresses(),
     ]);
-    _restoreSelectedAccount(); // Restore selection on refresh
+    _restoreSelectedAccount();
     isLoading = false;
     notifyListeners();
   }
 
   void _restoreSelectedAccount() {
     if (accountsListData.isNotEmpty) {
-      final savedAccountId = AuthManager.getSelectedAccountId(); // Synchronous getter
+      final savedAccountId = AuthManager.getSelectedAccountId();
       if (savedAccountId.isNotEmpty) {
-        final accountIndex = accountsListData.indexWhere((account) => account.accountId == savedAccountId);
+        final accountIndex = accountsListData
+            .indexWhere((account) => account.accountId == savedAccountId);
         if (accountIndex != -1) {
           selectFiatCard(accountIndex, accountsListData[accountIndex]);
+          _currentFiatPage = accountIndex;
           return;
         }
       }
-      // Fallback to USD if no saved selection or account not found
-      final usdIndex = accountsListData.indexWhere((account) => account.currency == "USD");
+      final usdIndex =
+          accountsListData.indexWhere((account) => account.currency == "USD");
       if (usdIndex != -1) {
         selectFiatCard(usdIndex, accountsListData[usdIndex]);
+        _currentFiatPage = usdIndex;
       } else if (accountsListData.isNotEmpty) {
-        selectFiatCard(0, accountsListData[0]); // Fallback to first account if no USD
+        selectFiatCard(0, accountsListData[0]);
+        _currentFiatPage = 0;
       }
+    }
+    if (_selectedCardType != "fiat" && walletAddressList.isNotEmpty) {
+      selectCryptoCard(0);
+      _currentCryptoPage = 0;
+    } else if (_selectedCardType == "") {
+      _selectedFiatIndex = -1;
+      _selectedCryptoIndex = -1;
+      _selectedCardType = "fiat"; // Changed to "fiat"
+      _currentFiatPage = 0;
+      _currentCryptoPage = 0;
     }
   }
 }

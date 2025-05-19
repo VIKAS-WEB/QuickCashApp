@@ -9,6 +9,7 @@ import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/UpdateRecipien
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/UpdateRecipientScreen/UpdateRecipientModel/UpdateRecipientApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/UpdateRecipientScreen/UpdateRecipientModel/updateRecipientModel.dart';
 import 'package:quickcash/constants.dart';
+import 'package:quickcash/util/currency_utils.dart';
 
 import '../../../../util/auth_manager.dart';
 import '../../../../util/customSnackBar.dart';
@@ -170,20 +171,31 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
       isSubmitLoading = true;
     });
 
-    try{
-
-      String amountText = '$mFromCurrencySymbol ${mAmountController
-          .text}';
+    try {
+      String amountText = '$mFromCurrencySymbol ${mAmountController.text}';
 
       String conversionAmountText = '$mToCurrencySymbol $mGetTotalAmount';
 
-      final request = RecipientUpdateRequest(userId: AuthManager.getUserId(), fee: mFees.toString(), toCurrency: mToCurrency!, recipientId: widget.mRecipientId!, amount: mAmountController.text, amountText: amountText, conversionAmount: mGetTotalAmount.toString(), conversionAmountText: conversionAmountText);
+      final request = RecipientUpdateRequest(
+          userId: AuthManager.getUserId(),
+          fee: mFees.toString(),
+          toCurrency: mToCurrency!,
+          recipientId: widget.mRecipientId!,
+          amount: mAmountController.text,
+          amountText: amountText,
+          conversionAmount: mGetTotalAmount.toString(),
+          conversionAmountText: conversionAmountText);
       final response = await _recipientUpdateApi.recipientUpdateApi(request);
 
-      if(response.message == "Bank Transfer transaction has been submitted Successfully!!!"){
+      if (response.message ==
+          "Bank Transfer transaction has been submitted Successfully!!!") {
         setState(() {
           isSubmitLoading = false;
-          CustomSnackBar.showSnackBar(context: context, message: "Bank Transfer transaction has been submitted Successfully!", color: kPrimaryColor);
+          CustomSnackBar.showSnackBar(
+              context: context,
+              message:
+                  "Bank Transfer transaction has been submitted Successfully!",
+              color: Colors.green);
           Navigator.of(context).pop();
           Navigator.push(
             context,
@@ -192,20 +204,21 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
             ),
           );
         });
-      }else{
+      } else {
         setState(() {
           isSubmitLoading = false;
-          CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kPrimaryColor);
+          CustomSnackBar.showSnackBar(
+              context: context,
+              message: "We are facing some issue!",
+              color: kRedColor);
         });
       }
-
-    }catch (error) {
+    } catch (error) {
       setState(() {
         isSubmitLoading = false;
         isSubmit = false;
       });
     }
-
   }
 
   // Currency Symbol *********
@@ -311,12 +324,16 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
                           padding: const EdgeInsets.all(defaultPadding),
                           child: Row(
                             children: [
-                              CountryFlag.fromCountryCode(
-                                width: 55,
-                                height: 55,
-                                mToCountry!,
-                                shape: const RoundedRectangle(smallPadding),
-                              ),
+                              // Use EU flag for EUR, country flag for others
+                              if (mToCurrency?.toUpperCase() == 'EUR')
+                                getEuFlagWidget()
+                              else
+                                CountryFlag.fromCountryCode(
+                                  width: 55,
+                                  height: 55,
+                                  mToCountry!,
+                                  shape: const RoundedRectangle(smallPadding),
+                                ),
                               const SizedBox(width: defaultPadding),
                               Expanded(
                                 child: Column(
@@ -339,7 +356,7 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
                                       ),
                                     ),
                                     Text(
-                                      '${mToCurrencySymbol!} ${mToAmount!.toStringAsFixed(2)}',
+                                      '${getCurrencySymbol(mToCurrency!)}${mToAmount!.toStringAsFixed(2)}',
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w500,
                                         fontSize: 12,
@@ -465,7 +482,7 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
                                     fontWeight: FontWeight.bold),
                               ),
                               Text(
-                                "$mToCurrencySymbol $mGetTotalAmount",
+                               "$mToCurrencySymbol ${mGetTotalAmount?.toStringAsFixed(2) ?? '0.00'}",
                                 style: const TextStyle(
                                     color: kPrimaryColor,
                                     fontWeight: FontWeight.bold),
@@ -499,7 +516,8 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                               ),
-                              onPressed: isSubmitLoading ? null : mUpdateRecipient,
+                              onPressed:
+                                  isSubmitLoading ? null : mUpdateRecipient,
                               child: const Text(
                                 'Submit',
                                 style: TextStyle(
@@ -709,12 +727,19 @@ class _AllAccountsBottomSheetState extends State<AllAccountsBottomSheet> {
                                                       MainAxisAlignment
                                                           .spaceBetween,
                                                   children: [
-                                                    CountryFlag.fromCountryCode(
-                                                      width: 35,
-                                                      height: 35,
-                                                      accountsData.country!,
-                                                      shape: const Circle(),
-                                                    ),
+                                                    // Use EU flag for EUR, country flag for others
+                                                    if (accountsData.currency
+                                                            ?.toUpperCase() ==
+                                                        'EUR')
+                                                      getEuFlagWidget()
+                                                    else
+                                                      CountryFlag
+                                                          .fromCountryCode(
+                                                        width: 35,
+                                                        height: 35,
+                                                        accountsData.country!,
+                                                        shape: const Circle(),
+                                                      ),
                                                     Text(
                                                       "${accountsData.currency}",
                                                       style: TextStyle(
@@ -778,7 +803,7 @@ class _AllAccountsBottomSheetState extends State<AllAccountsBottomSheet> {
                                                       ),
                                                     ),
                                                     Text(
-                                                      "${accountsData.amount}",
+                                                      "${getCurrencySymbol(accountsData.currency)}${accountsData.amount?.toStringAsFixed(2) ?? '0.00'}",
                                                       style: TextStyle(
                                                         fontSize: 16,
                                                         fontWeight:

@@ -25,7 +25,7 @@ class ReferAndEarnApi {
         options: Options(headers: {
           'Authorization': 'Bearer ${AuthManager.getToken()}',
           'Accept': 'application/json',
-        }),
+        }), 
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -33,7 +33,7 @@ class ReferAndEarnApi {
       } else {
         throw Exception('Failed to fetch data: ${response.statusMessage}');
       }
-    } on DioException catch (e) {
+    } on DioException catch (e) { 
       throw Exception('Dio error: ${e.response?.data ?? e.message}');
     } catch (e) {
       throw Exception('Unexpected error: $e');

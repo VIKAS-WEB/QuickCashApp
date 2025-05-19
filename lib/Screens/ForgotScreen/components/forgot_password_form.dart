@@ -264,6 +264,7 @@ class _ForgotPasswordState extends State<ForgotPasswordForm> {
         key: _fromKey,
         child: Column(
           children: [
+            
             const Center(
               child: Text(
                 'Please enter your email address. You will receive a OTP via email to create a new password.',
@@ -290,7 +291,7 @@ class _ForgotPasswordState extends State<ForgotPasswordForm> {
                 }
                 // Regex for basic email validation
                 final regex =
-                    RegExp(r'^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{3,}$');
+                  RegExp(r'^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$');
                 if (!regex.hasMatch(value)) {
                   return 'Please enter a valid email address';
                 }
