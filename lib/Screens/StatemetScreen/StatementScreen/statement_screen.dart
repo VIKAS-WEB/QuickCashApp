@@ -60,9 +60,9 @@ class _StatementScreenState extends State<StatementScreen> {
             .toList();
         setState(() {
           _accounts = currencies;
-          if (_accounts.isNotEmpty && _selectedAccount == null) {
-            _selectedAccount = _accounts[0];
-          }
+          // if (_accounts.isNotEmpty && _selectedAccount == null) {
+          //   _selectedAccount = _accounts[0];
+          // }
         });
       } else {
         setState(() {

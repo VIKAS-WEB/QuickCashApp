@@ -137,7 +137,7 @@ class _TaxScreen extends State<TaxScreen> {
                   ),
                 ],
               ),
-
+              SizedBox(height: 30,),
               isLoading
                   ? const Center(
                 child: CircularProgressIndicator(

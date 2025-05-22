@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListApi.dart';
@@ -45,6 +46,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen>
 
   late AnimationController _arrowAnimationController;
   late Animation<Offset> _arrowAnimation;
+
   // From Account ---
   String? mFromAccountId;
   String? mFromCountry;
@@ -64,6 +66,9 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen>
   double? mToAmount = 0.0;
   String? mToCurrencySymbol = '';
   double? mFromRate = 0.0;
+
+  // Debounce Timer
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -85,6 +90,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen>
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _arrowAnimationController.dispose();
     mFromAmountController.dispose();
     mToAmountController.dispose();
@@ -125,6 +131,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen>
       _arrowAnimationController.stop();
     }
 
+    // Trigger API call if amount is already entered
     if (mFromAmountController.text.isNotEmpty) {
       mExchangeMoneyApi();
     }
@@ -136,8 +143,12 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen>
   }
 
   Future<void> mExchangeMoneyApi() async {
+    if (!mounted) return; // Check if widget is still mounted
+
     setState(() {
       isLoading = true;
+      isReviewOrder = false; // Reset review order flag
+      mToAmountController.clear(); // Clear converted amount until API responds
     });
 
     try {
@@ -161,6 +172,8 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen>
           toCurrency: mToCurrency!);
       final response = await _exchangeMoneyApi.exchangeMoneyApi(request);
 
+      if (!mounted) return; // Check again before updating state
+
       if (response.message == "Success") {
         setState(() {
           isLoading = false;
@@ -181,6 +194,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen>
         });
       }
     } catch (error) {
+      if (!mounted) return;
       setState(() {
         isLoading = false;
         isReviewOrder = false;
@@ -256,8 +270,6 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen>
                                         ],
                                       ),
                                     ),
-                                    // const Icon(Icons.navigate_next_rounded,
-                                    //     color: kPrimaryColor),
                                   ],
                                 ),
                               ),
@@ -271,20 +283,27 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen>
                             cursorColor: kPrimaryColor,
                             style: const TextStyle(color: kPrimaryColor),
                             onChanged: (value) {
-                              if (mToCurrency != "Select") {
-                                if (mFromAmountController.text.isNotEmpty) {
-                                  if (double.parse(
-                                          mFromAmountController.text) <=
-                                      mFromAmount!) {
-                                    mExchangeMoneyApi();
-                                  } else {
-                                    CustomSnackBar.showSnackBar(
-                                        context: context,
-                                        message:
-                                            "You don't have sufficient balance to exchange money",
-                                        color: kPrimaryColor);
-                                  }
-                                } else {
+                              // Debounce the API call
+                              if (_debounce?.isActive ?? false)
+                                _debounce!.cancel();
+                              _debounce =
+                                  Timer(const Duration(milliseconds: 500), () {
+                                if (!mounted) return;
+
+                                if (mToCurrency == "Select") {
+                                  CustomSnackBar.showSnackBar(
+                                      context: context,
+                                      message:
+                                          "Please select an exchange account",
+                                      color: kPrimaryColor);
+                                  setState(() {
+                                    isReviewOrder = false;
+                                    mToAmountController.clear();
+                                  });
+                                  return;
+                                }
+
+                                if (value.isEmpty) {
                                   setState(() {
                                     isReviewOrder = false;
                                     mToAmountController.clear();
@@ -293,14 +312,38 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen>
                                       context: context,
                                       message: "Please enter an amount",
                                       color: kPrimaryColor);
+                                  return;
                                 }
-                              } else {
-                                CustomSnackBar.showSnackBar(
-                                    context: context,
-                                    message:
-                                        "Please select an exchange account",
-                                    color: kPrimaryColor);
-                              }
+
+                                double enteredAmount;
+                                try {
+                                  enteredAmount = double.parse(value);
+                                } catch (e) {
+                                  setState(() {
+                                    isReviewOrder = false;
+                                    mToAmountController.clear();
+                                  });
+                                  CustomSnackBar.showSnackBar(
+                                      context: context,
+                                      message: "Invalid amount entered",
+                                      color: kPrimaryColor);
+                                  return;
+                                }
+
+                                if (enteredAmount <= mFromAmount!) {
+                                  mExchangeMoneyApi();
+                                } else {
+                                  setState(() {
+                                    isReviewOrder = false;
+                                    mToAmountController.clear();
+                                  });
+                                  CustomSnackBar.showSnackBar(
+                                      context: context,
+                                      message:
+                                          "You don't have sufficient balance to exchange money",
+                                      color: kPrimaryColor);
+                                }
+                              });
                             },
                             decoration: InputDecoration(
                               prefix: Text(
@@ -324,11 +367,9 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen>
                               filled: true,
                               fillColor: mToCurrency == "Select"
                                   ? Colors.grey.withOpacity(0.3)
-                                  : Colors.transparent, // Visual feedback
+                                  : Colors.transparent,
                             ),
-
-                            enabled: mToCurrency !=
-                                "Select", // Disable until account selected
+                            enabled: mToCurrency != "Select",
                             maxLines: 2,
                             minLines: 1,
                           ),
@@ -343,7 +384,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen>
                                     fontWeight: FontWeight.bold),
                               ),
                               Text(
-                                "$mFromCurrencySymbol $mFromTotalFees",
+                                "$mFromCurrencySymbol ${mFromTotalFees?.toStringAsFixed(2) ?? '0.00'}",
                                 style: const TextStyle(
                                     color: kPrimaryColor,
                                     fontWeight: FontWeight.bold),
@@ -361,7 +402,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen>
                                     fontWeight: FontWeight.bold),
                               ),
                               Text(
-                                "$mFromCurrencySymbol ${mFromAmount?.toStringAsFixed(2)}",
+                                "$mFromCurrencySymbol ${mFromAmount?.toStringAsFixed(2) ?? '0.00'}",
                                 style: const TextStyle(
                                     color: kPrimaryColor,
                                     fontWeight: FontWeight.bold),
@@ -407,8 +448,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen>
                                   position: _arrowAnimation,
                                   child: const Icon(
                                     Icons.arrow_downward,
-                                    key: ValueKey(
-                                        "floating_arrow"), // Ensures proper state update
+                                    key: ValueKey("floating_arrow"),
                                     size: 37,
                                     color: kPrimaryColor,
                                   ),
@@ -450,7 +490,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen>
                                 child: Row(
                                   children: [
                                     if (mToCurrency?.toUpperCase() == 'EUR')
-                                      getEuFlagWidget() // Assuming you have this widget defined
+                                      getEuFlagWidget()
                                     else
                                       CountryFlag.fromCountryCode(
                                         width: 35,
@@ -517,7 +557,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen>
                                     fontWeight: FontWeight.bold),
                               ),
                               Text(
-                                "$mToCurrencySymbol ${mToAmount?.toStringAsFixed(2)}",
+                                "$mToCurrencySymbol ${mToAmount?.toStringAsFixed(2) ?? '0.00'}",
                                 style: const TextStyle(
                                     color: kPrimaryColor,
                                     fontWeight: FontWeight.bold),
@@ -545,26 +585,6 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen>
                           ),
                         ),
                         onPressed: () {
-                          print(
-                              "Navigating to ReviewExchangeMoneyScreen with:");
-                          print("From Account ID: $mFromAccountId");
-                          print("From Country: $mFromCountry");
-                          print("From Currency: $mFromCurrency");
-                          print("From IBAN: $mFromIban");
-                          print("From Amount: $mFromAmount");
-                          print("From Currency Symbol: $mFromCurrencySymbol");
-                          print("From Total Fees: $mFromTotalFees");
-                          print("From Rate: $mFromRate");
-                          print(
-                              "From Exchange Amount: ${mFromAmountController.text}");
-                          print("To Account ID: $mToAccountId");
-                          print("To Country: $mToCountry");
-                          print("To Currency: $mToCurrency");
-                          print("To IBAN: $mToIban");
-                          print("To Amount: $mToAmount");
-                          print("To Currency Symbol: $mToCurrencySymbol");
-                          print(
-                              "To Exchanged Amount: ${mToAmountController.text}");
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -651,8 +671,7 @@ class _ExchangeMoneyScreen extends State<ExchangeMoneyScreen>
   }
 }
 
-// AllAccountsBottomSheet class remains unchanged as per the previous fix with mounted checks
-
+// AllAccountsBottomSheet class remains unchanged
 class AllAccountsBottomSheet extends StatefulWidget {
   final String? currency;
   final Function(String, String, String, String, bool, double)
@@ -682,7 +701,7 @@ class _AllAccountsBottomSheetState extends State<AllAccountsBottomSheet> {
   }
 
   Future<void> mAccounts() async {
-    if (!mounted) return; // Early exit if not mounted
+    if (!mounted) return;
 
     setState(() {
       isLoading = true;
@@ -692,7 +711,7 @@ class _AllAccountsBottomSheetState extends State<AllAccountsBottomSheet> {
     try {
       final response = await _accountsListApi.accountsListApi();
 
-      if (!mounted) return; // Check again before updating state
+      if (!mounted) return;
 
       if (response.accountsList != null && response.accountsList!.isNotEmpty) {
         setState(() {
@@ -706,7 +725,7 @@ class _AllAccountsBottomSheetState extends State<AllAccountsBottomSheet> {
         });
       }
     } catch (error) {
-      if (!mounted) return; // Check before error handling
+      if (!mounted) return;
 
       setState(() {
         isLoading = false;
@@ -811,7 +830,6 @@ class _AllAccountsBottomSheetState extends State<AllAccountsBottomSheet> {
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceBetween,
                                             children: [
-                                              // Use EU flag for EUR, country flag for others
                                               if (accountsData.currency
                                                       ?.toUpperCase() ==
                                                   'EUR')

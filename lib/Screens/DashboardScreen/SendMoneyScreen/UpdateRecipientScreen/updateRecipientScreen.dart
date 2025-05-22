@@ -482,7 +482,7 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
                                     fontWeight: FontWeight.bold),
                               ),
                               Text(
-                               "$mToCurrencySymbol ${mGetTotalAmount?.toStringAsFixed(2) ?? '0.00'}",
+                               "$mFromCurrencySymbol ${mGetTotalAmount?.toStringAsFixed(2) ?? '0.00'}",
                                 style: const TextStyle(
                                     color: kPrimaryColor,
                                     fontWeight: FontWeight.bold),

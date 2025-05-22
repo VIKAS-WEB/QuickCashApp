@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/TransactionList/transactionListApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/TransactionList/transactionListModel.dart';
@@ -57,9 +58,9 @@ class _ViewAllTransactionState extends State<ViewAllTransaction> {
             .toList();
         setState(() {
           _accounts = currencies;
-          if (_accounts.isNotEmpty && _selectedAccount == null) {
-            _selectedAccount = _accounts[0];
-          }
+          // if (_accounts.isNotEmpty && _selectedAccount == null) {
+          //   _selectedAccount = _accounts[0];
+          // }
         });
       } else {
         setState(() {
@@ -83,7 +84,17 @@ class _ViewAllTransactionState extends State<ViewAllTransaction> {
       final response = await _transactionListApi.transactionListApi();
       provider.updateTransactionList(response);
       if (response.transactionList == null || response.transactionList!.isEmpty) {
-        provider.setError('No Transaction List');
+         Center(
+          child: SizedBox(
+            width: 300,
+            height: 300,
+            child: Lottie.asset(
+              'assets/lottie/NoTransactions.json',
+              fit: BoxFit.contain,
+              repeat: true,
+            ),
+          ),
+        );
       }
     } catch (error) {
       provider.setError(error.toString());

@@ -2,6 +2,7 @@ import 'package:excel/excel.dart' as excel;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:lottie/lottie.dart';
 import 'package:pdf/pdf.dart';
 import 'package:provider/provider.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListApi.dart';
@@ -10,7 +11,6 @@ import 'package:quickcash/Screens/TransactionScreen/TransactionDetailsScreen/tra
 import 'package:quickcash/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:quickcash/util/AnimatedContainerWidget.dart';
-import 'package:quickcash/util/No_Transaction.dart';
 import '../../DashboardScreen/Dashboard/TransactionList/transactionListModel.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -64,9 +64,9 @@ class _TransactionScreenState extends State<TransactionScreen> {
             .toList();
         setState(() {
           _accounts = currencies;
-          if (_accounts.isNotEmpty && _selectedAccount == null) {
-            _selectedAccount = _accounts[0];
-          }
+          // if (_accounts.isNotEmpty && _selectedAccount == null) {
+          //   _selectedAccount = _accounts[0];
+          // }
         });
       } else {
         setState(() {
@@ -91,7 +91,17 @@ class _TransactionScreenState extends State<TransactionScreen> {
       provider.updateTransactionList(response);
       if (response.transactionList == null ||
           response.transactionList!.isEmpty) {
-        provider.setError('No Transaction List');
+        Center(
+          child: SizedBox(
+            width: 300,
+            height: 300,
+            child: Lottie.asset(
+              'assets/lottie/NoTransactions.json',
+              fit: BoxFit.contain,
+              repeat: true,
+            ),
+          ),
+        );
       }
     } catch (error) {
       provider.setError(error.toString());
@@ -553,7 +563,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
                     value: _selectedStatus,
                     items: _statuses,
                     hint: 'Select Status',
-                    onChanged: (value) => setState(() => _selectedStatus = value),
+                    onChanged: (value) =>
+                        setState(() => _selectedStatus = value),
                     isSmallScreen: isSmallScreen,
                   ),
                   const SizedBox(height: 35),
@@ -606,8 +617,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
                           style: OutlinedButton.styleFrom(
                             padding: EdgeInsets.symmetric(
                                 vertical: isSmallScreen ? 12 : 14),
-                            side:
-                                const BorderSide(color: kPrimaryColor, width: 2),
+                            side: const BorderSide(
+                                color: kPrimaryColor, width: 2),
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
                           ),
@@ -633,7 +644,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
   }
 
   Widget _buildSectionTitle(String title, IconData icon,
-      {required bool isSmallScreen}) {
+    {required bool isSmallScreen}) {
     return Row(
       children: [
         Icon(icon, size: isSmallScreen ? 18 : 20, color: kPrimaryColor),
@@ -1018,8 +1029,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
                                         color: kPrimaryColor,
                                         size: isSmallScreen ? 24 : 28,
                                       ),
-                                      onPressed: () =>
-                                          _scaffoldKey.currentState?.openDrawer(),
+                                      onPressed: () => _scaffoldKey.currentState
+                                          ?.openDrawer(),
                                       tooltip: 'Open Filters',
                                     ),
                                   ],
@@ -1047,7 +1058,29 @@ class _TransactionScreenState extends State<TransactionScreen> {
                               ),
                             )
                           else if (filteredTransactions.isEmpty)
-                            const NoTransactions()
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: isSmallScreen ? 200 : 300,
+                                  height: isSmallScreen ? 200 : 300,
+                                  child: Lottie.asset(
+                                    'assets/lottie/NoTransactions.json',
+                                    fit: BoxFit.contain,
+                                    repeat: true,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No Transactions Found',
+                                  style: TextStyle(
+                                    fontSize: isSmallScreen ? 16 : 18,
+                                    color: Colors.grey.shade600,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            )
                           else
                             Column(
                               children: filteredTransactions
@@ -1313,9 +1346,7 @@ class _TransactionCardState extends State<TransactionCard> {
                         ),
                         IconButton(
                           icon: Icon(
-                            _isExpanded
-                                ? Icons.expand_less
-                                : Icons.expand_more,
+                            _isExpanded ? Icons.expand_less : Icons.expand_more,
                             color: Colors.grey,
                             size: isSmallScreen ? 20 : 24,
                           ),

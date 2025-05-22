@@ -143,7 +143,7 @@ class _PaymentQRCodeScreen extends State<PaymentQRCodeScreen> {
                 ),
               ],
             ),
-
+           SizedBox(height: 30,),
             isLoading
                 ? const Center(
                     child: CircularProgressIndicator(

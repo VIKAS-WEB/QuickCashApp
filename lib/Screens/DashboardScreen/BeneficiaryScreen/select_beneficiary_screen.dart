@@ -7,7 +7,6 @@ import 'package:quickcash/Screens/DashboardScreen/BeneficiaryScreen/addBeneficia
 import 'package:quickcash/Screens/DashboardScreen/BeneficiaryScreen/beneficiaryCurrencyModel/beneficiaryCurrencyApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/BeneficiaryScreen/beneficiaryCurrencyModel/beneficiaryCurrencyModel.dart';
 import 'package:quickcash/util/auth_manager.dart';
-
 import '../../../constants.dart';
 import '../../../util/customSnackBar.dart';
 

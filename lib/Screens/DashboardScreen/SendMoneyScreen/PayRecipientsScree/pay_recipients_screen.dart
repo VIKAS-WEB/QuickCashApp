@@ -78,6 +78,13 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
       mReceiveCurrencyAmount = mSelectedReceiveCurrencyAmount;
       mReceiveCurrencySymbol = getCurrencySymbol(mReceiveCurrency!);
     });
+    // Check if send currency and amount are set, then trigger exchange API
+    if (mSendCurrency != 'Select Currency' &&
+        mSendAmountController.text.isNotEmpty &&
+        double.tryParse(mSendAmountController.text) != null &&
+        double.parse(mSendAmountController.text) <= mSendCurrencyAmount!) {
+      await mExchangeMoneyApi();
+    }
   }
 
   String getCurrencySymbol(String currencyCode) {
@@ -342,52 +349,59 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                   maxLines: 3,
                                   minLines: 1,
                                   onChanged: (value) {
-                                    if (mSendCurrency != "Select Currency") {
-                                      if (mReceiveCurrency !=
-                                          "Select Currency") {
-                                        if (mSendAmountController
-                                            .text.isNotEmpty) {
-                                          if (mSendAmountController.text ==
-                                                  mSendCurrencyAmount
-                                                      .toString() ||
-                                              double.parse(mSendAmountController
-                                                      .text) <=
-                                                  mSendCurrencyAmount!) {
-                                            setState(() {
-                                              mExchangeMoneyApi();
-                                            });
-                                          } else {
-                                            setState(() {
-                                              CustomSnackBar.showSnackBar(
-                                                  context: context,
-                                                  message:
-                                                      "Please enter a valid amount",
-                                                  color: kPrimaryColor);
-                                            });
-                                          }
-                                        } else {
-                                          mReceiveAmountController.clear();
-                                          CustomSnackBar.showSnackBar(
-                                              context: context,
-                                              message:
-                                                  "Please enter sender amount",
-                                              color: kPrimaryColor);
-                                        }
-                                      } else {
-                                        CustomSnackBar.showSnackBar(
-                                            context: context,
-                                            message:
-                                                "Please select Recipient will receive currency",
-                                            color: kPrimaryColor);
-                                      }
-                                    } else {
-                                      CustomSnackBar.showSnackBar(
-                                          context: context,
-                                          message:
-                                              "Please select send currency",
-                                          color: kPrimaryColor);
-                                    }
-                                  },
+  if (mSendCurrency != "Select Currency") {
+    if (mReceiveCurrency != "Select Currency") {
+      if (mSendAmountController.text.isNotEmpty) {
+        double? enteredAmount = double.tryParse(mSendAmountController.text);
+        if (enteredAmount == null) {
+          CustomSnackBar.showSnackBar(
+              context: context,
+              message: "Please enter a valid amount",
+              color: kPrimaryColor);
+          return;
+        }
+
+        if (mSendCurrencyAmount == 0) {
+          CustomSnackBar.showSnackBar(
+              context: context,
+              message: "You don't have sufficient amount",
+              color: kPrimaryColor);
+          return;
+        }
+
+        if (enteredAmount <= mSendCurrencyAmount!) {
+          setState(() {
+            mExchangeMoneyApi();
+          });
+        } else {
+          setState(() {
+            CustomSnackBar.showSnackBar(
+                context: context,
+                message: "Please enter a valid amount",
+                color: kPrimaryColor);
+          });
+        }
+      } else {
+        mReceiveAmountController.clear();
+        CustomSnackBar.showSnackBar(
+            context: context,
+            message: "Please enter sender amount",
+            color: kPrimaryColor);
+      }
+    } else {
+      CustomSnackBar.showSnackBar(
+          context: context,
+          message: "Please select Recipient will receive currency",
+          color: kPrimaryColor);
+    }
+  } else {
+    CustomSnackBar.showSnackBar(
+        context: context,
+        message: "Please select send currency",
+        color: kPrimaryColor);
+  }
+},
+
                                 ),
                               ],
                             ),
@@ -608,6 +622,9 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter your full name';
+                            }
+                            if (mSendCurrencyAmount == 0) {
+                              return "You don't have sufficient amount";
                             }
                             return null;
                           },

@@ -8,10 +8,8 @@ import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
-
 import 'package:pdf/widgets.dart' as pw;
 import 'package:provider/provider.dart';
-
 import 'package:quickcash/Screens/CryptoScreen/BuyAndSell/CryptoBuyAndSellScreen/crypto_sell_exchange_screen.dart';
 import 'package:quickcash/Screens/CryptoScreen/WalletAddress/model/walletAddressModel.dart';
 import 'package:quickcash/Screens/CryptoScreen/WalletAddress/walletAddress_screen.dart';
@@ -25,20 +23,16 @@ import 'package:quickcash/Screens/DashboardScreen/DashboardProvider/DashboardPro
 import 'package:quickcash/Screens/DashboardScreen/ExchangeScreen/exchangeMoneyScreen/exchange_money_screen.dart';
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/send_money_screen.dart';
 import 'package:quickcash/Screens/HomeScreen/ViewAllTransactionScreen.dart';
-
 import 'package:quickcash/Screens/LoginScreen/login_screen.dart';
 import 'package:quickcash/Screens/TransactionScreen/TransactionDetailsScreen/transaction_details_screen.dart';
-
 import 'package:quickcash/components/background.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/auth_manager.dart';
-
 import 'package:quickcash/util/customSnackBar.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'dart:io';
 import 'dart:math';
 import 'package:cached_network_image/cached_network_image.dart';
-
 import '../../CryptoScreen/BuyAndSell/BuyAndSellScreen/model/buyAndSellListModel.dart';
 
 class DashboardScreen extends StatefulWidget {

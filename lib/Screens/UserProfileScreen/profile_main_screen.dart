@@ -49,7 +49,7 @@ class _ProfileMainScreen extends State<ProfileMainScreen> {
                 tabs: <Widget>[
                   Tab(text: titles[0]),
                   Tab(text: titles[1]),
-                  Tab(text: titles[2]),
+                  //Tab(text: titles[2]),
                   Tab(text: titles[3]),
                   Tab(text: titles[4]),
                   Tab(text: titles[5]),
@@ -64,7 +64,7 @@ class _ProfileMainScreen extends State<ProfileMainScreen> {
                   // User Information Tab
                   UserInformationScreen(),
                   LoginHistoryScreen(),
-                  ProfileSecurityScreen(),
+                 // ProfileSecurityScreen(),
                   UpdateDetailsScreen(),
                   DocumentsScreen(),
                   AdditionalInfoScreen(),

@@ -264,12 +264,12 @@ class _CardSelectionScreenState extends State<CardSelectionScreen> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                spreadRadius: 2,
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
+              // BoxShadow(
+              //   color: Colors.black.withOpacity(0.1),
+              //   spreadRadius: 2,
+              //   blurRadius: 8,
+              //   offset: const Offset(0, 4),
+              // ),
             ],
           ),
           child: ClipRRect(
@@ -278,7 +278,7 @@ class _CardSelectionScreenState extends State<CardSelectionScreen> {
               'assets/images/PendingApproval.jpg',
               width: imageWidth,
               height: imageHeight,
-              fit: BoxFit.cover,
+              fit: BoxFit.contain,
             ),
           ),
         ),

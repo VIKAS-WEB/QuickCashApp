@@ -32,7 +32,7 @@ class _SettingsMainScreenState extends State<SettingsMainScreen>{
         child: Scaffold(
           body: Column(
             children: [
-              Padding(padding: const EdgeInsets.only(top: 100.0),
+              Padding(padding: const EdgeInsets.only(top: 0.0),
               child: TabBar(
                 isScrollable: true,
                   tabs: <Widget> [
