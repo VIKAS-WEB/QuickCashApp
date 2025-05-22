@@ -30,7 +30,13 @@
 
 - **Biometric Login**
   ![Biometric Login](ScreenShots/image4.png)
-
+  
+<p float="left">
+  <img src="ScreenShots/image1.png" width="200" alt="Dashboard Overview" />
+  <img src="ScreenShots/image2.png" width="200" alt="Crypto Trading" />
+  <img src="ScreenShots/image3.png" width="200" alt="Money Transfer" />
+  <img src="ScreenShots/image4.png" width="200" alt="Biometric Login" />
+</p>
 ---
 
 ## 🛠️ Installation Guide
