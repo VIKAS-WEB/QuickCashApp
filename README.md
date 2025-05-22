@@ -20,16 +20,16 @@
 > 📸 Replace these with actual screenshots in a `/screenshots` folder.
 
 - **Dashboard Overview**
-  ![Dashboard](screenshots/image1.png)
+  ![Dashboard](ScreenShots/image1.png)
 
 - **Crypto Trading**
-  ![Crypto Trading](screenshots/image2.png)
+  ![Crypto Trading](ScreenShots/image2.png)
 
 - **Money Transfer**
-  ![Money Transfer](screenshots/image3.png)
+  ![Money Transfer](ScreenShots/image3.png)
 
 - **Biometric Login**
-  ![Biometric Login](screenshots/image4.png)
+  ![Biometric Login](ScreenShots/image4.png)
 
 ---
 
