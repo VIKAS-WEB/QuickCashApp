@@ -12,7 +12,6 @@ import 'package:quickcash/Screens/UserProfileScreen/UserProfileScreen/userInform
 List<String> titles = <String>[
   'User Information',
   'Login History',
-  'Security',
   'Update Details',
   'Documents',
   'Additional Information',
@@ -33,7 +32,7 @@ class _ProfileMainScreen extends State<ProfileMainScreen> {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     colorScheme.primary.withOpacity(0.05);
     colorScheme.primary.withOpacity(0.15);
-    const int tabsCount = 8;
+    const int tabsCount = 7;
 
     return DefaultTabController(
       initialIndex: 0,
@@ -49,12 +48,11 @@ class _ProfileMainScreen extends State<ProfileMainScreen> {
                 tabs: <Widget>[
                   Tab(text: titles[0]),
                   Tab(text: titles[1]),
-                  //Tab(text: titles[2]),
+                  Tab(text: titles[2]),
                   Tab(text: titles[3]),
                   Tab(text: titles[4]),
                   Tab(text: titles[5]),
                   Tab(text: titles[6]),
-                  Tab(text: titles[7]),
                 ],
               ),
             ),

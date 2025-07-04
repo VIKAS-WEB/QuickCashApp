@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:quickcash/Screens/DashboardScreen/DashboardProvider/DashboardProvider.dart';
 import 'package:quickcash/Screens/WelcomeScreen/welcome_screen.dart';
@@ -39,13 +40,12 @@ Future<void> main() async {
 
   /// 👇 Load environment variables first
   await dotenv.load(fileName: ".env");
-  
+
   debugPrint('Stripe Key from .env: ${dotenv.env['stripePublishableKey']}');
 
   if (!kIsWeb) {
-    Stripe.publishableKey =
-        dotenv.env['stripePublishableKey'] ?? 'default_key';
-        debugPrint('Stripe Key set to: ${Stripe.publishableKey}');    
+    Stripe.publishableKey = dotenv.env['stripePublishableKey'] ?? 'default_key';
+    debugPrint('Stripe Key set to: ${Stripe.publishableKey}');
   }
 
   await AuthManager.init();
@@ -70,10 +70,10 @@ class QuickCashApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AuthenticationState>(
       builder: (context, authState, child) {
-        return MaterialApp(
+          return MaterialApp(
           title: 'Quickcash',
           debugShowCheckedModeBanner: false,
-          theme: ThemeData(   
+          theme: ThemeData(
             primaryColor: kPrimaryColor,
             scaffoldBackgroundColor: Colors.white,
             elevatedButtonTheme: ElevatedButtonThemeData(
@@ -98,6 +98,10 @@ class QuickCashApp extends StatelessWidget {
                 borderRadius: BorderRadius.all(Radius.circular(30)),
                 borderSide: BorderSide.none,
               ),
+            ),
+            textTheme: GoogleFonts.poppinsTextTheme(
+              // Yaha apni desired font lagale
+              Theme.of(context).textTheme,
             ),
           ),
           home: Stack(

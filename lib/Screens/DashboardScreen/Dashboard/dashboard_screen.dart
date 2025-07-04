@@ -510,43 +510,45 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
               const SizedBox(height: 10),
               if (provider.isLoading)
-                 const Center(child: CircularProgressIndicator())
+                const Center(child: CircularProgressIndicator())
               else if (provider.accountsListData.isEmpty &&
-                 provider.errorMessage != null &&
-                 provider.isTokenExpired == true)
-                 Center(
-                 child: Text(provider.errorMessage!, style: const TextStyle(color: Colors.red)))
+                  provider.errorMessage != null &&
+                  provider.isTokenExpired == true)
+                Center(
+                    child: Text(provider.errorMessage!,
+                        style: const TextStyle(color: Colors.red)))
               else
-                 Column(
-                    children: [
-                          HeroMode(
-                          enabled: false,
-                          child: CarouselSlider.builder(
-                          itemCount: provider.accountsListData.length + 1,
-                          options: CarouselOptions(
+                Column(
+                  children: [
+                    HeroMode(
+                      enabled: false,
+                      child: CarouselSlider.builder(
+                        itemCount: provider.accountsListData.length + 1,
+                        options: CarouselOptions(
                           height: 168,
                           autoPlay: false,
                           viewportFraction: 1,
                           onPageChanged: (index, reason) =>
-                          provider.updateFiatPage(index),
+                              provider.updateFiatPage(index),
                         ),
                         itemBuilder: (context, index, realIndex) {
                           if (index == provider.accountsListData.length) {
-                          return _buildAddCurrencyCard(context);
+                            return _buildAddCurrencyCard(context);
                           }
                           final account = provider.accountsListData[index];
-                          final isSelected = provider.selectedCardType == "fiat" &&
-                          provider.selectedFiatIndex == index;
+                          final isSelected =
+                              provider.selectedCardType == "fiat" &&
+                                  provider.selectedFiatIndex == index;
                           return _buildFiatCard(
-                          context, provider, account, index, isSelected);
+                              context, provider, account, index, isSelected);
                         },
                       ),
                     ),
                     const SizedBox(height: 10),
                     AnimatedSmoothIndicator(
-                          activeIndex: provider.currentFiatPage,
-                          count: provider.accountsListData.length,
-                          effect: const ExpandingDotsEffect(
+                      activeIndex: provider.currentFiatPage,
+                      count: provider.accountsListData.length,
+                      effect: const ExpandingDotsEffect(
                           activeDotColor: kPrimaryColor,
                           dotHeight: 5,
                           dotWidth: 5),
@@ -730,34 +732,41 @@ class _DashboardScreenState extends State<DashboardScreen>
               side: BorderSide(color: kPrimaryColor.withOpacity(0.3), width: 1),
             ),
             margin: EdgeInsets.symmetric(
-              horizontal: MediaQuery.of(context).size.width * 0.05, // 5% of screen width
-              vertical: MediaQuery.of(context).size.height * 0.01, // 1% of screen height
+              horizontal: MediaQuery.of(context).size.width *
+                  0.05, // 5% of screen width
+              vertical: MediaQuery.of(context).size.height *
+                  0.01, // 1% of screen height
             ),
             child: Padding(
-              padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.02), // 2% of screen width
+              padding: EdgeInsets.all(MediaQuery.of(context).size.width *
+                  0.02), // 2% of screen width
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Padding(
-                    padding: EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.02),
+                    padding: EdgeInsets.only(
+                        left: MediaQuery.of(context).size.width * 0.02),
                     child: Text(
                       'Download Transaction List -',
                       style: TextStyle(
-                        fontSize: MediaQuery.of(context).size.width * 0.04, // Responsive font size
+                        fontSize: MediaQuery.of(context).size.width *
+                            0.04, // Responsive font size
                         color: kPrimaryColor,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.01),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: MediaQuery.of(context).size.width * 0.01),
                     child: Row(
                       children: [
                         IconButton(
                           icon: Icon(
                             Icons.download,
                             color: kPrimaryColor,
-                            size: MediaQuery.of(context).size.width * 0.06, // Responsive icon size
+                            size: MediaQuery.of(context).size.width *
+                                0.06, // Responsive icon size
                           ),
                           onPressed: () => _downloadExcel(context, provider),
                           tooltip: 'Download Excel',
@@ -781,116 +790,136 @@ class _DashboardScreenState extends State<DashboardScreen>
           ),
           const SizedBox(height: 10),
           Padding(
-  padding: EdgeInsets.symmetric(
-    horizontal: MediaQuery.of(context).size.width * 0.05, // 5% of screen width
-    vertical: MediaQuery.of(context).size.height * 0.01, // 1% of screen height
-  ),
-  child: Card(
-    color: Colors.white.withOpacity(0.9),
-    elevation: 4,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(8),
-      side: BorderSide(color: kPrimaryColor.withOpacity(0.3), width: 1),
-    ),
-    child: SizedBox(
-      height: MediaQuery.of(context).size.width * 0.25, // Height scales with width (25% of screen width)
-      width: double.infinity, // Ensures card takes full available width
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          vertical: MediaQuery.of(context).size.height * 0.01, // 1% of screen height
-        ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Flexible(
-                  flex: 2,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: constraints.maxWidth * 0.05, // 5% of card width
-                          vertical: constraints.maxHeight * 0.1, // 10% of card height
-                        ),
-                        child: Text(
-                          "Recent Transaction -",
-                          style: TextStyle(
-                            color: kPrimaryColor,
-                            fontSize: constraints.maxWidth * 0.045, // 4.5% of card width
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: constraints.maxWidth * 0.05, // 5% of card width
-                        ),
-                        child: Text(
-                          'Showing recent transaction for the selected Card',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: constraints.maxWidth * 0.03, // 3% of card width
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+            padding: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width *
+                  0.05, // 5% of screen width
+              vertical: MediaQuery.of(context).size.height *
+                  0.01, // 1% of screen height
+            ),
+            child: Card(
+              color: Colors.white.withOpacity(0.9),
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side:
+                    BorderSide(color: kPrimaryColor.withOpacity(0.3), width: 1),
+              ),
+              child: SizedBox(
+                height: MediaQuery.of(context).size.width *
+                    0.25, // Height scales with width (25% of screen width)
+                width:
+                    double.infinity, // Ensures card takes full available width
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: MediaQuery.of(context).size.height *
+                        0.01, // 1% of screen height
                   ),
-                ),
-                Container(
-                  width: 1,
-                  height: constraints.maxHeight * 0.6, // 60% of card height
-                  color: kBlackColor,
-                  margin: EdgeInsets.symmetric(horizontal: constraints.maxWidth * 0.02), // 2% of card width
-                ),
-                Flexible(
-                  flex: 1,
-                  child: Padding(
-                    padding: EdgeInsets.only(right: constraints.maxWidth * 0.02), // 2% of card width
-                    child: InkWell(
-                      onTap: () => Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                          builder: (context) => const ViewAllTransaction(),
-                        ),
-                      ),
-                      hoverColor: Colors.grey.withOpacity(0.3),
-                      splashColor: Colors.white.withOpacity(0.5),
-                      highlightColor: Colors.transparent,
-                      borderRadius: BorderRadius.circular(8),
-                      child: Card(
-                        color: kPrimaryColor,
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: constraints.maxWidth * 0.03, // 3% of card width
-                            vertical: constraints.maxHeight * 0.2, // 20% of card height
-                          ),
-                          child: Text(
-                            'View All',
-                            style: TextStyle(
-                              fontSize: constraints.maxWidth * 0.035, // 3.5% of card width
-                              fontWeight: FontWeight.bold,
-                              color: kWhiteColor,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            flex: 2,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: constraints.maxWidth *
+                                        0.05, // 5% of card width
+                                    vertical: constraints.maxHeight *
+                                        0.1, // 10% of card height
+                                  ),
+                                  child: Text(
+                                    "Recent Transaction -",
+                                    style: TextStyle(
+                                      color: kPrimaryColor,
+                                      fontSize: constraints.maxWidth *
+                                          0.045, // 4.5% of card width
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: constraints.maxWidth *
+                                        0.05, // 5% of card width
+                                  ),
+                                  child: Text(
+                                    'Showing recent transaction for the selected Card',
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: constraints.maxWidth *
+                                          0.03, // 3% of card width
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      ),
-                    ),
+                          Container(
+                            width: 1,
+                            height: constraints.maxHeight *
+                                0.6, // 60% of card height
+                            color: kBlackColor,
+                            margin: EdgeInsets.symmetric(
+                                horizontal: constraints.maxWidth *
+                                    0.02), // 2% of card width
+                          ),
+                          Flexible(
+                            flex: 1,
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                  right: constraints.maxWidth *
+                                      0.02), // 2% of card width
+                              child: InkWell(
+                                onTap: () => Navigator.push(
+                                  context,
+                                  CupertinoPageRoute(
+                                    builder: (context) =>
+                                        const ViewAllTransaction(),
+                                  ),
+                                ),
+                                hoverColor: Colors.grey.withOpacity(0.3),
+                                splashColor: Colors.white.withOpacity(0.5),
+                                highlightColor: Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                                child: Card(
+                                  color: kPrimaryColor,
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: constraints.maxWidth *
+                                          0.03, // 3% of card width
+                                      vertical: constraints.maxHeight *
+                                          0.2, // 20% of card height
+                                    ),
+                                    child: Text(
+                                      'View All',
+                                      style: TextStyle(
+                                        fontSize: constraints.maxWidth *
+                                            0.035, // 3.5% of card width
+                                        fontWeight: FontWeight.bold,
+                                        color: kWhiteColor,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
-              ],
-            );
-          },
-        ),
-      ),
-    ),
-  ),
-),
+              ),
+            ),
+          ),
           const SizedBox(height: smallPadding),
           if (provider.selectedCardType == "crypto") ...[
             if (provider.isTransactionLoading)

@@ -12,23 +12,36 @@ class AdditionalInfoScreen extends StatefulWidget {
 }
 
 class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
-
-  final AdditionalInformationApi _additionalInformationApi = AdditionalInformationApi();
+  final AdditionalInformationApi _additionalInformationApi =
+      AdditionalInformationApi();
 
   // Add text controllers to bind to the text fields
   final TextEditingController _stateController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _zipCodeController = TextEditingController();
-  final TextEditingController _documentSubmittedController = TextEditingController();
+  final TextEditingController _documentSubmittedController =
+      TextEditingController();
   final TextEditingController _documentNoController = TextEditingController();
   final TextEditingController _referralLinkController = TextEditingController();
 
   void _copyReferralLink() {
-    Clipboard.setData(ClipboardData(text: _referralLinkController.text)).then((_) {
+    Clipboard.setData(ClipboardData(text: _referralLinkController.text))
+        .then((_) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Referral link copied to clipboard!')),
       );
     });
+  }
+
+  @override
+  void dispose() {
+    _stateController.dispose();
+    _cityController.dispose();
+    _zipCodeController.dispose();
+    _documentSubmittedController.dispose();
+    _documentNoController.dispose();
+    _referralLinkController.dispose();
+    super.dispose();
   }
 
   // Api Integration -------
@@ -62,20 +75,24 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
 
       if (response.documentSubmitted != null) {
         // Capitalize the first letter of 'documentSubmitted' to 'Document Submitted'
-        _documentSubmittedController.text = mCapitalizeFirstLetter(response.documentSubmitted!);
+        _documentSubmittedController.text =
+            mCapitalizeFirstLetter(response.documentSubmitted!);
       }
 
       if (response.documentNo != null) {
         _documentNoController.text = response.documentNo!;
       }
 
-      if (response.referralDetails?.first.referralCode != null) {
-        // Construct the full referral link
-        final referralCode = response.referralDetails?.first.referralCode.toString() ?? '';
+      // Check if referralDetails is not null and not empty
+      if (response.referralDetails != null &&
+          response.referralDetails!.isNotEmpty) {
+        final referralCode =
+            response.referralDetails!.first.referralCode?.toString() ?? '';
         final referralLink = '${ApiConstants.baseReferralCodeUrl}$referralCode';
-
-        // Set the full referral link to the controller
         _referralLinkController.text = referralLink;
+      } else {
+        // Handle the case where referralDetails is empty or null
+        _referralLinkController.text = ''; // Or set a default value
       }
 
       setState(() {
@@ -107,7 +124,6 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
               padding: const EdgeInsets.all(defaultPadding),
               child: Column(
                 children: [
-
                   const SizedBox(height: defaultPadding),
 
                   if (isLoading)
@@ -115,8 +131,10 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                       color: kPrimaryColor,
                     ),
                   // Show loading indicator
-                  if (errorMessage != null) // Show error message if there's an error
-                    Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+                  if (errorMessage !=
+                      null) // Show error message if there's an error
+                    Text(errorMessage!,
+                        style: const TextStyle(color: Colors.red)),
                   const SizedBox(
                     height: defaultPadding,
                   ),

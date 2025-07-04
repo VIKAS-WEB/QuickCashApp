@@ -17,12 +17,19 @@
 
 ## 📱 Screenshots
 
-<p float="left">
-  <img src="ScreenShots/image1.png" width="120" alt="Dashboard Overview" /><npsp>
-  <img src="ScreenShots/image2.png" width="120" alt="Crypto Trading" /><npsp>
-  <img src="ScreenShots/image3.png" width="120" alt="Money Transfer" /><npsp>
-  <img src="ScreenShots/image4.png" width="120" alt="Biometric Login" /><npsp>
-</p>
+> 📸 Replace these with actual screenshots in a `/screenshots` folder.
+
+- **Dashboard Overview**
+  ![Dashboard](screenshots/dashboard.png)
+
+- **Crypto Trading**
+  ![Crypto Trading](screenshots/crypto_trading.png)
+
+- **Money Transfer**
+  ![Money Transfer](screenshots/money_transfer.png)
+
+- **Biometric Login**
+  ![Biometric Login](screenshots/biometric_login.png)
 
 ---
 

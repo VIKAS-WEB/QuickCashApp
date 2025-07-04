@@ -8,7 +8,7 @@ class RecipientExchangeMoneyRequest {
     required this.userId,
     required this.amount,
     required this.fromCurrency,
-    required this.toCurrency,
+    required this.toCurrency, required String accountId,
   });
 
   Map<String, dynamic> toJson() {

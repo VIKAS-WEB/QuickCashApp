@@ -8,6 +8,8 @@ import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/PayRecipientsS
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/PayRecipientsScree/makePaymentModel/makePaymentModel.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/currency_utils.dart';
+import 'package:lottie/lottie.dart';
+import 'dart:ui'; // For BackdropFilter
 
 import '../../../../util/auth_manager.dart';
 import '../../../../util/customSnackBar.dart';
@@ -78,7 +80,6 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
       mReceiveCurrencyAmount = mSelectedReceiveCurrencyAmount;
       mReceiveCurrencySymbol = getCurrencySymbol(mReceiveCurrency!);
     });
-    // Check if send currency and amount are set, then trigger exchange API
     if (mSendCurrency != 'Select Currency' &&
         mSendAmountController.text.isNotEmpty &&
         double.tryParse(mSendAmountController.text) != null &&
@@ -128,6 +129,162 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
         isLoading = false;
       });
     }
+  }
+
+  // Reset all values
+  void _resetAllValues() {
+    setState(() {
+      // Clear TextEditingControllers
+      mSendAmountController.clear();
+      mReceiveAmountController.clear();
+      mFullName.clear();
+      mEmail.clear();
+      mMobileNo.clear();
+      mBankName.clear();
+      mIban.clear();
+      mBicCode.clear();
+      mAddress.clear();
+
+      // Reset Send Currency variables
+      mSendCountry = '';
+      mSendCurrency = 'Select Currency';
+      mSendCurrencyAmount = 0.0;
+      mSendCurrencySymbol = '';
+      mTotalCharge = 0.0;
+      mTotalPayable = '0.0';
+
+      // Reset Receive Currency variables
+      mReceiveCountry = '';
+      mReceiveCurrency = 'Select Currency';
+      mReceiveCurrencyAmount = 0.0;
+      mReceiveCurrencySymbol = '';
+
+      // Reset loading states
+      isLoading = false;
+      isAddLoading = false;
+
+      // Reset selected currencies
+      selectedSendCurrency = null;
+      selectedReceiveCurrency = null;
+    });
+  }
+
+  // Insufficient Balance Dialog
+  void _showInsufficientBalanceDialog(
+      double enteredAmount, double estimatedFee, double estimatedTotal) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.3),
+      builder: (BuildContext context) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final screenWidth = MediaQuery.of(context).size.width;
+            final dialogWidth = screenWidth > 600 ? 500.0 : screenWidth * 0.9;
+            final lottieSize = screenWidth > 600 ? 200.0 : 140.0;
+
+            return BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+              child: Dialog(
+                backgroundColor: Colors.white,
+                elevation: 8,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: dialogWidth),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Stack(
+                          children: [
+                            Center(
+                              child: Lottie.asset(
+                                'assets/lottie/BalanceError.json',
+                                width: lottieSize,
+                                height: lottieSize,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            Positioned(
+                              right: 0,
+                              child: IconButton(
+                                icon: const Icon(Icons.close,
+                                    color: Colors.black54),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  _resetAllValues(); // Reset values when dialog is closed
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Insufficient Balance',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: kRedColor,
+                          ),
+                        ),
+                        const Divider(),
+                        const SizedBox(height: 20),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Your Entered Amount:- $mSendCurrencySymbol ${enteredAmount.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13),
+                            ),
+                            const Divider(),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Estimated Fee:- $mSendCurrencySymbol ${estimatedFee.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                  color: Colors.black54,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13),
+                            ),
+                            const Divider(),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Estimated Total Amount:- $mSendCurrencySymbol ${estimatedTotal.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                  color: Colors.black54,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13),
+                            ),
+                            const Divider(),
+                            const SizedBox(height: 16),
+                            Text(
+                              'According to your account balance ($mSendCurrencySymbol ${mSendCurrencyAmount!.toStringAsFixed(2)}), you will not be able to pay the estimated total amount.',
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    ).then((_) {
+      _resetAllValues(); // Reset values after dialog is dismissed
+    });
   }
 
   Future<void> mMakePayment() async {
@@ -261,7 +418,6 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                           const EdgeInsets.all(defaultPadding),
                                       child: Row(
                                         children: [
-                                          // Use EU flag for EUR, country flag for others
                                           if (mSendCurrency?.toUpperCase() ==
                                               'EUR')
                                             getEuFlagWidget()
@@ -296,9 +452,7 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(
-                                  height: smallPadding,
-                                ),
+                                const SizedBox(height: smallPadding),
                                 Row(
                                   children: [
                                     const Text(
@@ -315,9 +469,7 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                     ),
                                   ],
                                 ),
-                                const SizedBox(
-                                  height: largePadding,
-                                ),
+                                const SizedBox(height: largePadding),
                                 TextFormField(
                                   controller: mSendAmountController,
                                   decoration: InputDecoration(
@@ -349,59 +501,84 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                   maxLines: 3,
                                   minLines: 1,
                                   onChanged: (value) {
-  if (mSendCurrency != "Select Currency") {
-    if (mReceiveCurrency != "Select Currency") {
-      if (mSendAmountController.text.isNotEmpty) {
-        double? enteredAmount = double.tryParse(mSendAmountController.text);
-        if (enteredAmount == null) {
-          CustomSnackBar.showSnackBar(
-              context: context,
-              message: "Please enter a valid amount",
-              color: kPrimaryColor);
-          return;
-        }
+                                    if (mSendCurrency != "Select Currency") {
+                                      if (mReceiveCurrency !=
+                                          "Select Currency") {
+                                        if (mSendAmountController
+                                            .text.isNotEmpty) {
+                                          double? enteredAmount =
+                                              double.tryParse(
+                                                  mSendAmountController.text);
+                                          if (enteredAmount == null) {
+                                            CustomSnackBar.showSnackBar(
+                                                context: context,
+                                                message:
+                                                    "Please enter a valid amount",
+                                                color: kPrimaryColor);
+                                            return;
+                                          }
 
-        if (mSendCurrencyAmount == 0) {
-          CustomSnackBar.showSnackBar(
-              context: context,
-              message: "You don't have sufficient amount",
-              color: kPrimaryColor);
-          return;
-        }
+                                          if (mSendCurrencyAmount == 0) {
+                                            CustomSnackBar.showSnackBar(
+                                                context: context,
+                                                message:
+                                                    "You don't have sufficient amount",
+                                                color: kPrimaryColor);
+                                            return;
+                                          }
 
-        if (enteredAmount <= mSendCurrencyAmount!) {
-          setState(() {
-            mExchangeMoneyApi();
-          });
-        } else {
-          setState(() {
-            CustomSnackBar.showSnackBar(
-                context: context,
-                message: "Please enter a valid amount",
-                color: kPrimaryColor);
-          });
-        }
-      } else {
-        mReceiveAmountController.clear();
-        CustomSnackBar.showSnackBar(
-            context: context,
-            message: "Please enter sender amount",
-            color: kPrimaryColor);
-      }
-    } else {
-      CustomSnackBar.showSnackBar(
-          context: context,
-          message: "Please select Recipient will receive currency",
-          color: kPrimaryColor);
-    }
-  } else {
-    CustomSnackBar.showSnackBar(
-        context: context,
-        message: "Please select send currency",
-        color: kPrimaryColor);
-  }
-},
+                                          // Calculate total amount (entered amount + charge)
+                                          double totalAmount = enteredAmount +
+                                              (mTotalCharge ?? 0.0);
 
+                                          // Check if total amount exceeds available balance
+                                          if (totalAmount >
+                                              mSendCurrencyAmount!) {
+                                            _showInsufficientBalanceDialog(
+                                              enteredAmount,
+                                              mTotalCharge ?? 0.0,
+                                              totalAmount,
+                                            );
+                                            return;
+                                          }
+
+                                          if (enteredAmount <=
+                                              mSendCurrencyAmount!) {
+                                            setState(() {
+                                              mExchangeMoneyApi();
+                                            });
+                                          } else {
+                                            setState(() {
+                                              CustomSnackBar.showSnackBar(
+                                                  context: context,
+                                                  message:
+                                                      "Please enter a valid amount",
+                                                  color: kPrimaryColor);
+                                            });
+                                          }
+                                        } else {
+                                          mReceiveAmountController.clear();
+                                          CustomSnackBar.showSnackBar(
+                                              context: context,
+                                              message:
+                                                  "Please enter sender amount",
+                                              color: kPrimaryColor);
+                                        }
+                                      } else {
+                                        CustomSnackBar.showSnackBar(
+                                            context: context,
+                                            message:
+                                                "Please select Recipient will receive currency",
+                                            color: kPrimaryColor);
+                                      }
+                                    } else {
+                                      CustomSnackBar.showSnackBar(
+                                          context: context,
+                                          message:
+                                              "Please select send currency",
+                                          color: kPrimaryColor);
+                                    }
+                                  },
                                 ),
                               ],
                             ),
@@ -412,13 +589,11 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
-                              // Divider line
                               Container(
                                 height: 1,
                                 width: double.maxFinite,
                                 color: kPrimaryLightColor,
                               ),
-                              // Circular button
                               Material(
                                 elevation: 6.0,
                                 shape: const CircleBorder(),
@@ -471,7 +646,6 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                           const EdgeInsets.all(defaultPadding),
                                       child: Row(
                                         children: [
-                                          // Use EU flag for EUR, country flag for others (corrected for mReceiveCurrency)
                                           if (mReceiveCurrency?.toUpperCase() ==
                                               'EUR')
                                             getEuFlagWidget()
@@ -496,14 +670,6 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                                     color: kPrimaryColor,
                                                   ),
                                                 ),
-                                                // Text(
-                                                //   '${mReceiveCurrencyAmount?.toStringAsFixed(2)}',
-                                                //   style: const TextStyle(
-                                                //     fontWeight: FontWeight.bold,
-                                                //     fontSize: 14,
-                                                //     color: kPrimaryColor,
-                                                //   ),
-                                                // ),
                                               ],
                                             ),
                                           ),
@@ -514,9 +680,7 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(
-                                  height: largePadding,
-                                ),
+                                const SizedBox(height: largePadding),
                                 TextFormField(
                                   controller: mReceiveAmountController,
                                   readOnly: true,
@@ -777,17 +941,13 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
                             return null;
                           },
                         ),
-
-                        const SizedBox(
-                          height: largePadding,
-                        ),
+                        const SizedBox(height: largePadding),
                         if (isAddLoading)
                           const Center(
                             child: CircularProgressIndicator(
                               color: kPrimaryColor,
                             ),
-                          ), // Show loading indicator
-
+                          ),
                         const SizedBox(height: 35),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 50),
@@ -819,7 +979,6 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
     );
   }
 
-  // Send Currency Bottom Sheet
   void mSendCurrencyBottomSheet(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
@@ -862,7 +1021,6 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
     );
   }
 
-  // Receive Currency Bottom Sheet
   void mReceiveCurrencyBottomSheet(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
@@ -906,7 +1064,6 @@ class _PayRecipientsScreen extends State<PayRecipientsScreen> {
   }
 }
 
-// Send Currency Code
 class SendCurrencyBottomSheet extends StatefulWidget {
   final Function(String, String, double) onSendCurrencySelected;
 
@@ -931,7 +1088,6 @@ class _SendCurrencyBottomSheetState extends State<SendCurrencyBottomSheet> {
     mAccounts();
   }
 
-  // Accounts List Api ---------------
   Future<void> mAccounts() async {
     setState(() {
       isLoading = true;
@@ -984,9 +1140,7 @@ class _SendCurrencyBottomSheetState extends State<SendCurrencyBottomSheet> {
             ),
           ],
         ),
-        const SizedBox(
-          height: defaultPadding,
-        ),
+        const SizedBox(height: defaultPadding),
         Expanded(
             child: isLoading
                 ? const Center(
@@ -1001,8 +1155,7 @@ class _SendCurrencyBottomSheetState extends State<SendCurrencyBottomSheet> {
                           height: MediaQuery.of(context).size.height,
                           child: isLoading
                               ? const Center(
-                                  child:
-                                      CircularProgressIndicator(), // Show loading indicator
+                                  child: CircularProgressIndicator(),
                                 )
                               : ListView.builder(
                                   itemCount: accountsListData.length,
@@ -1020,7 +1173,6 @@ class _SendCurrencyBottomSheetState extends State<SendCurrencyBottomSheet> {
                                         onTap: () {
                                           setState(() {
                                             _selectedIndex = index;
-
                                             widget.onSendCurrencySelected(
                                               accountsData.country ?? '',
                                               accountsData.currency ?? '',
@@ -1050,227 +1202,6 @@ class _SendCurrencyBottomSheetState extends State<SendCurrencyBottomSheet> {
                                                       MainAxisAlignment
                                                           .spaceBetween,
                                                   children: [
-                                                    // Use EU flag for EUR, country flag for others
-                                                    if (accountsData.currency
-                                                            ?.toUpperCase() ==
-                                                        'EUR')
-                                                      getEuFlagWidget()
-                                                    else
-                                                      CountryFlag
-                                                          .fromCountryCode(
-                                                        width: 35,
-                                                        height: 35,
-                                                        accountsData.country!,
-                                                        shape: const Circle(),
-                                                      ),
-                                                    Text(
-                                                      "${accountsData.currency}",
-                                                      style: TextStyle(
-                                                        fontSize: 18,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: isSelected
-                                                            ? Colors.white
-                                                            : kPrimaryColor,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(
-                                                    height: defaultPadding),
-                                                // ignore: prefer_const_constructors
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    // Text(
-                                                    //   "Balance",
-                                                    //   style: TextStyle(
-                                                    //     fontSize: 16,
-                                                    //     fontWeight:
-                                                    //         FontWeight.bold,
-                                                    //     color: isSelected
-                                                    //         ? Colors.white
-                                                    //         : kPrimaryColor,
-                                                    //   ),
-                                                    // ),
-                                                    // Text(
-                                                    //   "${accountsData.amount?.toStringAsFixed(2)}",
-                                                    //   style: TextStyle(
-                                                    //     fontSize: 16,
-                                                    //     fontWeight:
-                                                    //         FontWeight.bold,
-                                                    //     color: isSelected
-                                                    //         ? Colors.white
-                                                    //         : kPrimaryColor,
-                                                    //   ),
-                                                    // ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                        ),
-                      ],
-                    ),
-                  )),
-      ],
-    ));
-  }
-}
-
-// Receive Currency Code
-class ReceiveCurrencyBottomSheet extends StatefulWidget {
-  final Function(String, String, double) onReceiveCurrencySelected;
-
-  const ReceiveCurrencyBottomSheet(
-      {super.key, required this.onReceiveCurrencySelected});
-
-  @override
-  State<ReceiveCurrencyBottomSheet> createState() =>
-      _ReceiveCurrencyBottomSheetState();
-}
-
-class _ReceiveCurrencyBottomSheetState
-    extends State<ReceiveCurrencyBottomSheet> {
-  final AccountsListApi _accountsListApi = AccountsListApi();
-  List<AccountsListsData> accountsListData = [];
-  bool isLoading = false;
-  String? errorMessage;
-  int? _selectedIndex;
-
-  @override
-  void initState() {
-    super.initState();
-    mAccounts();
-  }
-
-  // Accounts List Api ---------------
-  Future<void> mAccounts() async {
-    setState(() {
-      isLoading = true;
-      errorMessage = null;
-    });
-
-    try {
-      final response = await _accountsListApi.accountsListApi();
-
-      if (response.accountsList != null && response.accountsList!.isNotEmpty) {
-        setState(() {
-          accountsListData = response.accountsList!;
-          isLoading = false;
-        });
-      } else {
-        setState(() {
-          isLoading = false;
-          errorMessage = 'No Account Found';
-        });
-      }
-    } catch (error) {
-      setState(() {
-        isLoading = false;
-        errorMessage = error.toString();
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        body: Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Select Currency',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: kPrimaryColor,
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.close, color: kPrimaryColor),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-        const SizedBox(
-          height: defaultPadding,
-        ),
-        Expanded(
-            child: isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(
-                      color: kPrimaryColor,
-                    ),
-                  )
-                : SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height,
-                          child: isLoading
-                              ? const Center(
-                                  child:
-                                      CircularProgressIndicator(), // Show loading indicator
-                                )
-                              : ListView.builder(
-                                  itemCount: accountsListData.length,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemBuilder: (context, index) {
-                                    final accountsData =
-                                        accountsListData[index];
-                                    final isSelected = index == _selectedIndex;
-
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 5,
-                                          horizontal: smallPadding),
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            _selectedIndex = index;
-
-                                            widget.onReceiveCurrencySelected(
-                                              accountsData.country ?? '',
-                                              accountsData.currency ?? '',
-                                              accountsData.amount ?? 0.0,
-                                            );
-                                            Navigator.pop(context);
-                                          });
-                                        },
-                                        child: Card(
-                                          elevation: 5,
-                                          color: isSelected
-                                              ? kPrimaryColor
-                                              : Colors.white,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                                defaultPadding),
-                                          ),
-                                          child: Container(
-                                            padding: const EdgeInsets.all(
-                                                defaultPadding),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    // Use EU flag for EUR, country flag for others
                                                     if (accountsData.currency
                                                             ?.toUpperCase() ==
                                                         'EUR')
@@ -1302,30 +1233,196 @@ class _ReceiveCurrencyBottomSheetState
                                                   mainAxisAlignment:
                                                       MainAxisAlignment
                                                           .spaceBetween,
+                                                  children: [],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
+                    ),
+                  )),
+      ],
+    ));
+  }
+}
+
+class ReceiveCurrencyBottomSheet extends StatefulWidget {
+  final Function(String, String, double) onReceiveCurrencySelected;
+
+  const ReceiveCurrencyBottomSheet(
+      {super.key, required this.onReceiveCurrencySelected});
+
+  @override
+  State<ReceiveCurrencyBottomSheet> createState() =>
+      _ReceiveCurrencyBottomSheetState();
+}
+
+class _ReceiveCurrencyBottomSheetState
+    extends State<ReceiveCurrencyBottomSheet> {
+  final AccountsListApi _accountsListApi = AccountsListApi();
+  List<AccountsListsData> accountsListData = [];
+  bool isLoading = false;
+  String? errorMessage;
+  int? _selectedIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    mAccounts();
+  }
+
+  Future<void> mAccounts() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final response = await _accountsListApi.accountsListApi();
+
+      if (response.accountsList != null && response.accountsList!.isNotEmpty) {
+        setState(() {
+          accountsListData = response.accountsList!;
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'No Account Found';
+        });
+      }
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+        errorMessage = error.toString();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Select Currency',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: kPrimaryColor,
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close, color: kPrimaryColor),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: defaultPadding),
+        Expanded(
+            child: isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: kPrimaryColor,
+                    ),
+                  )
+                : SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height,
+                          child: isLoading
+                              ? const Center(
+                                  child: CircularProgressIndicator(),
+                                )
+                              : ListView.builder(
+                                  itemCount: accountsListData.length,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemBuilder: (context, index) {
+                                    final accountsData =
+                                        accountsListData[index];
+                                    final isSelected = index == _selectedIndex;
+
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 5,
+                                          horizontal: smallPadding),
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            _selectedIndex = index;
+                                            widget.onReceiveCurrencySelected(
+                                              accountsData.country ?? '',
+                                              accountsData.currency ?? '',
+                                              accountsData.amount ?? 0.0,
+                                            );
+                                            Navigator.pop(context);
+                                          });
+                                        },
+                                        child: Card(
+                                          elevation: 5,
+                                          color: isSelected
+                                              ? kPrimaryColor
+                                              : Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                                defaultPadding),
+                                          ),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(
+                                                defaultPadding),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
                                                   children: [
-                                                    // Text(
-                                                    //   "Balance",
-                                                    //   style: TextStyle(
-                                                    //     fontSize: 16,
-                                                    //     fontWeight:
-                                                    //         FontWeight.bold,
-                                                    //     color: isSelected
-                                                    //         ? Colors.white
-                                                    //         : kPrimaryColor,
-                                                    //   ),
-                                                    // ),
-                                                    // Text(
-                                                    //   "${getCurrencySymbol(accountsData.currency)}${accountsData.amount?.toStringAsFixed(2) ?? '0.00'}",
-                                                    //   style: TextStyle(
-                                                    //     fontSize: 16,
-                                                    //     fontWeight:
-                                                    //         FontWeight.bold,
-                                                    //     color: isSelected
-                                                    //         ? Colors.white
-                                                    //         : kPrimaryColor,
-                                                    //   ),
-                                                    // ),
+                                                    if (accountsData.currency
+                                                            ?.toUpperCase() ==
+                                                        'EUR')
+                                                      getEuFlagWidget()
+                                                    else
+                                                      CountryFlag
+                                                          .fromCountryCode(
+                                                        width: 35,
+                                                        height: 35,
+                                                        accountsData.country!,
+                                                        shape: const Circle(),
+                                                      ),
+                                                    Text(
+                                                      "${accountsData.currency}",
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: isSelected
+                                                            ? Colors.white
+                                                            : kPrimaryColor,
+                                                      ),
+                                                    ),
                                                   ],
+                                                ),
+                                                const SizedBox(
+                                                    height: defaultPadding),
+                                                const Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [],
                                                 ),
                                               ],
                                             ),

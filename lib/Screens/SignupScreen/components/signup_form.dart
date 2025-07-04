@@ -193,11 +193,11 @@ class _SignUpFormState extends State<SignUpForm> {
   }
 
   Future<void> _sendOtpToEmail(String email, int otp) async {
-    String username = 'shivamg@itio.in';
-    String password = '08F302E2946734E5198AC39C662EDFDA76BE';
+    String username = '8e8f35001@smtp-brevo.com';
+    String password = 'wxLQ4UIADtXZCBMb';
     final smtpServer = SmtpServer(
-      'smtp.elasticemail.com',
-      port: 2525,
+      'smtp-relay.brevo.com',
+      port: 587,
       username: username,
       password: password,
     );
@@ -421,7 +421,7 @@ class _SignUpFormState extends State<SignUpForm> {
             const SizedBox(height: 40),
             if (isLoading)
               Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.0),
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Center(
                   child: Lottie.asset(
                     'assets/lottie/loading.json',
@@ -472,7 +472,7 @@ class _SignUpFormState extends State<SignUpForm> {
                   child: RichText(
                     textAlign: TextAlign.center,
                     text: TextSpan(
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 12,
                         color: Colors.black87,
                       ),

@@ -1,6 +1,9 @@
+import 'dart:async';
+import 'dart:ui';
 import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/Dashboard/AccountsList/accountsListModel.dart';
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/UpdateRecipientScreen/RecipientDetailsModel/receipientDetailsApi.dart';
@@ -10,7 +13,6 @@ import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/UpdateRecipien
 import 'package:quickcash/Screens/DashboardScreen/SendMoneyScreen/UpdateRecipientScreen/UpdateRecipientModel/updateRecipientModel.dart';
 import 'package:quickcash/constants.dart';
 import 'package:quickcash/util/currency_utils.dart';
-
 import '../../../../util/auth_manager.dart';
 import '../../../../util/customSnackBar.dart';
 import '../../../HomeScreen/home_screen.dart';
@@ -35,14 +37,15 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
   TextEditingController mCurrencyController = TextEditingController();
   TextEditingController mAmountController = TextEditingController();
 
-  bool isLoading = false;
-  bool isSubmitLoading = false;
-  bool isSubmit = false;
+  bool isLoading = false; // For initial recipient details loading
+  bool isSubmitLoading = false; // For submit button loading
+  bool isSubmit = false; // To control submit button visibility
+  bool isExchangeLoading = false; // For exchange API loading
 
-  // From Currency
+  // From Currency (Recipient's currency)
   String? mFromCurrency;
 
-  // To Currency -----
+  // To Currency (Selected account's currency)
   String? mToAccountId = '';
   String? mToCountry = '';
   String? mToCurrency = 'Select';
@@ -56,13 +59,16 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
   String? mTotalAmount = "0.0";
   double? mGetTotalAmount = 0.0;
 
+  // Debounce Timer
+  Timer? _debounce;
+
   Future<void> mSetSelectedAccountData(
-      mSelectedAccountId,
-      mSelectedCountry,
-      mSelectedCurrency,
-      mSelectedIban,
-      mSelectedStatus,
-      mSelectedAmount) async {
+      String mSelectedAccountId,
+      String mSelectedCountry,
+      String mSelectedCurrency,
+      String mSelectedIban,
+      bool mSelectedStatus,
+      double mSelectedAmount) async {
     setState(() {
       mToAccountId = mSelectedAccountId;
       mToCountry = mSelectedCountry;
@@ -70,9 +76,9 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
       mToIban = mSelectedIban;
       mToStatus = mSelectedStatus;
       mToAmount = mSelectedAmount;
-
       mToCurrencySymbol = getCurrencySymbol(mToCurrency!);
     });
+    print('Selected Account: accountId=$mToAccountId, currency=$mToCurrency, balance=$mToAmount');
   }
 
   @override
@@ -81,7 +87,18 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
     super.initState();
   }
 
-  // Recipient Details Get Api *****
+  // Dispose the debounce timer and controllers
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    mIbanController.dispose();
+    mBicCodeController.dispose();
+    mCurrencyController.dispose();
+    mAmountController.dispose();
+    super.dispose();
+  }
+
+  // Recipient Details Get Api
   Future<void> mShowRecipientDetail() async {
     setState(() {
       isLoading = true;
@@ -102,11 +119,12 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
         });
       } else {
         setState(() {
+          isLoading = false;
           Navigator.of(context).pop();
           CustomSnackBar.showSnackBar(
               context: context,
               message: "We are facing some issue!",
-              color: kPrimaryColor);
+              color: kRedColor);
         });
       }
     } catch (error) {
@@ -116,76 +134,85 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
         CustomSnackBar.showSnackBar(
             context: context,
             message: "Something went wrong!",
-            color: kPrimaryColor);
+            color: kRedColor);
       });
     }
   }
 
-  // Exchange Money Api **************
+  // Exchange Money Api
   Future<void> mExchangeMoneyApi() async {
     setState(() {
-      // isLoading = true;
+      isExchangeLoading = true;
     });
 
     try {
+      print('Exchange Money Request: userId=${AuthManager.getUserId()}, amount=${mAmountController.text}, fromCurrency=$mToCurrency, toCurrency=$mFromCurrency, accountId=$mToAccountId');
       final request = RecipientExchangeMoneyRequest(
-          userId: AuthManager.getUserId(),
-          amount: mAmountController.text,
-          fromCurrency: mFromCurrency!,
-          toCurrency: mToCurrency!);
+        userId: AuthManager.getUserId(),
+        amount: mAmountController.text,
+        fromCurrency: mToCurrency!,
+        toCurrency: mFromCurrency!,
+        accountId: mToAccountId!, // Include accountId
+      );
       final response =
           await _recipientExchangeMoneyApi.recipientExchangeMoneyApi(request);
+      print('Exchange Money Response: ${response.toString()}');
 
       if (response.message == "Success") {
         setState(() {
-          isLoading = false;
+          isExchangeLoading = false;
           isSubmit = true;
           mFees = response.data.totalFees;
           mTotalAmount = response.data.totalCharge.toString();
-
-          double amount = double.parse(mAmountController.text);
-          double rate = response.data.rate;
-          mGetTotalAmount = amount / rate;
+          mGetTotalAmount = response.data.convertedAmount; // Use API's convertedAmount
         });
       } else {
         setState(() {
-          isLoading = false;
+          isExchangeLoading = false;
           isSubmit = false;
           CustomSnackBar.showSnackBar(
-              context: context,
-              message: "We are facing some issue!",
-              color: kPrimaryColor);
+            context: context,
+            message: response.message ?? "We are facing some issue!",
+            color: kPrimaryColor,
+          );
         });
       }
     } catch (error) {
       setState(() {
-        isLoading = false;
+        isExchangeLoading = false;
         isSubmit = false;
+        CustomSnackBar.showSnackBar(
+          context: context,
+          message: "Something went wrong: $error",
+          color: kRedColor,
+        );
       });
     }
   }
 
-  // Update Recipients Details Api ************
+  // Update Recipients Details Api
   Future<void> mUpdateRecipient() async {
     setState(() {
       isSubmitLoading = true;
     });
 
     try {
-      String amountText = '$mFromCurrencySymbol ${mAmountController.text}';
+      String amountText = '$mToCurrencySymbol ${mAmountController.text}'; // Selected account's currency
+      String conversionAmountText =
+          '$mFromCurrencySymbol ${mGetTotalAmount?.toStringAsFixed(2) ?? '0.00'}'; // Recipient's currency
 
-      String conversionAmountText = '$mToCurrencySymbol $mGetTotalAmount';
-
+      print('Update Recipient Request: userId=${AuthManager.getUserId()}, fee=$mFees, toCurrency=$mFromCurrency, recipientId=${widget.mRecipientId}, amount=${mAmountController.text}');
       final request = RecipientUpdateRequest(
           userId: AuthManager.getUserId(),
           fee: mFees.toString(),
-          toCurrency: mToCurrency!,
+          toCurrency: mFromCurrency!, // Recipient's currency
           recipientId: widget.mRecipientId!,
           amount: mAmountController.text,
           amountText: amountText,
           conversionAmount: mGetTotalAmount.toString(),
           conversionAmountText: conversionAmountText);
       final response = await _recipientUpdateApi.recipientUpdateApi(request);
+      print('Update Recipient Response: ${response.toString()}');
 
       if (response.message ==
           "Bank Transfer transaction has been submitted Successfully!!!") {
@@ -199,9 +226,7 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
           Navigator.of(context).pop();
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const HomeScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
           );
         });
       } else {
@@ -209,7 +234,7 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
           isSubmitLoading = false;
           CustomSnackBar.showSnackBar(
               context: context,
-              message: "We are facing some issue!",
+              message: response.message ?? "We are facing some issue!",
               color: kRedColor);
         });
       }
@@ -217,14 +242,194 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
       setState(() {
         isSubmitLoading = false;
         isSubmit = false;
+        CustomSnackBar.showSnackBar(
+            context: context,
+            message: "Something went wrong: $error",
+            color: kRedColor);
       });
     }
   }
 
-  // Currency Symbol *********
+  // Currency Symbol
   String getCurrencySymbol(String currencyCode) {
     var format = NumberFormat.simpleCurrency(name: currencyCode);
     return format.currencySymbol;
+  }
+
+void _showInsufficientBalanceDialog(double enteredAmount, double estimatedFee, double estimatedTotal) {
+  showDialog(
+    context: context,
+    barrierColor: Colors.black.withOpacity(0.3),
+    builder: (BuildContext context) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final screenWidth = MediaQuery.of(context).size.width;
+          final dialogWidth = screenWidth > 600 ? 500.0 : screenWidth * 0.9;
+
+          return BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+            child: Dialog(
+              backgroundColor: Colors.white,
+              elevation: 8,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: dialogWidth),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Stack(
+                        children: [
+                          Center(
+                            child: Lottie.asset(
+                              'assets/lottie/BalanceError.json',
+                              width: screenWidth > 600 ? 200 : 140,
+                              height: screenWidth > 600 ? 200 : 140,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                          Positioned(
+                            right: 0,
+                            child: IconButton(
+                              icon: const Icon(Icons.close, color: Colors.black54),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Insufficient Balance',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: kRedColor,
+                        ),
+                      ),
+                      const Divider(),
+                      const SizedBox(height: 20),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Your Entered Amount:- $mToCurrencySymbol ${enteredAmount.toStringAsFixed(2)}',
+                            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
+                          ),
+                          const Divider(),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Estimated Fee:- $mToCurrencySymbol ${estimatedFee.toStringAsFixed(2)}',
+                            style: const TextStyle(color: Colors.black54, fontWeight: FontWeight.bold, fontSize: 15),
+                          ),
+                          const Divider(),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Estimated Total Amount:- $mToCurrencySymbol ${estimatedTotal.toStringAsFixed(2)}',
+                            style: const TextStyle(color: Colors.black54, fontWeight: FontWeight.bold, fontSize: 15),
+                          ),
+                          const Divider(),
+                          const SizedBox(height: 16),
+                          Text(
+                            'According to your account balance ($mToCurrencySymbol ${mToAmount!.toStringAsFixed(2)}), you will not be able to pay the estimated total amount.',
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
+
+  // Debounced function to handle amount changes
+  void _onAmountChanged(String value) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      print('Selected Account: Currency=$mToCurrency, Balance=$mToAmount');
+      if (mToCurrency != "Select") {
+        if (value.isNotEmpty) {
+          if (double.tryParse(value) != null) {
+            double enteredAmount = double.parse(value);
+            // Assume fees are 1% of the amount (adjust based on API behavior)
+            double estimatedFee = enteredAmount * 0.01;
+            double estimatedTotal = enteredAmount + estimatedFee;
+            print('Entered Amount: $enteredAmount, Estimated Fee: $estimatedFee, Estimated Total: $estimatedTotal, Available Balance: $mToAmount');
+            if (estimatedTotal > mToAmount!) {
+              setState(() {
+                isExchangeLoading = false;
+                mAmountController.text = '';
+                mFees = 0.0;
+                mTotalAmount = '0.0';
+                mGetTotalAmount = 0.0;
+                isSubmit = false;
+              });
+              _showInsufficientBalanceDialog(enteredAmount, estimatedFee, estimatedTotal);
+            } else {
+              mExchangeMoneyApi();
+            }
+          } else {
+            setState(() {
+              isExchangeLoading = false;
+              mAmountController.text = '';
+              mFees = 0.0;
+              mTotalAmount = '0.0';
+              mGetTotalAmount = 0.0;
+              isSubmit = false;
+            });
+            CustomSnackBar.showSnackBar(
+              context: context,
+              message: "Please enter a valid amount",
+              color: kPrimaryColor,
+            );
+          }
+        } else {
+          setState(() {
+            isExchangeLoading = false;
+            mAmountController.text = '';
+            mFees = 0.0;
+            mTotalAmount = '0.0';
+            mGetTotalAmount = 0.0;
+            isSubmit = false;
+          });
+          CustomSnackBar.showSnackBar(
+            context: context,
+            message: "Please enter an amount",
+            color: kPrimaryColor,
+          );
+        }
+      } else {
+        setState(() {
+          isExchangeLoading = false;
+          mAmountController.text = '';
+          mFees = 0.0;
+          mTotalAmount = '0.0';
+          mGetTotalAmount = 0.0;
+          isSubmit = false;
+        });
+        CustomSnackBar.showSnackBar(
+          context: context,
+          message: "Please select an account",
+          color: kPrimaryColor,
+        );
+      }
+    });
   }
 
   @override
@@ -240,9 +445,7 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
       ),
       body: isLoading
           ? const Center(
-              child: CircularProgressIndicator(
-                color: kPrimaryColor,
-              ),
+              child: CircularProgressIndicator(color: kPrimaryColor),
             )
           : SingleChildScrollView(
               child: Padding(
@@ -288,9 +491,7 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
                         fillColor: Colors.transparent,
                       ),
                     ),
-
                     const SizedBox(height: defaultPadding),
-
                     TextFormField(
                       controller: mCurrencyController,
                       keyboardType: TextInputType.text,
@@ -310,7 +511,6 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
                       ),
                     ),
                     const SizedBox(height: largePadding),
-
                     GestureDetector(
                       onTap: () {
                         mGetAllAccountBottomSheet(context);
@@ -324,7 +524,6 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
                           padding: const EdgeInsets.all(defaultPadding),
                           child: Row(
                             children: [
-                              // Use EU flag for EUR, country flag for others
                               if (mToCurrency?.toUpperCase() == 'EUR')
                                 getEuFlagWidget()
                               else
@@ -373,13 +572,11 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      height: largePadding,
-                    ),
+                    const SizedBox(height: largePadding),
                     TextFormField(
                       controller: mAmountController,
-                      keyboardType: TextInputType.phone,
-                      textInputAction: TextInputAction.next,
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.done,
                       cursorColor: kPrimaryColor,
                       style: const TextStyle(color: kPrimaryColor),
                       decoration: InputDecoration(
@@ -396,40 +593,13 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
                         if (value == null || value.isEmpty) {
                           return 'Please enter amount';
                         }
+                        if (double.tryParse(value) == null) {
+                          return 'Please enter a valid number';
+                        }
                         return null;
                       },
-                      onChanged: (value) {
-                        if (mToCurrency != "Select") {
-                          if (mAmountController.text.isNotEmpty) {
-                            if (double.parse(mAmountController.text) <=
-                                mToAmount!) {
-                              mExchangeMoneyApi();
-                            } else {
-                              CustomSnackBar.showSnackBar(
-                                  context: context,
-                                  message: "Please enter a valid amount",
-                                  color: kPrimaryColor);
-                            }
-                          } else {
-                            CustomSnackBar.showSnackBar(
-                                context: context,
-                                message: "Please enter an amount",
-                                color: kPrimaryColor);
-                            setState(() {
-                              mFees = 0.0;
-                              mTotalAmount = '0.0';
-                              mGetTotalAmount = 0.0;
-                            });
-                          }
-                        } else {
-                          CustomSnackBar.showSnackBar(
-                              context: context,
-                              message: "Please select an account",
-                              color: kPrimaryColor);
-                        }
-                      },
+                      onChanged: _onAmountChanged,
                     ),
-
                     const SizedBox(height: 45),
                     Padding(
                       padding: const EdgeInsets.all(defaultPadding),
@@ -449,7 +619,7 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
                                 style: const TextStyle(
                                     color: kPrimaryColor,
                                     fontWeight: FontWeight.bold),
-                              )
+                              ),
                             ],
                           ),
                           const Divider(),
@@ -462,12 +632,21 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
                                     color: kPrimaryColor,
                                     fontWeight: FontWeight.bold),
                               ),
-                              Text(
-                                "$mToCurrencySymbol $mTotalAmount",
-                                style: const TextStyle(
-                                    color: kPrimaryColor,
-                                    fontWeight: FontWeight.bold),
-                              )
+                              isExchangeLoading
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        color: kPrimaryColor,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Text(
+                                      "$mToCurrencySymbol $mTotalAmount",
+                                      style: const TextStyle(
+                                          color: kPrimaryColor,
+                                          fontWeight: FontWeight.bold),
+                                    ),
                             ],
                           ),
                           const SizedBox(height: 8.0),
@@ -481,32 +660,35 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
                                     color: kPrimaryColor,
                                     fontWeight: FontWeight.bold),
                               ),
-                              Text(
-                               "$mFromCurrencySymbol ${mGetTotalAmount?.toStringAsFixed(2) ?? '0.00'}",
-                                style: const TextStyle(
-                                    color: kPrimaryColor,
-                                    fontWeight: FontWeight.bold),
-                              )
+                              isExchangeLoading
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        color: kPrimaryColor,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Text(
+                                      "$mFromCurrencySymbol ${mGetTotalAmount?.toStringAsFixed(2) ?? '0.00'}",
+                                      style: const TextStyle(
+                                          color: kPrimaryColor,
+                                          fontWeight: FontWeight.bold),
+                                    ),
                             ],
                           ),
                         ],
                       ),
                     ),
-
-                    const SizedBox(
-                      height: largePadding,
-                    ),
+                    const SizedBox(height: largePadding),
                     if (isSubmitLoading)
                       const Center(
-                        child: CircularProgressIndicator(
-                          color: kPrimaryColor,
-                        ),
-                      ), // Show loading indicator
-
+                        child: CircularProgressIndicator(color: kPrimaryColor),
+                      ),
                     const SizedBox(height: 30),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 50),
-                      child: isSubmit == true
+                      child: isSubmit
                           ? ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: kPrimaryColor,
@@ -524,7 +706,7 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
                                     color: Colors.white, fontSize: 16),
                               ),
                             )
-                          : Container(), // Show an empty container (or something else) when isReviewOrder is true
+                          : Container(),
                     ),
                   ],
                 ),
@@ -584,7 +766,7 @@ class _UpdateRecipientScreenState extends State<UpdateRecipientScreen> {
 
 class AllAccountsBottomSheet extends StatefulWidget {
   final Function(String, String, String, String, bool, double)
-      onAccountSelected; // Update with required parameters
+      onAccountSelected;
 
   const AllAccountsBottomSheet({super.key, required this.onAccountSelected});
 
@@ -605,7 +787,7 @@ class _AllAccountsBottomSheetState extends State<AllAccountsBottomSheet> {
     mAccounts();
   }
 
-  // Accounts List Api ---------------
+  // Accounts List Api
   Future<void> mAccounts() async {
     setState(() {
       isLoading = true;
@@ -614,220 +796,236 @@ class _AllAccountsBottomSheetState extends State<AllAccountsBottomSheet> {
 
     try {
       final response = await _accountsListApi.accountsListApi();
+      print('API Response: ${response.toString()}');
+      print('Accounts List Length: ${response.accountsList?.length ?? 0}');
 
       if (response.accountsList != null && response.accountsList!.isNotEmpty) {
         setState(() {
           accountsListData = response.accountsList!;
           isLoading = false;
         });
+        for (var account in accountsListData) {
+          print(
+              'Account: ${account.accountId}, Currency: ${account.currency}, IBAN: ${account.iban}');
+        }
       } else {
         setState(() {
           isLoading = false;
           errorMessage = 'No Account Found';
         });
+        print('No accounts found in response');
       }
     } catch (error) {
       setState(() {
         isLoading = false;
         errorMessage = error.toString();
       });
+      print('Error fetching accounts: $error');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Select Account',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: kPrimaryColor,
+      body: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Select Account',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: kPrimaryColor,
+                ),
               ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.close, color: kPrimaryColor),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-        const SizedBox(
-          height: defaultPadding,
-        ),
-        Expanded(
+              IconButton(
+                icon: const Icon(Icons.close, color: kPrimaryColor),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: defaultPadding),
+          Expanded(
             child: isLoading
                 ? const Center(
-                    child: CircularProgressIndicator(
-                      color: kPrimaryColor,
-                    ),
+                    child: CircularProgressIndicator(color: kPrimaryColor),
                   )
-                : SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height,
-                          child: isLoading
-                              ? const Center(
-                                  child:
-                                      CircularProgressIndicator(), // Show loading indicator
-                                )
-                              : ListView.builder(
-                                  itemCount: accountsListData.length,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemBuilder: (context, index) {
-                                    final accountsData =
-                                        accountsListData[index];
-                                    final isSelected = index == _selectedIndex;
-
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 5,
-                                          horizontal: smallPadding),
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            _selectedIndex = index;
-
-                                            widget.onAccountSelected(
-                                              accountsData.accountId ?? '',
-                                              accountsData.country ?? '',
-                                              accountsData.currency ?? '',
-                                              accountsData.iban ?? '',
-                                              accountsData.status ?? false,
-                                              accountsData.amount ?? 0.0,
-                                            );
-                                            Navigator.pop(context);
-                                          });
-                                        },
-                                        child: Card(
-                                          elevation: 5,
-                                          color: isSelected
-                                              ? kPrimaryColor
-                                              : Colors.white,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                                defaultPadding),
-                                          ),
-                                          child: Container(
-                                            padding: const EdgeInsets.all(
-                                                defaultPadding),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    // Use EU flag for EUR, country flag for others
-                                                    if (accountsData.currency
-                                                            ?.toUpperCase() ==
-                                                        'EUR')
-                                                      getEuFlagWidget()
-                                                    else
-                                                      CountryFlag
-                                                          .fromCountryCode(
-                                                        width: 35,
-                                                        height: 35,
-                                                        accountsData.country!,
-                                                        shape: const Circle(),
-                                                      ),
-                                                    Text(
-                                                      "${accountsData.currency}",
-                                                      style: TextStyle(
-                                                        fontSize: 18,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: isSelected
-                                                            ? Colors.white
-                                                            : kPrimaryColor,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(
-                                                    height: defaultPadding),
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    Text(
-                                                      "IBAN",
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: isSelected
-                                                            ? Colors.white
-                                                            : kPrimaryColor,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      "${accountsData.iban}",
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: isSelected
-                                                            ? Colors.white
-                                                            : kPrimaryColor,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(
-                                                    height: defaultPadding),
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    Text(
-                                                      "Balance",
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: isSelected
-                                                            ? Colors.white
-                                                            : kPrimaryColor,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      "${getCurrencySymbol(accountsData.currency)}${accountsData.amount?.toStringAsFixed(2) ?? '0.00'}",
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: isSelected
-                                                            ? Colors.white
-                                                            : kPrimaryColor,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
+                : errorMessage != null
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              errorMessage!,
+                              style: const TextStyle(
+                                  color: kRedColor, fontSize: 16),
+                            ),
+                            const SizedBox(height: defaultPadding),
+                            ElevatedButton(
+                              onPressed: mAccounts,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: kPrimaryColor,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 32, vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
+                              ),
+                              child: const Text(
+                                'Retry',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 16),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  )),
-      ],
-    ));
+                      )
+                    : accountsListData.isEmpty
+                        ? const Center(
+                            child: Text(
+                              'No Accounts Available',
+                              style:
+                                  TextStyle(color: kPrimaryColor, fontSize: 16),
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: accountsListData.length,
+                            itemBuilder: (context, index) {
+                              final accountsData = accountsListData[index];
+                              final isSelected = index == _selectedIndex;
+
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 5, horizontal: smallPadding),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedIndex = index;
+                                      widget.onAccountSelected(
+                                        accountsData.accountId ?? '',
+                                        accountsData.country ?? '',
+                                        accountsData.currency ?? '',
+                                        accountsData.iban ?? '',
+                                        accountsData.status ?? false,
+                                        accountsData.amount ?? 0.0,
+                                      );
+                                      Navigator.pop(context);
+                                    });
+                                  },
+                                  child: Card(
+                                    elevation: 5,
+                                    color: isSelected
+                                        ? kPrimaryColor
+                                        : Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(defaultPadding),
+                                    ),
+                                    child: Container(
+                                      padding:
+                                          const EdgeInsets.all(defaultPadding),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              if (accountsData.currency
+                                                      ?.toUpperCase() ==
+                                                  'EUR')
+                                                getEuFlagWidget()
+                                              else
+                                                CountryFlag.fromCountryCode(
+                                                  width: 35,
+                                                  height: 35,
+                                                  accountsData.country!,
+                                                  shape: const Circle(),
+                                                ),
+                                              Text(
+                                                "${accountsData.currency}",
+                                                style: TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isSelected
+                                                      ? Colors.white
+                                                      : kPrimaryColor,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(
+                                              height: defaultPadding),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                "IBAN",
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isSelected
+                                                      ? Colors.white
+                                                      : kPrimaryColor,
+                                                ),
+                                              ),
+                                              Text(
+                                                "${accountsData.iban}",
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isSelected
+                                                      ? Colors.white
+                                                      : kPrimaryColor,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(
+                                              height: defaultPadding),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                "Balance",
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isSelected
+                                                      ? Colors.white
+                                                      : kPrimaryColor,
+                                                ),
+                                              ),
+                                              Text(
+                                                "${getCurrencySymbol(accountsData.currency)}${accountsData.amount?.toStringAsFixed(2) ?? '0.00'}",
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isSelected
+                                                      ? Colors.white
+                                                      : kPrimaryColor,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+          ),
+        ],
+      ),
+    );
   }
 }

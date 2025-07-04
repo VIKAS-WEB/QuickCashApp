@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:country_picker/country_picker.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:quickcash/Screens/DashboardScreen/BeneficiaryScreen/addBeneficiaryModel/addBeneficiaryApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/BeneficiaryScreen/addBeneficiaryModel/addBeneficiaryModel.dart';
 import 'package:quickcash/Screens/DashboardScreen/BeneficiaryScreen/beneficiaryCurrencyModel/beneficiaryCurrencyApi.dart';
 import 'package:quickcash/Screens/DashboardScreen/BeneficiaryScreen/beneficiaryCurrencyModel/beneficiaryCurrencyModel.dart';
+import 'package:quickcash/Screens/DashboardScreen/BeneficiaryScreen/show_beneficiary.dart';
 import 'package:quickcash/util/auth_manager.dart';
 import '../../../constants.dart';
 import '../../../util/customSnackBar.dart';
@@ -69,7 +71,7 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
           if(response.message == "Receipient is added Successfully!!!"){
             setState(() {
               isLoading = false;
-              CustomSnackBar.showSnackBar(context: context, message: "Beneficiary is added Successfully", color: kPrimaryColor);
+              CustomSnackBar.showSnackBar(context: context, message: "Beneficiary is added Successfully", color: kGreenColor);
               mFullName.clear();
               mEmail.clear();
               mMobileNo.clear();
@@ -81,10 +83,10 @@ class _SelectBeneficiaryScreen extends State<SelectBeneficiaryScreen> {
               selectedCurrency = '';
               mCurrencyCode = '';
             });
-
+            Navigator.push(context, CupertinoPageRoute(builder: (context) => ShowBeneficiaryScreen(),));
           }else{
             setState(() {
-              CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kPrimaryColor);
+              CustomSnackBar.showSnackBar(context: context, message: "We are facing some issue!", color: kRedColor);
               isLoading = false;
             });
           }
